@@ -137,12 +137,12 @@ if (!empty($suggestions)) {
                                         <button type="button"
                                                 class="btn btn-outline-secondary btn-sm d-block w-100"
                                                 title="Für diesen Vorschlag voten"
-                                                onclick="openVoteConfirm(this.form)">&#128077;</button>
+                                                onclick="openVoteConfirm(this.form)"><i class="bi bi-hand-thumbs-up-fill"></i></button>
                                     </form>
                                 <?php else: ?>
                                     <button class="btn btn-sm d-block w-100 <?= $voted ? 'btn-success' : 'btn-outline-secondary' ?>"
                                             disabled
-                                            title="<?= $voted ? 'Du hast bereits gevoted' : 'Einloggen zum Voten' ?>">&#128077;</button>
+                                            title="<?= $voted ? 'Du hast bereits gevoted' : 'Einloggen zum Voten' ?>"><i class="bi bi-hand-thumbs-up-fill"></i></button>
                                 <?php endif; ?>
                                 <small class="text-secondary d-block mt-1"><?= $voteCount ?></small>
                             </div>
@@ -152,7 +152,7 @@ if (!empty($suggestions)) {
                                 <p class="mb-1"><?= nl2br(htmlspecialchars($s['body'])) ?></p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-secondary">
-                                        &#128100; <?= htmlspecialchars($s['username']) ?> &bull; &#128197; <?= $date ?>
+                                        <i class="bi bi-person-fill"></i> <?= htmlspecialchars($s['username']) ?> &bull; <i class="bi bi-calendar3"></i> <?= $date ?>
                                     </small>
                                     <?php if (!empty($_SESSION['is_admin'])): ?>
                                         <form method="POST" action="/private/php/suggestion_delete_submit.php"
@@ -161,7 +161,7 @@ if (!empty($suggestions)) {
                                             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                             <input type="hidden" name="suggestion_id" value="<?= $s['id'] ?>">
                                             <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
-                                                    title="Löschen">&#128465;</button>
+                                                    title="Löschen"><i class="bi bi-trash3"></i></button>
                                         </form>
                                     <?php endif; ?>
                                 </div>
@@ -173,7 +173,7 @@ if (!empty($suggestions)) {
                                         <div class="admin-comment mt-2 p-2 border-start border-success ps-3">
                                             <p class="mb-1 small"><?= nl2br(htmlspecialchars($c['body'], ENT_QUOTES, 'UTF-8')) ?></p>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <small class="text-success">&#x1F4AC; Admin-Antwort &bull; &#128197; <?= $cDate ?></small>
+                                                <small class="text-success"><i class="bi bi-chat-fill"></i> Admin-Antwort &bull; <i class="bi bi-calendar3"></i> <?= $cDate ?></small>
                                                 <?php if (!empty($_SESSION['is_admin'])): ?>
                                                     <form method="POST" action="/private/php/suggestion_comment_delete_submit.php"
                                                           class="d-inline"
@@ -181,7 +181,7 @@ if (!empty($suggestions)) {
                                                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                                         <input type="hidden" name="comment_id" value="<?= $c['id'] ?>">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
-                                                                title="Kommentar löschen">&#128465;</button>
+                                                                title="Kommentar löschen"><i class="bi bi-trash3"></i></button>
                                                     </form>
                                                 <?php endif; ?>
                                             </div>

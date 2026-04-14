@@ -65,7 +65,7 @@ $error   = isset($_GET['error']);
                  Seitenüberschrift
             ==================================================== -->
             <div class="card card-dark text-light p-4 mb-4">
-                <h1 class="h3 mb-1">&#128260; Website-Updates</h1>
+                <h1 class="h3 mb-1"><i class="bi bi-arrow-repeat me-2"></i>Website-Updates</h1>
                 <p class="text-secondary mb-0">Alle Änderungen und Neuerungen auf FPV Spots Germany.</p>
                 <p class="text-secondary mb-0">Damit die Änderungen in eurer Web-App sichtbar werden müsst ihr die App neu installieren.</p>
             </div>
@@ -82,7 +82,7 @@ $error   = isset($_GET['error']);
                  Formular: Neuen Post erstellen (nur Admin)
             ==================================================== -->
             <section class="card card-dark text-light p-4 mb-4" aria-label="Neuen Update-Post erstellen">
-                <h2 class="h5 mb-3">&#43; Neuen Update-Post erstellen</h2>
+                <h2 class="h5 mb-3"><i class="bi bi-plus-circle me-1"></i> Neuen Update-Post erstellen</h2>
                 <form method="POST" action="/private/php/update_submit.php" novalidate>
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 

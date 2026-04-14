@@ -21,12 +21,12 @@
 
 <div id="update-banner-backdrop" role="dialog" aria-modal="true" aria-label="Update-Hinweis">
     <aside id="update-banner">
-        <strong class="text-success d-block mb-2">&#128640; Neue Features &amp; Verbesserungen</strong>
+        <strong class="text-success d-block mb-2"><i class="bi bi-rocket-fill me-1"></i> Neue Features &amp; Verbesserungen</strong>
         <ul class="text-light small mb-3 ps-3 mt-1">
             <li class="mb-2">
                 <strong>Parkmöglichkeiten (neu):</strong> Jeder registrierte Nutzer kann die Parkmöglichkeit
                 eines Spots direkt auf der Detailseite eintragen und bearbeiten &ndash; klick einfach auf das
-                &#9998;-Symbol. Es wird auch angezeigt, wer zuletzt etwas geändert hat.
+                <i class="bi bi-pencil"></i>-Symbol. Es wird auch angezeigt, wer zuletzt etwas geändert hat.
             </li>
             <li class="mb-2">
                 <strong>Standort-Button:</strong> Der blaue Standort-Button ist jetzt für alle sichtbar.
@@ -34,7 +34,7 @@
             </li>
             <li class="mb-0">
                 <strong>Update-Benachrichtigungen:</strong> Wenn es neue Updates gibt, erscheint ein
-                &#10071; neben dem Menü &ndash; so verpasst du keine Neuigkeiten mehr.
+                <i class="bi bi-exclamation-circle-fill text-warning"></i> neben dem Menü &ndash; so verpasst du keine Neuigkeiten mehr.
             </li>
         </ul>
         <div class="text-end">

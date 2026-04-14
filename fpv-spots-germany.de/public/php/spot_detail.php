@@ -128,6 +128,12 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
 <?php include __DIR__ . '/../includes/login_modal.php'; ?>
 
 <main class="container py-4">
+    <?php if (!empty($_GET['reported'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>Deine Meldung wurde erfolgreich übermittelt. Vielen Dank!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Schließen"></button>
+        </div>
+    <?php endif; ?>
     <div class="row g-4 justify-content-center">
 
         <!-- ====================================================
@@ -139,13 +145,16 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                     <h1 class="h3 mb-0"><?= htmlspecialchars($spot['name']) ?></h1>
                     <div class="d-flex gap-2 align-items-center">
                         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copySpotLink(this)" title="Spot-Link kopieren"><i class="bi bi-share"></i></button>
+                        <?php if ($isLoggedIn): ?>
+                            <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal" title="Spot melden"><i class="bi bi-flag"></i></button>
+                        <?php endif; ?>
                         <?php if ($isLoggedIn && ($userId === (int)$spot['user_id'] || !empty($_SESSION['is_admin']))): ?>
-                            <a href="/public/php/edit_spot.php?id=<?= $spotId ?>" class="btn btn-outline-primary btn-sm" title="Spot bearbeiten">&#9998;</a>
+                            <a href="/public/php/edit_spot.php?id=<?= $spotId ?>" class="btn btn-outline-primary btn-sm" title="Spot bearbeiten"><i class="bi bi-pencil"></i></a>
                             <form method="POST" action="/private/php/delete_spot_submit.php"
                                   onsubmit="return confirm('Spot wirklich löschen? Alle Kommentare, Bewertungen und Fotos werden ebenfalls gelöscht.')">
                                 <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                 <input type="hidden" name="spot_id" value="<?= $spotId ?>">
-                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Spot löschen">&#128465;</button>
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Spot löschen"><i class="bi bi-trash3"></i></button>
                             </form>
                         <?php endif; ?>
                     </div>
@@ -163,7 +172,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                         <strong>Parkmöglichkeit:</strong>
                         <?php if ($isLoggedIn): ?>
                             <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1"
-                                    onclick="toggleEditParking()" title="Parkmöglichkeit bearbeiten">&#9998;</button>
+                                    onclick="toggleEditParking()" title="Parkmöglichkeit bearbeiten"><i class="bi bi-pencil"></i></button>
                         <?php endif; ?>
                     </div>
 
@@ -171,7 +180,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                         <?= nl2br(htmlspecialchars($spot['parking_info'] ?: 'Unbekannt')) ?>
                         <?php if ($spot['parking_editor'] && $spot['parking_updated_at']): ?>
                             <small class="text-secondary d-block mt-1">
-                                &#9998; <?= htmlspecialchars($spot['parking_editor']) ?> &bull; <?= date('d.m.Y H:i', strtotime($spot['parking_updated_at'])) ?> Uhr
+                                <i class="bi bi-pencil"></i> <?= htmlspecialchars($spot['parking_editor']) ?> &bull; <?= date('d.m.Y H:i', strtotime($spot['parking_updated_at'])) ?> Uhr
                             </small>
                         <?php endif; ?>
                     </div>
@@ -201,10 +210,10 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                 </div>
 
                 <p class="text-secondary small mb-1">
-                    &#128205; <?= number_format($spot['latitude'], 5) ?>, <?= number_format($spot['longitude'], 5) ?>
+                    <i class="bi bi-geo-alt-fill"></i> <?= number_format($spot['latitude'], 5) ?>, <?= number_format($spot['longitude'], 5) ?>
                 </p>
                 <p class="text-secondary small mb-0">
-                    &#128100; <?= htmlspecialchars($spot['username']) ?> &bull; &#128197; <?= $createdDate ?>
+                    <i class="bi bi-person-fill"></i> <?= htmlspecialchars($spot['username']) ?> &bull; <i class="bi bi-calendar3"></i> <?= $createdDate ?>
                 </p>
             </div>
 
@@ -270,7 +279,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                     <p class="mb-2">
                         <span class="stars-display fs-5">
                             <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <?= $i <= round($avgStars) ? '&#9733;' : '&#9734;' ?>
+                                <?= $i <= round($avgStars) ? '<i class="bi bi-star-fill"></i>' : '<i class="bi bi-star"></i>' ?>
                             <?php endfor; ?>
                         </span>
                         <span class="text-secondary ms-2"><?= $avgStars ?> / 5 (<?= $ratingCount ?> <?= $ratingCount === 1 ? 'Bewertung' : 'Bewertungen' ?>)</span>
@@ -286,7 +295,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                         <div id="starRating" class="d-flex flex-row-reverse justify-content-end">
                             <?php for ($i = 5; $i >= 1; $i--): ?>
                                 <input type="radio" name="stars" value="<?= $i ?>" id="star<?= $i ?>" class="d-none" <?= $userRating === $i ? 'checked' : '' ?>>
-                                <label for="star<?= $i ?>" class="star <?= $userRating >= $i ? 'active' : '' ?>">&#9733;</label>
+                                <label for="star<?= $i ?>" class="star <?= $userRating >= $i ? 'active' : '' ?>"><i class="bi bi-star-fill"></i></label>
                             <?php endfor; ?>
                         </div>
                         <button type="submit" class="btn btn-sm btn-outline-warning">Bewerten</button>
@@ -336,13 +345,13 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                     ?>
                     <article class="comment-item py-3" id="comment-<?= $comment['id'] ?>">
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="fw-semibold small">&#128100; <?= htmlspecialchars($comment['username']) ?></span>
+                            <span class="fw-semibold small"><i class="bi bi-person-fill"></i> <?= htmlspecialchars($comment['username']) ?></span>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="text-secondary small"><?= $commentDate ?></span>
                                 <?php if ($isCommentOwner): ?>
                                     <button class="btn btn-outline-primary btn-sm py-0 px-1"
                                             onclick="toggleEditComment(<?= $comment['id'] ?>)"
-                                            title="Bearbeiten">&#9998;</button>
+                                            title="Bearbeiten"><i class="bi bi-pencil"></i></button>
                                 <?php endif; ?>
                                 <?php if ($canDelete): ?>
                                     <form method="POST" action="/private/php/comment_delete_submit.php"
@@ -351,7 +360,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                         <input type="hidden" name="comment_id" value="<?= $comment['id'] ?>">
                                         <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
-                                                title="Löschen">&#128465;</button>
+                                                title="Löschen"><i class="bi bi-trash3"></i></button>
                                     </form>
                                 <?php endif; ?>
                             </div>
@@ -397,7 +406,7 @@ function copySpotLink(btn) {
     const url = window.location.href;
     const original = btn.innerHTML;
     const done = () => {
-        btn.innerHTML = '&#10003; Kopiert!';
+        btn.innerHTML = '<i class="bi bi-check2"></i> Kopiert!';
         btn.disabled = true;
         setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
     };
@@ -466,6 +475,59 @@ if (starRating) {
     });
 }
 </script>
+
+<?php if ($isLoggedIn): ?>
+<!-- ============================================================
+     Spot-Melden-Modal
+============================================================ -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h2 class="modal-title h5" id="reportModalLabel"><i class="bi bi-flag me-2"></i>Spot melden</h2>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <form method="POST" action="/private/php/report_submit.php" id="reportForm">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                    <input type="hidden" name="spot_id" value="<?= $spotId ?>">
+                    <div class="mb-3">
+                        <label for="reportType" class="form-label">Art der Meldung</label>
+                        <select class="form-select bg-dark text-light border-secondary" id="reportType" name="report_type" required>
+                            <option value="" disabled selected>Bitte wählen …</option>
+                            <option value="Spot-Allgemein">Spot-Allgemein (z.B. existiert nicht mehr)</option>
+                            <option value="Spot-Info">Spot-Info (falsche oder veraltete Angaben)</option>
+                            <option value="Foto">Foto (unangemessenes oder falsches Bild)</option>
+                            <option value="Kommentar">Kommentar (unangemessener Kommentar)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reportBody" class="form-label">Beschreibung <small class="text-secondary">(mind. 10 Zeichen)</small></label>
+                        <textarea class="form-control bg-dark text-light border-secondary" id="reportBody" name="body"
+                                  rows="4" minlength="10" maxlength="1000" required
+                                  placeholder="Beschreibe das Problem genauer …"></textarea>
+                        <div class="form-text text-secondary"><span id="reportCharCount">0</span> / 1000</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-warning">Meldung absenden</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var ta = document.getElementById('reportBody');
+    var counter = document.getElementById('reportCharCount');
+    if (!ta || !counter) return;
+    ta.addEventListener('input', function () {
+        counter.textContent = ta.value.length;
+    });
+})();
+</script>
+<?php endif; ?>
 
 </body>
 </html>

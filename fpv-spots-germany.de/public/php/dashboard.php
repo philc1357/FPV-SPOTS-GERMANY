@@ -72,7 +72,7 @@ $mySpots = $stmt->fetchAll();
         <div class="col-12 col-md-5">
             <div class="card card-dark text-light p-4 h-100">
                 <h1 class="h4 mb-3">
-                    &#128100; <?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>
+                    <i class="bi bi-person-fill me-1"></i><?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>
                 </h1>
 
                 <table class="table table-dark table-borderless mb-3">
@@ -92,7 +92,7 @@ $mySpots = $stmt->fetchAll();
                 <div class="dropdown">
                     <button class="btn btn-outline-primary dropdown-toggle w-100"
                             type="button" data-bs-toggle="dropdown">
-                        &#9998; Kontodaten ändern
+                        <i class="bi bi-pencil me-1"></i> Kontodaten ändern
                     </button>
                     <ul class="dropdown-menu dropdown-menu-dark w-100">
                         <li><a class="dropdown-item" href="/public/php/change_username.php">Benutzername</a></li>
@@ -109,7 +109,7 @@ $mySpots = $stmt->fetchAll();
         <div class="col-12 col-md-7">
             <div class="card card-dark text-light p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h4 mb-0">&#128204; Meine Spots</h2>
+                    <h2 class="h4 mb-0"><i class="bi bi-pin-map-fill me-1"></i> Meine Spots</h2>
                     <span class="badge bg-primary"><?= count($mySpots) ?></span>
                 </div>
 
@@ -154,17 +154,17 @@ $mySpots = $stmt->fetchAll();
                                     <a href="/"
                                        class="btn btn-outline-light btn-sm"
                                        title="Auf der Karte anzeigen">
-                                        &#128506;
+                                        <i class="bi bi-map"></i>
                                     </a>
                                     <a href="/public/php/edit_spot.php?id=<?= $spot['id'] ?>"
                                        class="btn btn-outline-primary btn-sm"
                                        title="Spot bearbeiten">
-                                        &#9998;
+                                        <i class="bi bi-pencil"></i>
                                     </a>
                                     <button class="btn btn-danger btn-sm"
                                             title="Spot löschen"
                                             onclick="dashDeleteSpot(<?= $spot['id'] ?>, this)">
-                                        &#128465;
+                                        <i class="bi bi-trash3"></i>
                                     </button>
                                 </div>
                             </div>

@@ -26,17 +26,17 @@ if ($isLoggedIn && isset($pdo)) {
         <div class="dropdown">
             <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <?php if ($isLoggedIn): ?>
-                    &#128100;
+                    <i class="bi bi-person-fill"></i>
                 <?php else: ?>
                     Menu
                 <?php endif; ?>
                 <?php if ($hasUnseenUpdates): ?>
-                    <span id="update-notify-btn" class="text-warning fw-bold" aria-label="Neue Updates vorhanden">&#10071;</span>
+                    <span id="update-notify-btn" class="text-warning fw-bold" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span>
                 <?php endif; ?>
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                 <?php if ($isLoggedIn): ?>
-                    <li><a class="dropdown-item" href="/public/php/dashboard.php">&#128100; Dashboard</a></li>
+                    <li><a class="dropdown-item" href="/public/php/dashboard.php"><i class="bi bi-person-fill me-1"></i> Dashboard</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form method="POST" action="/private/php/logout_submit.php" class="d-inline">
@@ -49,7 +49,7 @@ if ($isLoggedIn && isset($pdo)) {
                     <li><a class="dropdown-item" href="/public/php/register.php">Registrieren</a></li>
                 <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="/public/php/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden">&#10071;</span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/public/php/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
                 <li><a class="dropdown-item" href="/public/php/kritik.php">Verbesserungsvorschläge</a></li>
                 <li><a class="dropdown-item" href="/public/php/kontakt.php">Kontakt</a></li>
                 <li><a class="dropdown-item" href="/public/php/impressum.php">Impressum</a></li>
