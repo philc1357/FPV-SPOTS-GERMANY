@@ -1,0 +1,5 @@
+body { background-color: #1a1a2e; }
+.card-dark { background: #16213e; border: 1px solid #0f3460; }
+.suggestion-item { border-bottom: 1px solid #0f3460; }
+.suggestion-item:last-child { border-bottom: none; }
+.admin-comment { background: rgba(25, 135, 84, 0.08); border-radius: 0 4px 4px 0; }

@@ -1,0 +1,7 @@
+body { background-color: #1a1a2e; }
+.card-dark { background: #16213e; border: 1px solid #0f3460; }
+.star { cursor: pointer; font-size: 1.5rem; color: #6c757d; transition: color .15s; }
+.star.active, .star:hover, .star:hover ~ .star { color: #ffc107; }
+.stars-display { color: #ffc107; }
+.comment-item { border-bottom: 1px solid #0f3460; }
+.comment-item:last-child { border-bottom: none; }

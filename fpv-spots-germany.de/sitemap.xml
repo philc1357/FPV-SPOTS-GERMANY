@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    <!-- Startseite -->
+    <url>
+        <loc>https://fpv-spots-germany.de/</loc>
+        <lastmod>2026-04-05</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Updates / Changelog -->
+    <url>
+        <loc>https://fpv-spots-germany.de/updates.php</loc>
+        <lastmod>2026-04-09</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- Verbesserungsvorschläge -->
+    <url>
+        <loc>https://fpv-spots-germany.de/kritik.php</loc>
+        <lastmod>2026-04-05</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <!-- Kontakt -->
+    <url>
+        <loc>https://fpv-spots-germany.de/kontakt.php</loc>
+        <lastmod>2026-04-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <!-- Impressum -->
+    <url>
+        <loc>https://fpv-spots-germany.de/impressum.php</loc>
+        <lastmod>2026-04-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+    <!-- Datenschutz -->
+    <url>
+        <loc>https://fpv-spots-germany.de/datenschutz.php</loc>
+        <lastmod>2026-04-05</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+</urlset>

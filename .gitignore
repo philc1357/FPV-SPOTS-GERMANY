@@ -1,0 +1,23 @@
+# Zugangsdaten & Umgebung
+.env
+.env.local
+.env.*.local
+
+# Datenbank-Dumps (sensibel)
+database.sql
+.database.sql
+reset_tokens.sql
+.reset_tokens.sql
+
+# Composer-Binary
+composer.phar
+
+# PHP-Abhängigkeiten
+vendor/
+
+# Dev-Subdomain
+x.fpv-spots-germany.de/
+
+# Claude-Tooling (lokal)
+.claude/
+.claudeignore

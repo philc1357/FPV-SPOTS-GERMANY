@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Nicht-indexierbare Seiten
+Disallow: /login.php
+Disallow: /register.php
+Disallow: /dashboard.php
+Disallow: /forgot_password.php
+Disallow: /reset_password.php
+Disallow: /edit_spot.php
+Disallow: /change_email.php
+Disallow: /change_password.php
+Disallow: /change_username.php
+Disallow: /kontakt_erfolg.php
+Disallow: /kontakt_error.php
+
+# Private Backend-Verzeichnisse
+Disallow: /private/
+Disallow: /public/php/api/
+
+Sitemap: https://fpv-spots-germany.de/sitemap.xml
