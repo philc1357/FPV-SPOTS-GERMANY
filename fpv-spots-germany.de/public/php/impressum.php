@@ -19,6 +19,7 @@ $csrfToken  = $_SESSION['csrf_token'];
     <meta name="description" content="Impressum von FPV Spots Germany.">
     <meta name="robots" content="noindex, follow">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/public/css/dashboard.css">
 </head>
 <body class="text-light">

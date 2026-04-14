@@ -120,6 +120,10 @@ function esc(str) {
     return d.innerHTML;
 }
 
+function escNl2br(str) {
+    return esc(str).replace(/\n/g, '<br>');
+}
+
 // ---------------------------------------------------------------
 // Alle Spots vom Server laden und als Marker eintragen
 // ---------------------------------------------------------------
@@ -169,7 +173,7 @@ async function openSpotDetail(spot) {
             <span class="badge me-1" style="background:${TYPE_COLORS[spot.spot_type] ?? '#fd7e14'};color:${TYPE_TEXT_COLORS[spot.spot_type] ?? '#ffffff'}">${esc(spot.spot_type)}</span>
             <span class="badge text-bg-${diffColor}">${esc(spot.difficulty)}</span>
         </div>
-        <p class="mb-3">${esc(spot.description || 'Keine Beschreibung vorhanden.')}</p>
+        <p class="mb-3">${escNl2br(spot.description || 'Keine Beschreibung vorhanden.')}</p>
         <p class="mb-3"><strong>Parkmöglichkeit:</strong><br>${esc(spot.parking_info || 'Unbekannt')}</p>
         <p class="text-secondary small mb-1">
             &#128205; ${parseFloat(spot.latitude).toFixed(5)}, ${parseFloat(spot.longitude).toFixed(5)}

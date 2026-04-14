@@ -118,6 +118,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
           rel="stylesheet"
           integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
           crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/public/css/spot_detail.css">
 </head>
 <body class="text-light">
@@ -137,7 +138,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h1 class="h3 mb-0"><?= htmlspecialchars($spot['name']) ?></h1>
                     <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copySpotLink(this)" title="Spot-Link kopieren">&#128279; Teilen</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copySpotLink(this)" title="Spot-Link kopieren"><i class="bi bi-share"></i></button>
                         <?php if ($isLoggedIn && ($userId === (int)$spot['user_id'] || !empty($_SESSION['is_admin']))): ?>
                             <a href="/public/php/edit_spot.php?id=<?= $spotId ?>" class="btn btn-outline-primary btn-sm" title="Spot bearbeiten">&#9998;</a>
                             <form method="POST" action="/private/php/delete_spot_submit.php"
