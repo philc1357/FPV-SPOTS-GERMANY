@@ -167,7 +167,7 @@ async function openSpotDetail(spot) {
     });
 
     document.getElementById('spotDetailLabel').innerHTML =
-        `${esc(spot.name)} <a href="/public/php/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm ms-2" title="Detailansicht">&#128270; Details anzeigen</a>`;
+        `${esc(spot.name)} <a href="/public/php/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm ms-2" title="Detailansicht"><i class="bi bi-search"></i> Details anzeigen</a>`;
     document.getElementById('spotDetailBody').innerHTML = `
         <div class="mb-3">
             <span class="badge me-1" style="background:${TYPE_COLORS[spot.spot_type] ?? '#fd7e14'};color:${TYPE_TEXT_COLORS[spot.spot_type] ?? '#ffffff'}">${esc(spot.spot_type)}</span>
@@ -176,10 +176,10 @@ async function openSpotDetail(spot) {
         <p class="mb-3">${escNl2br(spot.description || 'Keine Beschreibung vorhanden.')}</p>
         <p class="mb-3"><strong>Parkmöglichkeit:</strong><br>${esc(spot.parking_info || 'Unbekannt')}</p>
         <p class="text-secondary small mb-1">
-            &#128205; ${parseFloat(spot.latitude).toFixed(5)}, ${parseFloat(spot.longitude).toFixed(5)}
+            <i class="bi bi-geo-alt-fill"></i> ${parseFloat(spot.latitude).toFixed(5)}, ${parseFloat(spot.longitude).toFixed(5)}
         </p>
         <p class="text-secondary small mb-0">
-            &#128100; ${esc(spot.username)} &nbsp;&bull;&nbsp; &#128197; ${date}
+            <i class="bi bi-person-fill"></i> ${esc(spot.username)} &nbsp;&bull;&nbsp; <i class="bi bi-calendar3"></i> ${date}
         </p>
         <div id="spotPhotoSection"></div>
     `;
@@ -320,7 +320,7 @@ document.getElementById('legendToggle').addEventListener('click', () => {
     const open    = content.hidden;
     content.hidden = !open;
     btn.setAttribute('aria-expanded', open);
-    arrow.innerHTML = open ? '&#9650;' : '&#9660;';
+    arrow.innerHTML = open ? '<i class="bi bi-chevron-up"></i>' : '<i class="bi bi-chevron-down"></i>';
 });
 
 // Legende schließen, wenn das Header-Dropdown aufgeht
@@ -329,7 +329,7 @@ document.addEventListener('show.bs.dropdown', () => {
     if (!content.hidden) {
         content.hidden = true;
         document.getElementById('legendToggle').setAttribute('aria-expanded', 'false');
-        document.getElementById('legendArrow').innerHTML = '&#9660;';
+        document.getElementById('legendArrow').innerHTML = '<i class="bi bi-chevron-down"></i>';
     }
 });
 
