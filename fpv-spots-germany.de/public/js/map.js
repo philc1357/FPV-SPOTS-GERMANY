@@ -21,6 +21,9 @@ const MAP_DEFAULT_CENTER = [51.1657, 10.4515];
 const MAP_DEFAULT_ZOOM   = 6;
 const MAP_MAX_ZOOM       = 19;
 
+// Dashboard-Link: ?spot=ID – früh auslesen, damit sessionStorage gezielt übersprungen werden kann
+const _urlSpotId = new URLSearchParams(window.location.search).get('spot');
+
 // Gespeicherten Kartenzustand aus sessionStorage lesen (überlebt Navigation zu spot_detail.php & zurück,
 // wird beim Schließen des Tabs automatisch verworfen → keine Cookie-Einwilligung nötig).
 function readSavedMapState() {
@@ -41,7 +44,8 @@ function readSavedMapState() {
     }
 }
 
-const savedMapState = readSavedMapState();
+// Bei direktem Spot-Link sessionStorage ignorieren, damit flyTo ungestört greift
+const savedMapState = _urlSpotId ? null : readSavedMapState();
 const map = L.map('map', { zoomControl: true, wheelPxPerZoomLevel: 120 }).setView(
     savedMapState ? [savedMapState.lat, savedMapState.lng] : MAP_DEFAULT_CENTER,
     savedMapState ? savedMapState.zoom : MAP_DEFAULT_ZOOM
@@ -134,6 +138,14 @@ async function loadAllSpots() {
         const spots = await res.json();
         spots.forEach(addMarker);
         filterMarkersByType();
+
+        // Dashboard-Link: ?spot=ID → zum Spot fliegen (kein Popup)
+        if (_urlSpotId && markerStore[_urlSpotId]) {
+            const { spot } = markerStore[_urlSpotId];
+            map.flyTo([spot.latitude, spot.longitude], 16, { duration: 1.2 });
+            // URL bereinigen – kein erneutes Fliegen bei Reload, sessionStorage läuft normal weiter
+            history.replaceState(null, '', window.location.pathname);
+        }
     } catch (err) {
         console.error('Fehler beim Laden der Spots:', err);
     }

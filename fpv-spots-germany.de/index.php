@@ -91,7 +91,7 @@ if (!empty($_SESSION['spot_error'])) {
 ============================================================ -->
 <div id="mapLegend">
     <button id="legendToggle" aria-expanded="false" aria-controls="legendContent">
-        Legende <span id="legendArrow">&#9660;</span>
+        Legende <span id="legendArrow"><i class="bi bi-chevron-down"></i></span>
     </button>
     <div id="legendContent" hidden>
         <hr>
@@ -117,7 +117,7 @@ if (!empty($_SESSION['spot_error'])) {
 <?php if ($isLoggedIn): ?>
 <div id="mapHint">
     <span class="badge bg-dark bg-opacity-75 text-light px-3 py-2 fs-7">
-        &#128204; Auf die Karte klicken, um einen Spot zu erstellen
+        <i class="bi bi-plus-circle-fill me-1"></i> Auf die Karte klicken, um einen Spot zu erstellen
     </span>
 </div>
 <?php endif; ?>
@@ -237,7 +237,7 @@ if (!empty($_SESSION['spot_error'])) {
 ============================================================ -->
 <div class="offcanvas offcanvas-bottom bg-dark text-light" tabindex="-1" id="createSpotOffcanvas" style="height: 50dvh;" aria-labelledby="createSpotLabel">
     <div class="offcanvas-header border-bottom border-secondary">
-        <h5 class="offcanvas-title" id="createSpotLabel">&#128204; Neuen Spot erstellen</h5>
+        <h5 class="offcanvas-title" id="createSpotLabel"><i class="bi bi-plus-circle-fill me-2"></i>Neuen Spot erstellen</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Schliessen"></button>
     </div>
     <div class="offcanvas-body overflow-auto">

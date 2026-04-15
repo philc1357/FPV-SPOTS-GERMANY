@@ -24,7 +24,7 @@ $username   = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8')
 $csrfToken  = $_SESSION['csrf_token'];
 
 // Profil-Daten laden
-$stmt = $pdo->prepare("SELECT username, email FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT username, email, bio FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $userData = $stmt->fetch();
 
@@ -87,6 +87,40 @@ $mySpots = $stmt->fetchAll();
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- Über mich / Bio -->
+                <div class="mb-3">
+                    <p class="text-secondary fw-semibold mb-1"><i class="bi bi-card-text me-1"></i>Über mich</p>
+                    <div id="bioDisplay" class="text-light small">
+                        <?php if (!empty($userData['bio'])): ?>
+                            <?= nl2br(htmlspecialchars($userData['bio'], ENT_QUOTES, 'UTF-8')) ?>
+                        <?php else: ?>
+                            <span class="text-secondary fst-italic">Noch keine Beschreibung vorhanden.</span>
+                        <?php endif; ?>
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm mt-2"
+                            id="bioEditBtn" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#bioEditForm"
+                            aria-expanded="false" aria-controls="bioEditForm">
+                        <i class="bi bi-pencil me-1"></i> Beschreibung bearbeiten
+                    </button>
+                </div>
+
+                <!-- Bio-Bearbeitungsformular (Bootstrap Collapse) -->
+                <div class="collapse mb-3" id="bioEditForm">
+                    <div id="bioSuccessAlert" class="alert alert-success d-none py-1 small" role="alert"></div>
+                    <div id="bioErrorAlert"   class="alert alert-danger  d-none py-1 small" role="alert"></div>
+                    <textarea id="bioTextarea"
+                              class="form-control bg-dark text-light border-secondary"
+                              rows="4" maxlength="1000"
+                              placeholder="Beschreibe dich kurz (max. 1000 Zeichen)…"><?= htmlspecialchars($userData['bio'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <small id="bioCharCount" class="text-secondary">0 / 1000</small>
+                        <button id="bioSaveBtn" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check2 me-1"></i> Speichern
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Dropdown: Kontodaten ändern -->
                 <div class="dropdown">
@@ -151,7 +185,7 @@ $mySpots = $stmt->fetchAll();
                                     </small>
                                 </div>
                                 <div class="d-flex gap-2 flex-shrink-0">
-                                    <a href="/"
+                                    <a href="/?spot=<?= $spot['id'] ?>"
                                        class="btn btn-outline-light btn-sm"
                                        title="Auf der Karte anzeigen">
                                         <i class="bi bi-map"></i>
@@ -235,6 +269,59 @@ function showDash(id, msg) {
     el.textContent = msg;
     el.classList.remove('d-none');
     setTimeout(() => el.classList.add('d-none'), 4000);
+}
+
+// ---------------------------------------------------------------
+// Bio bearbeiten
+// ---------------------------------------------------------------
+const bioTextarea = document.getElementById('bioTextarea');
+const bioCharCount = document.getElementById('bioCharCount');
+
+function updateBioCount() {
+    bioCharCount.textContent = bioTextarea.value.length + ' / 1000';
+}
+updateBioCount();
+bioTextarea.addEventListener('input', updateBioCount);
+
+document.getElementById('bioSaveBtn').addEventListener('click', async () => {
+    const bio = bioTextarea.value.trim();
+    if (bio.length < 1) {
+        showBioAlert('error', 'Die Beschreibung darf nicht leer sein.');
+        return;
+    }
+
+    const saveBtn = document.getElementById('bioSaveBtn');
+    saveBtn.disabled = true;
+
+    try {
+        const res  = await fetch('/public/php/api/update_bio.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bio, csrf_token: CSRF }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('bioDisplay').innerHTML =
+                bio.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+            showBioAlert('success', 'Beschreibung gespeichert.');
+        } else {
+            showBioAlert('error', data.error || 'Fehler beim Speichern.');
+        }
+    } catch {
+        showBioAlert('error', 'Netzwerkfehler. Bitte erneut versuchen.');
+    } finally {
+        saveBtn.disabled = false;
+    }
+});
+
+function showBioAlert(type, msg) {
+    const s = document.getElementById('bioSuccessAlert');
+    const e = document.getElementById('bioErrorAlert');
+    s.classList.add('d-none');
+    e.classList.add('d-none');
+    if (type === 'success') { s.textContent = msg; s.classList.remove('d-none'); }
+    else                    { e.textContent = msg; e.classList.remove('d-none'); }
 }
 </script>
 
