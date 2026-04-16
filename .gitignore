@@ -15,6 +15,9 @@ vendor/
 # Dev-Subdomain
 x.fpv-spots-germany.de/
 
+# User-Uploads (werden über Web-Interface hochgeladen, nicht in git versionieren)
+fpv-spots-germany.de/public/uploads/imgs/
+
 # Claude-Tooling (lokal)
 .claude/
 .claudeignore

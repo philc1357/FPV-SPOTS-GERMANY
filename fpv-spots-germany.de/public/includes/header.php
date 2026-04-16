@@ -21,7 +21,21 @@ if ($isLoggedIn && isset($pdo)) {
     }
 }
 
-$hasAnyNotifications = $hasUnseenUpdates || $hasUnseenSuggestions;
+$hasUnreadComments = false;
+if ($isLoggedIn && isset($pdo)) {
+    try {
+        $ncStmt = $pdo->prepare(
+            "SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND read_at IS NULL"
+        );
+        $ncStmt->execute([(int)$_SESSION['user_id']]);
+        $hasUnreadComments = (bool)$ncStmt->fetchColumn();
+    } catch (PDOException $e) {
+        // Tabelle existiert noch nicht – kein Fehler anzeigen
+    }
+}
+
+$hasKritikNotification = $hasUnseenSuggestions || $hasUnreadComments;
+$hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification;
 ?>
 
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -61,7 +75,7 @@ $hasAnyNotifications = $hasUnseenUpdates || $hasUnseenSuggestions;
                 <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/public/php/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
-                <li><a class="dropdown-item" href="/public/php/kritik.php">Verbesserungsvorschläge<?php if ($hasUnseenSuggestions): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Verbesserungsvorschläge vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/public/php/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
                 <li><a class="dropdown-item" href="/public/php/kontakt.php">Kontakt</a></li>
                 <li><a class="dropdown-item" href="/public/php/impressum.php">Impressum</a></li>
                 <li><a class="dropdown-item" href="/public/php/datenschutz.php">Datenschutz</a></li>

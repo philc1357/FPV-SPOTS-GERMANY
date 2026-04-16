@@ -38,5 +38,60 @@ try {
     error_log('suggestion_comment_submit.php error: ' . $e->getMessage());
 }
 
+// In-App-Benachrichtigung für den Vorschlag-Autor speichern
+try {
+    $ownerIdStmt = $pdo->prepare("SELECT user_id FROM suggestions WHERE id = ?");
+    $ownerIdStmt->execute([$suggestionId]);
+    $ownerId = (int)$ownerIdStmt->fetchColumn();
+
+    // Nicht den Admin selbst benachrichtigen, falls er seinen eigenen Vorschlag kommentiert
+    if ($ownerId > 0 && $ownerId !== $userId) {
+        $nStmt = $pdo->prepare(
+            "INSERT INTO user_notifications (user_id, type, reference_id) VALUES (?, 'suggestion_comment', ?)"
+        );
+        $nStmt->execute([$ownerId, $suggestionId]);
+    }
+} catch (PDOException $e) {
+    error_log('suggestion_comment_submit.php notification error: ' . $e->getMessage());
+}
+
+// E-Mail-Benachrichtigung an den Vorschlag-Autor senden
+try {
+    $ownerStmt = $pdo->prepare(
+        "SELECT u.email, u.username
+         FROM suggestions s
+         JOIN users u ON s.user_id = u.id
+         WHERE s.id = ?"
+    );
+    $ownerStmt->execute([$suggestionId]);
+    $owner = $ownerStmt->fetch();
+
+    if ($owner && filter_var($owner['email'], FILTER_VALIDATE_EMAIL)) {
+        require_once __DIR__ . '/mailer.php';
+
+        $recipientName = htmlspecialchars($owner['username'], ENT_QUOTES, 'UTF-8');
+        $snippet       = mb_substr($body, 0, 200);
+        $url           = 'https://fpv-spots-germany.de/public/php/kritik.php#suggestion-' . $suggestionId;
+
+        $mailer->addAddress($owner['email'], $recipientName);
+        $mailer->Subject = 'Dein Vorschlag wurde kommentiert – FPV Spots Germany';
+        $mailer->isHTML(false);
+        $mailer->Body =
+            "Hallo {$recipientName},\n\n" .
+            "dein Verbesserungsvorschlag auf FPV Spots Germany wurde soeben kommentiert.\n\n" .
+            "Kommentar:\n" .
+            "----------\n" .
+            $snippet . (mb_strlen($body) > 200 ? ' …' : '') . "\n\n" .
+            "Zum Vorschlag:\n" .
+            $url . "\n\n" .
+            "Viele Grüße\n" .
+            "FPV Spots Germany";
+
+        $mailer->send();
+    }
+} catch (Exception $e) {
+    error_log('suggestion_comment_submit.php mailer error: ' . $e->getMessage());
+}
+
 header('Location: /public/php/kritik.php#suggestion-' . $suggestionId);
 exit;

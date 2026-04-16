@@ -72,6 +72,11 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
     accent-color: #0d6efd;
 }
 
+/* Layer-Wechsler: über der Attribution-Zeile */
+.leaflet-bottom.leaflet-left .leaflet-control-layers {
+    margin-bottom: 30px;
+}
+
 /* Standort-Button unten rechts */
 #locateMeBtn {
     position: fixed;

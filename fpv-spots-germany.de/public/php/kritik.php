@@ -30,6 +30,19 @@ $stmt = $pdo->prepare(
 $stmt->execute([':uid' => $userId]);
 $suggestions = $stmt->fetchAll();
 
+// Ungelesene Kommentar-Benachrichtigungen als gelesen markieren
+if ($isLoggedIn) {
+    try {
+        $stmt = $pdo->prepare(
+            "UPDATE user_notifications SET read_at = NOW()
+             WHERE user_id = ? AND type = 'suggestion_comment' AND read_at IS NULL"
+        );
+        $stmt->execute([$userId]);
+    } catch (PDOException $e) {
+        error_log('kritik.php notification read error: ' . $e->getMessage());
+    }
+}
+
 // Cookie setzen: neuesten Vorschlag als gesehen markieren
 if ($isLoggedIn && !empty($suggestions)) {
     $latestCreated = $pdo->query("SELECT MAX(created_at) AS max_at FROM suggestions")->fetchColumn();

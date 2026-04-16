@@ -333,10 +333,18 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
     // Karte initialisieren
     const map = L.map('profileMap', { zoomControl: true, scrollWheelZoom: false });
     setTimeout(() => map.invalidateSize(), 100);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
-    }).addTo(map);
+    });
+    const satelliteLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 19,
+    });
+    streetLayer.addTo(map);
+    L.control.layers({ 'Straße': streetLayer, 'Satellit': satelliteLayer }, null, { position: 'bottomleft' }).addTo(map);
 
     fetch(`/public/php/api/spots.php?user_id=${PROFILE_USER_ID}`)
         .then(r => r.ok ? r.json() : Promise.reject(r.status))

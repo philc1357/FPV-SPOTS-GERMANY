@@ -61,10 +61,28 @@ map.on('moveend zoomend', () => {
     } catch (_) { /* sessionStorage nicht verfügbar – ignorieren */ }
 });
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// ---------------------------------------------------------------
+// Tile-Layer: Straße (OSM) und Satellit (Esri World Imagery)
+// ---------------------------------------------------------------
+const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: MAP_MAX_ZOOM,
-}).addTo(map);
+});
+
+const satelliteLayer = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    maxZoom: MAP_MAX_ZOOM,
+});
+
+const savedLayerName = (() => { try { return sessionStorage.getItem('fpv_map_layer'); } catch (_) { return null; } })();
+(savedLayerName === 'Satellit' ? satelliteLayer : streetLayer).addTo(map);
+
+L.control.layers({ 'Straße': streetLayer, 'Satellit': satelliteLayer }, null, { position: 'bottomleft' }).addTo(map);
+
+map.on('baselayerchange', (e) => {
+    try { sessionStorage.setItem('fpv_map_layer', e.name); } catch (_) {}
+});
 
 // ---------------------------------------------------------------
 // Spot-Typ → Marker-Farbe
