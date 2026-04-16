@@ -21,20 +21,28 @@
 
 <div id="update-banner-backdrop" role="dialog" aria-modal="true" aria-label="Update-Hinweis">
     <aside id="update-banner">
-        <strong class="text-success d-block mb-2"><i class="bi bi-rocket-fill me-1"></i> Neue Features &amp; Verbesserungen</strong>
+        <strong class="text-success d-block mb-2"><i class="bi bi-rocket-fill me-1"></i> Großes Update &ndash; Neue Features</strong>
         <ul class="text-light small mb-3 ps-3 mt-1">
             <li class="mb-2">
-                <strong>Parkmöglichkeiten (neu):</strong> Jeder registrierte Nutzer kann die Parkmöglichkeit
-                eines Spots direkt auf der Detailseite eintragen und bearbeiten &ndash; klick einfach auf das
-                <i class="bi bi-pencil"></i>-Symbol. Es wird auch angezeigt, wer zuletzt etwas geändert hat.
+                <strong>Profilbeschreibung:</strong> Im Dashboard kannst du jetzt eine kurze Bio über dich hinterlegen &ndash;
+                erzähl anderen, wer du bist und wo du fliegst.
             </li>
             <li class="mb-2">
-                <strong>Standort-Button:</strong> Der blaue Standort-Button ist jetzt für alle sichtbar.
-                Wer den Standort bisher abgelehnt hat, kann ihn durch einen Klick auf den Button erneut freigeben.
+                <strong>Öffentliche Profilseite:</strong> Jeder Nutzer hat jetzt eine eigene Profilseite mit einer
+                Mini-Karte, auf der alle seine Spots auf einen Blick zu sehen sind.
+            </li>
+            <li class="mb-2">
+                <strong>Direktnachrichten:</strong> Du kannst registrierten Nutzern jetzt direkt eine Nachricht schreiben &ndash;
+                einfach das Profil aufrufen und auf <i class="bi bi-envelope-fill"></i> klicken.
+            </li>
+            <li class="mb-2">
+                <strong>Satellitenansicht:</strong> Die Karte unterstützt jetzt eine Satellitenansicht &ndash;
+                ideal um Gelände, Bebauung und Flugbereiche besser einschätzen zu können.
             </li>
             <li class="mb-0">
-                <strong>Update-Benachrichtigungen:</strong> Wenn es neue Updates gibt, erscheint ein
-                <i class="bi bi-exclamation-circle-fill text-warning"></i> neben dem Menü &ndash; so verpasst du keine Neuigkeiten mehr.
+                <strong>Smarte Benachrichtigungen:</strong> Das <i class="bi bi-exclamation-circle-fill text-warning"></i>-Symbol
+                im Menü zeigt dir jetzt an, wenn du eine neue Nachricht erhalten hast, jemand einen neuen
+                Verbesserungsvorschlag eingereicht hat oder ein Kommentar zu deinem Vorschlag hinzugekommen ist.
             </li>
         </ul>
         <div class="text-end">
@@ -49,7 +57,7 @@
 (function () {
     'use strict';
 
-    var COOKIE_NAME = 'update_notice_v2';
+    var COOKIE_NAME = 'update_notice_v3';
     var COOKIE_DAYS = 356;
 
     function getCookie(name) {

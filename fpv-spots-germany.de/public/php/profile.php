@@ -78,6 +78,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
     <link rel="stylesheet" href="/public/css/dashboard.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+    <meta name="app-csrf-token" content="<?= $csrfToken ?>">
 </head>
 <body class="text-light">
 
@@ -93,6 +94,11 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
             <article class="card card-dark text-light p-4 h-100">
                 <h1 class="h4 mb-3">
                     <i class="bi bi-person-fill me-1"></i><?= $profileUsername ?>
+                    <button class="btn btn-outline-success btn-sm ms-2"
+                            data-bs-toggle="modal" data-bs-target="#sendMessageModal"
+                            title="Nachricht senden">
+                        <i class="bi bi-envelope-fill"></i>
+                    </button>
                 </h1>
 
                 <table class="table table-dark table-borderless mb-3">
@@ -211,6 +217,33 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
 
     </div><!-- /.row -->
 </main><!-- /.container -->
+
+<!-- Nachricht senden Modal -->
+<div class="modal fade" id="sendMessageModal" tabindex="-1" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="sendMessageModalLabel">
+                    <i class="bi bi-envelope-fill me-1"></i>Nachricht an <?= $profileUsername ?>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <div class="modal-body">
+                <div id="msgSuccessAlert" class="alert alert-success d-none py-2 small"></div>
+                <div id="msgErrorAlert" class="alert alert-danger d-none py-2 small"></div>
+                <textarea id="msgBody" class="form-control bg-secondary text-light border-0"
+                          rows="4" maxlength="2000"
+                          placeholder="Deine Nachricht..."></textarea>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <small id="msgCharCount" class="text-secondary">0 / 2000</small>
+                    <button id="msgSendBtn" class="btn btn-success btn-sm">
+                        <i class="bi bi-send-fill me-1"></i>Senden
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
@@ -368,6 +401,67 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
             console.error('Fehler beim Laden der Profilkarte:', err);
             map.setView([51.1657, 10.4515], 6);
         });
+})();
+</script>
+
+<script>
+'use strict';
+(function () {
+    const CSRF         = document.querySelector('meta[name="app-csrf-token"]').content;
+    const PROFILE_ID   = <?= $profileId ?>;
+    const API          = '/public/php/api/messages.php';
+    const msgBody      = document.getElementById('msgBody');
+    const msgCharCount = document.getElementById('msgCharCount');
+    const msgSendBtn   = document.getElementById('msgSendBtn');
+    const msgSuccess   = document.getElementById('msgSuccessAlert');
+    const msgError     = document.getElementById('msgErrorAlert');
+
+    msgBody.addEventListener('input', () => {
+        msgCharCount.textContent = msgBody.value.length + ' / 2000';
+    });
+
+    msgSendBtn.addEventListener('click', async () => {
+        const body = msgBody.value.trim();
+        if (!body) { msgBody.focus(); return; }
+
+        msgSendBtn.disabled = true;
+        msgSuccess.classList.add('d-none');
+        msgError.classList.add('d-none');
+
+        try {
+            const res = await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'send',
+                    recipient_id: PROFILE_ID,
+                    body: body,
+                    csrf_token: CSRF,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                msgError.textContent = data.error || 'Fehler beim Senden.';
+                msgError.classList.remove('d-none');
+                return;
+            }
+            msgBody.value = '';
+            msgCharCount.textContent = '0 / 2000';
+            msgSuccess.innerHTML = 'Nachricht gesendet! <a href="/messages.php?conversation_id=' + data.conversation_id + '" class="alert-link">Zur Konversation</a>';
+            msgSuccess.classList.remove('d-none');
+        } catch (e) {
+            msgError.textContent = 'Netzwerkfehler beim Senden.';
+            msgError.classList.remove('d-none');
+        } finally {
+            msgSendBtn.disabled = false;
+        }
+    });
+
+    // Zuruecksetzen beim Schliessen
+    document.getElementById('sendMessageModal').addEventListener('hidden.bs.modal', () => {
+        msgSuccess.classList.add('d-none');
+        msgError.classList.add('d-none');
+    });
 })();
 </script>
 </body>

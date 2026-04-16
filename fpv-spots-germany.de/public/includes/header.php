@@ -25,7 +25,7 @@ $hasUnreadComments = false;
 if ($isLoggedIn && isset($pdo)) {
     try {
         $ncStmt = $pdo->prepare(
-            "SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND read_at IS NULL"
+            "SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND type != 'new_message' AND read_at IS NULL"
         );
         $ncStmt->execute([(int)$_SESSION['user_id']]);
         $hasUnreadComments = (bool)$ncStmt->fetchColumn();
@@ -34,8 +34,27 @@ if ($isLoggedIn && isset($pdo)) {
     }
 }
 
+$unreadMessageCount = 0;
+if ($isLoggedIn && isset($pdo)) {
+    try {
+        $uid = (int)$_SESSION['user_id'];
+        $msgStmt = $pdo->prepare(
+            "SELECT COUNT(*) FROM messages m
+             JOIN conversations c ON m.conversation_id = c.id
+             WHERE m.sender_id != ? AND m.read_at IS NULL
+               AND ((c.user1_id = ? AND (c.deleted_by_user1 IS NULL OR m.created_at > c.deleted_by_user1))
+                 OR (c.user2_id = ? AND (c.deleted_by_user2 IS NULL OR m.created_at > c.deleted_by_user2)))"
+        );
+        $msgStmt->execute([$uid, $uid, $uid]);
+        $unreadMessageCount = (int)$msgStmt->fetchColumn();
+    } catch (PDOException $e) {
+        // Tabelle existiert noch nicht – kein Fehler anzeigen
+    }
+}
+$hasUnreadMessages = $unreadMessageCount > 0;
+
 $hasKritikNotification = $hasUnseenSuggestions || $hasUnreadComments;
-$hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification;
+$hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnreadMessages;
 ?>
 
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -62,6 +81,16 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification;
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                 <?php if ($isLoggedIn): ?>
                     <li><a class="dropdown-item" href="/public/php/dashboard.php"><i class="bi bi-person-fill me-1"></i> Dashboard</a></li>
+                    <li>
+                        <a class="dropdown-item" href="/public/php/messages.php">
+                            <i class="bi bi-envelope-fill me-1"></i> Nachrichten
+                            <span id="message-notify-badge"
+                                  class="badge bg-warning text-dark ms-1<?= $unreadMessageCount === 0 ? ' d-none' : '' ?>"
+                                  aria-label="Ungelesene Nachrichten">
+                                <?= $unreadMessageCount ?>
+                            </span>
+                        </a>
+                    </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form method="POST" action="/private/php/logout_submit.php" class="d-inline">
@@ -87,21 +116,46 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification;
 <?php if ($hasAnyNotifications): ?>
 <script>
 (function () {
-    var btnBadge      = document.getElementById('update-notify-btn');
-    var updateLink    = document.getElementById('update-notify-link');
+    var btnBadge       = document.getElementById('update-notify-btn');
+    var updateLink     = document.getElementById('update-notify-link');
     var suggestionLink = document.getElementById('suggestion-notify-link');
     if (!btnBadge) return;
     var dropdown = document.querySelector('.dropdown');
     dropdown.addEventListener('shown.bs.dropdown', function () {
         btnBadge.classList.add('d-none');
-        if (updateLink)    updateLink.classList.remove('d-none');
+        if (updateLink)     updateLink.classList.remove('d-none');
         if (suggestionLink) suggestionLink.classList.remove('d-none');
     });
     dropdown.addEventListener('hidden.bs.dropdown', function () {
-        if (updateLink)    updateLink.classList.add('d-none');
+        if (updateLink)     updateLink.classList.add('d-none');
         if (suggestionLink) suggestionLink.classList.add('d-none');
         btnBadge.classList.remove('d-none');
     });
+})();
+</script>
+<?php endif; ?>
+<?php if ($isLoggedIn): ?>
+<script>
+(function () {
+    var badge   = document.getElementById('message-notify-badge');
+    var btnBadge = document.getElementById('update-notify-btn');
+    if (!badge) return;
+    function checkMessages() {
+        fetch('/public/php/api/messages.php?action=unread_count', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var count = data.unread_count || 0;
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.classList.remove('d-none');
+                    if (btnBadge) btnBadge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            })
+            .catch(function () {});
+    }
+    setInterval(checkMessages, 30000);
 })();
 </script>
 <?php endif; ?>

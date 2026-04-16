@@ -1,0 +1,126 @@
+body {
+    background-color: #1a1a2e;
+}
+
+.card-dark {
+    background: #16213e;
+    border: 1px solid #0f3460;
+}
+
+/* Konversationsliste */
+.conversation-list {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.conversation-item {
+    padding: .75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    transition: background .15s;
+}
+.conversation-item:last-child {
+    border-bottom: none;
+}
+.conversation-item:hover {
+    background: rgba(255,255,255,.05);
+}
+.conversation-item.active {
+    background: #0f3460;
+}
+.conversation-item .conv-username {
+    font-weight: 600;
+}
+.conversation-item .conv-preview {
+    font-size: .82rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.conversation-item .conv-time {
+    font-size: .75rem;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+/* Chat-Bereich */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 200px);
+}
+.chat-header {
+    padding: .75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+.chat-input-area {
+    padding: .75rem 1rem;
+    border-top: 1px solid rgba(255,255,255,.1);
+    flex-shrink: 0;
+}
+
+/* Nachrichtenblasen */
+.msg-bubble {
+    max-width: 75%;
+    padding: .5rem .85rem;
+    border-radius: .75rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: .92rem;
+    line-height: 1.45;
+}
+.msg-bubble.own {
+    background: #0f3460;
+    align-self: flex-end;
+    border-bottom-right-radius: .2rem;
+}
+.msg-bubble.other {
+    background: #2a2a4a;
+    align-self: flex-start;
+    border-bottom-left-radius: .2rem;
+}
+.msg-time {
+    font-size: .7rem;
+    color: #6b7280;
+    margin-top: .15rem;
+}
+.msg-time.own {
+    text-align: right;
+}
+
+/* Leerer Zustand */
+.chat-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6b7280;
+    font-size: .95rem;
+}
+
+/* Mobil: Sidebar/Chat-Toggle */
+@media (max-width: 767.98px) {
+    .conversation-list {
+        max-height: calc(100vh - 220px);
+    }
+    .chat-container {
+        height: calc(100vh - 200px);
+    }
+    .msg-bubble {
+        max-width: 88%;
+    }
+}

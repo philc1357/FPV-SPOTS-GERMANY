@@ -209,7 +209,7 @@ async function openSpotDetail(spot) {
             <i class="bi bi-geo-alt-fill"></i> ${parseFloat(spot.latitude).toFixed(5)}, ${parseFloat(spot.longitude).toFixed(5)}
         </p>
         <p class="text-secondary small mb-0">
-            <i class="bi bi-person-fill"></i> <a href="/profile.php?id=${encodeURIComponent(spot.user_id)}" class="text-info text-decoration-none">${esc(spot.username)}</a> &nbsp;&bull;&nbsp; <i class="bi bi-calendar3"></i> ${date}
+            <i class="bi bi-person-fill"></i> <a href="#" class="text-info text-decoration-none profile-link" data-user-id="${encodeURIComponent(spot.user_id)}">${esc(spot.username)}</a> &nbsp;&bull;&nbsp; <i class="bi bi-calendar3"></i> ${date}
         </p>
         <div id="spotPhotoSection"></div>
     `;
@@ -281,6 +281,20 @@ map.on('click', (e) => {
 });
 
 // Spot erstellen wird jetzt per klassischem Form-POST an spot_submit.php gesendet.
+
+// ---------------------------------------------------------------
+// Profillink-Klick: Login-Modal für nicht eingeloggte Nutzer
+// ---------------------------------------------------------------
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.profile-link');
+    if (!link) return;
+    e.preventDefault();
+    if (!IS_LOGGED_IN) {
+        new bootstrap.Modal(document.getElementById('loginModal')).show();
+        return;
+    }
+    window.location.href = '/profile.php?id=' + link.dataset.userId;
+});
 
 // ---------------------------------------------------------------
 // Hilfsfunktionen für Alert-Anzeige
