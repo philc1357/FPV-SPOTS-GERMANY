@@ -11,6 +11,17 @@ if ($isLoggedIn && isset($pdo)) {
         $hasUnseenUpdates = ($lastSeen === '' || $latestUpdate['created_at'] > $lastSeen);
     }
 }
+
+$hasUnseenSuggestions = false;
+if ($isLoggedIn && isset($pdo)) {
+    $latestSuggestion = $pdo->query("SELECT created_at FROM suggestions ORDER BY created_at DESC LIMIT 1")->fetch();
+    if ($latestSuggestion) {
+        $lastSeenSuggestion = $_COOKIE['last_seen_suggestion'] ?? '';
+        $hasUnseenSuggestions = ($lastSeenSuggestion === '' || $latestSuggestion['created_at'] > $lastSeenSuggestion);
+    }
+}
+
+$hasAnyNotifications = $hasUnseenUpdates || $hasUnseenSuggestions;
 ?>
 
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -30,8 +41,8 @@ if ($isLoggedIn && isset($pdo)) {
                 <?php else: ?>
                     Menu
                 <?php endif; ?>
-                <?php if ($hasUnseenUpdates): ?>
-                    <span id="update-notify-btn" class="text-warning fw-bold" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span>
+                <?php if ($hasAnyNotifications): ?>
+                    <span id="update-notify-btn" class="text-warning fw-bold" aria-label="Neue Benachrichtigungen vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span>
                 <?php endif; ?>
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
@@ -50,7 +61,7 @@ if ($isLoggedIn && isset($pdo)) {
                 <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/public/php/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
-                <li><a class="dropdown-item" href="/public/php/kritik.php">Verbesserungsvorschläge</a></li>
+                <li><a class="dropdown-item" href="/public/php/kritik.php">Verbesserungsvorschläge<?php if ($hasUnseenSuggestions): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Verbesserungsvorschläge vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
                 <li><a class="dropdown-item" href="/public/php/kontakt.php">Kontakt</a></li>
                 <li><a class="dropdown-item" href="/public/php/impressum.php">Impressum</a></li>
                 <li><a class="dropdown-item" href="/public/php/datenschutz.php">Datenschutz</a></li>
@@ -59,19 +70,22 @@ if ($isLoggedIn && isset($pdo)) {
     </nav>
 </header>
 
-<?php if ($hasUnseenUpdates): ?>
+<?php if ($hasAnyNotifications): ?>
 <script>
 (function () {
-    var btnBadge = document.getElementById('update-notify-btn');
-    var linkBadge = document.getElementById('update-notify-link');
-    if (!btnBadge || !linkBadge) return;
+    var btnBadge      = document.getElementById('update-notify-btn');
+    var updateLink    = document.getElementById('update-notify-link');
+    var suggestionLink = document.getElementById('suggestion-notify-link');
+    if (!btnBadge) return;
     var dropdown = document.querySelector('.dropdown');
     dropdown.addEventListener('shown.bs.dropdown', function () {
         btnBadge.classList.add('d-none');
-        linkBadge.classList.remove('d-none');
+        if (updateLink)    updateLink.classList.remove('d-none');
+        if (suggestionLink) suggestionLink.classList.remove('d-none');
     });
     dropdown.addEventListener('hidden.bs.dropdown', function () {
-        linkBadge.classList.add('d-none');
+        if (updateLink)    updateLink.classList.add('d-none');
+        if (suggestionLink) suggestionLink.classList.add('d-none');
         btnBadge.classList.remove('d-none');
     });
 })();

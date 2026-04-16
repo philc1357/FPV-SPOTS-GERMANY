@@ -30,6 +30,20 @@ $stmt = $pdo->prepare(
 $stmt->execute([':uid' => $userId]);
 $suggestions = $stmt->fetchAll();
 
+// Cookie setzen: neuesten Vorschlag als gesehen markieren
+if ($isLoggedIn && !empty($suggestions)) {
+    $latestCreated = $pdo->query("SELECT MAX(created_at) AS max_at FROM suggestions")->fetchColumn();
+    if ($latestCreated) {
+        setcookie('last_seen_suggestion', $latestCreated, [
+            'expires'  => time() + 365 * 86400,
+            'path'     => '/',
+            'httponly' => true,
+            'secure'   => true,
+            'samesite' => 'Lax',
+        ]);
+    }
+}
+
 // Admin-Kommentare laden
 $comments = [];
 if (!empty($suggestions)) {
