@@ -191,7 +191,7 @@ async function openSpotDetail(spot) {
             <i class="bi bi-geo-alt-fill"></i> ${parseFloat(spot.latitude).toFixed(5)}, ${parseFloat(spot.longitude).toFixed(5)}
         </p>
         <p class="text-secondary small mb-0">
-            <i class="bi bi-person-fill"></i> ${esc(spot.username)} &nbsp;&bull;&nbsp; <i class="bi bi-calendar3"></i> ${date}
+            <i class="bi bi-person-fill"></i> <a href="/profile.php?id=${encodeURIComponent(spot.user_id)}" class="text-info text-decoration-none">${esc(spot.username)}</a> &nbsp;&bull;&nbsp; <i class="bi bi-calendar3"></i> ${date}
         </p>
         <div id="spotPhotoSection"></div>
     `;

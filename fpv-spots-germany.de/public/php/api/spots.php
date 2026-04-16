@@ -17,14 +17,32 @@ $method = $_SERVER['REQUEST_METHOD'];
 // GET – Alle Spots als JSON zurückgeben
 // ---------------------------------------------------------------
 if ($method === 'GET') {
-    $stmt = $pdo->query(
-        "SELECT s.id, s.user_id, s.name, s.description,
-                s.latitude, s.longitude, s.spot_type, s.difficulty,
-                s.parking_info, s.created_at, u.username
-         FROM spots s
-         JOIN users u ON s.user_id = u.id
-         ORDER BY s.created_at DESC"
-    );
+    $filterUserId = filter_input(INPUT_GET, 'user_id', FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1],
+    ]);
+
+    if ($filterUserId) {
+        $stmt = $pdo->prepare(
+            "SELECT s.id, s.user_id, s.name, s.description,
+                    s.latitude, s.longitude, s.spot_type, s.difficulty,
+                    s.parking_info, s.created_at, u.username
+             FROM spots s
+             JOIN users u ON s.user_id = u.id
+             WHERE s.user_id = ?
+             ORDER BY s.created_at DESC"
+        );
+        $stmt->execute([$filterUserId]);
+    } else {
+        $stmt = $pdo->query(
+            "SELECT s.id, s.user_id, s.name, s.description,
+                    s.latitude, s.longitude, s.spot_type, s.difficulty,
+                    s.parking_info, s.created_at, u.username
+             FROM spots s
+             JOIN users u ON s.user_id = u.id
+             ORDER BY s.created_at DESC"
+        );
+    }
+
     echo json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);
     exit;
 }

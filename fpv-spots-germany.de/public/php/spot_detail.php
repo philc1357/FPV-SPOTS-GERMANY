@@ -144,6 +144,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h1 class="h3 mb-0"><?= htmlspecialchars($spot['name']) ?></h1>
                     <div class="d-flex gap-2 align-items-center">
+                        <a href="/?spot=<?= $spotId ?>" class="btn btn-outline-light btn-sm" title="Auf der Karte anzeigen"><i class="bi bi-map"></i></a>
                         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copySpotLink(this)" title="Spot-Link kopieren"><i class="bi bi-share"></i></button>
                         <?php if ($isLoggedIn): ?>
                             <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal" title="Spot melden"><i class="bi bi-flag"></i></button>
