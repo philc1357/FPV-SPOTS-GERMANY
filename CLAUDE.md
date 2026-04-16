@@ -1,3 +1,0 @@
-- Lege besonderen Fokus aus Sicherheit.
-- ignoriere, wenn nicht anders gewollt immer den ordner: x.fpv-spots-germany.de
-- überprüfe deine änderungen immer noch einmal bevor du sie final übernimmst.
