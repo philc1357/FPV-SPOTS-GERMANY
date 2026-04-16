@@ -1,21 +1,21 @@
 # FPV Spots Germany
 
-Community-Plattform zum Teilen und Bewerten von FPV-Drohnen-Flugspots in Deutschland. Nutzer können Spots auf einer interaktiven Karte eintragen, bewerten, kommentieren und Fotos hochladen.
+Community-Plattform zum Teilen und Bewerten von FPV-Drohnen-Flugspots in Deutschland. Nutzer können Spots auf einer interaktiven Karte eintragen, bewerten, kommentieren, Fotos hochladen und sich per Direktnachricht austauschen.
 
 ## Tech-Stack
 
 | Komponente | Technologie |
 |------------|-------------|
 | Backend | PHP 7.4+ mit PDO (MySQL/MariaDB) |
-| Frontend | Bootstrap 5.3, Leaflet 1.9 (OpenStreetMap) |
+| Frontend | Bootstrap 5.3, Leaflet 1.9 |
+| Kartenkacheln | OpenStreetMap (Standard), Esri World Imagery (Satellit) |
 | Abhängigkeiten | Composer (`vlucas/phpdotenv`, `phpmailer/phpmailer`) |
-| Karte | Leaflet + OpenStreetMap-Tiles |
-| E-Mail | PHPMailer 6 via SMTP (SSL) |
+| E-Mail | PHPMailer 6 via SMTP/SSL (Kasserver) |
 | PWA | Service Worker, Web App Manifest |
 
 ## Features
 
-- Interaktive Vollbild-Karte mit Spot-Markern (Leaflet + OpenStreetMap)
+- Interaktive Vollbild-Karte mit Spot-Markern (Leaflet + OpenStreetMap / Esri Satellit)
 - Spot-Kategorien: Bando, Feld, Gebirge, Park, Verein, Wasser, Sonstige
 - Schwierigkeitsgrade: Anfänger, Mittel, Fortgeschritten, Profi
 - Filterbare Kartenlegende (Typ und Schwierigkeit, persistiert per Cookie)
@@ -23,9 +23,13 @@ Community-Plattform zum Teilen und Bewerten von FPV-Drohnen-Flugspots in Deutsch
 - Spot-Bearbeitung und -Löschung durch Eigentümer oder Admin
 - Sternebewertungen (1–5) und Kommentarsystem (bearbeiten/löschen)
 - Foto-Upload (JPG/PNG, max. 5 MB) pro Spot
+- Community-pflegbare Parkinformationen je Spot
+- Spot-Meldungen (Inhaltsverstöße an Admins melden)
+- Direktnachrichten zwischen registrierten Nutzern (inkl. Benachrichtigungen)
+- Öffentliche Nutzerprofile mit optionaler Bio und Spot-Übersicht
 - Benutzerverwaltung (Registrierung, Login, Profil)
-- Benutzerdaten ändern: Benutzername, E-Mail-Adresse, Passwort
-- "Angemeldet bleiben" via sicherem Remember-Me-Token (30 Tage)
+- Benutzerdaten ändern: Benutzername, E-Mail-Adresse, Passwort, Bio
+- „Angemeldet bleiben" via sicherem Remember-Me-Token (30 Tage)
 - Passwort-Reset per E-Mail (zeitlich begrenzte Tokens)
 - Dashboard mit eigenen Spots
 - Verbesserungsvorschläge mit Community-Voting
@@ -60,8 +64,12 @@ fpv-spots-germany.de/           ← Webroot
 │   │   ├── api/
 │   │   │   ├── spots.php       ← GET alle / POST neuen Spot
 │   │   │   ├── spot.php        ← GET/PUT/DELETE Einzelspot
+│   │   │   ├── messages.php    ← Direktnachrichten-API
+│   │   │   ├── update_bio.php  ← Bio-Aktualisierung
 │   │   │   └── save_legend.php ← Legende-Filter per Cookie speichern
 │   │   ├── dashboard.php       ← Profil + Meine Spots
+│   │   ├── profile.php         ← Öffentliches Nutzerprofil
+│   │   ├── messages.php        ← Direktnachrichten-Oberfläche
 │   │   ├── spot_detail.php     ← Spot-Detailseite (SSR)
 │   │   ├── edit_spot.php
 │   │   ├── login.php
@@ -76,7 +84,6 @@ fpv-spots-germany.de/           ← Webroot
 │   │   ├── updates.php         ← Changelog
 │   │   ├── impressum.php
 │   │   └── datenschutz.php
-│   ├── imgs/
 │   ├── uploads/imgs/           ← Nutzer-Uploads (randomisierte Dateinamen)
 │   └── includes/
 │       ├── header.php
@@ -88,10 +95,13 @@ fpv-spots-germany.de/           ← Webroot
     ├── php/
     │   ├── db.php              ← PDO-Verbindung via .env
     │   ├── auth_check.php
-    │   ├── mailer.php
+    │   ├── mailer.php          ← Kontaktformular-Mailer
+    │   ├── mailer_info.php     ← Transaktionale Mailer (Passwort-Reset)
     │   ├── spot_submit.php
     │   ├── edit_spot_submit.php
     │   ├── delete_spot_submit.php
+    │   ├── parking_info_submit.php
+    │   ├── report_submit.php
     │   ├── comment_submit.php
     │   ├── comment_edit_submit.php
     │   ├── comment_delete_submit.php
@@ -105,6 +115,8 @@ fpv-spots-germany.de/           ← Webroot
     │   ├── suggestion_submit.php
     │   ├── suggestion_vote_submit.php
     │   ├── suggestion_delete_submit.php
+    │   ├── suggestion_comment_submit.php
+    │   ├── suggestion_comment_delete_submit.php
     │   ├── kontakt_submit.php
     │   ├── update_submit.php
     │   └── data_changes/
@@ -121,15 +133,20 @@ Das Schema (`database.sql`) enthält folgende Tabellen:
 
 | Tabelle | Beschreibung |
 |---------|-------------|
-| `users` | Benutzerkonten (username, email, password_hash, admin-Flag) |
-| `spots` | FPV-Spots mit Koordinaten, Typ und Schwierigkeit |
+| `users` | Benutzerkonten (username, email, password_hash, bio, admin-Flag) |
+| `spots` | FPV-Spots mit Koordinaten, Typ, Schwierigkeit und Parkinformationen |
 | `comments` | Kommentare zu Spots |
 | `ratings` | Sternebewertungen (1 Bewertung pro Nutzer pro Spot) |
 | `spot_images` | Hochgeladene Bilder, verknüpft mit Spot und Nutzer |
-| `remember_tokens` | Selector/Validator-Paare für "Angemeldet bleiben" |
+| `spot_reports` | Meldungen zu Spots (Inhaltsverstöße) |
+| `conversations` | Konversationen zwischen je zwei Nutzern |
+| `messages` | Einzelne Nachrichten einer Konversation |
+| `user_notifications` | Interne Benachrichtigungen (z.&nbsp;B. neue Nachricht) |
+| `remember_tokens` | Selector/Validator-Paare für „Angemeldet bleiben" |
 | `password_reset_tokens` | Zeitlich begrenzte Tokens für Passwort-Reset per E-Mail |
 | `suggestions` | Verbesserungsvorschläge der Community |
 | `suggestion_votes` | Votes auf Vorschläge (1 Vote pro Nutzer pro Vorschlag) |
+| `suggestion_comments` | Admin-Kommentare zu Vorschlägen |
 | `contact_requests` | Eingehende Kontaktformular-Nachrichten |
 | `audit_logs` | Sicherheitsrelevante Aktionen mit User-ID und IP |
 | `updates` | Changelog-Einträge (nur Admin kann erstellen) |
@@ -147,6 +164,10 @@ Alle API-Endpunkte liegen unter `public/php/api/` und antworten mit `application
 | `GET` | `/public/php/api/spot.php?id=X` | nein | Einzelnen Spot laden |
 | `POST` + `_method=PUT` | `/public/php/api/spot.php?id=X` | ja + CSRF | Spot bearbeiten (Eigentümer/Admin) |
 | `POST` + `_method=DELETE` | `/public/php/api/spot.php?id=X` | ja + CSRF | Spot löschen (Eigentümer/Admin) |
+| `GET` | `/public/php/api/messages.php` | ja | Konversationen / Nachrichten abrufen |
+| `POST` | `/public/php/api/messages.php` | ja + CSRF | Nachricht senden, Konversation löschen |
+| `POST` | `/public/php/api/update_bio.php` | ja + CSRF | Profil-Bio aktualisieren |
+| `POST` | `/public/php/api/save_legend.php` | nein | Legendenfilter als Cookie speichern |
 
 Da HTML-Formulare und die Fetch-API kein `PUT`/`DELETE` senden, wird das `_method`-Override-Muster über `POST` verwendet.
 
@@ -154,7 +175,7 @@ Da HTML-Formulare und die Fetch-API kein `PUT`/`DELETE` senden, wird das `_metho
 
 Die App ist vollständig als PWA ausgebaut:
 
-- **Installierbar** auf Android, iOS (via "Zum Startbildschirm") und Desktop
+- **Installierbar** auf Android, iOS (via „Zum Startbildschirm") und Desktop
 - **Offline-fähig** dank Service Worker (`sw.js`) mit vier Caching-Strategien:
   - **Cache-first** – statische Assets und CDN-Ressourcen (Bootstrap, Leaflet)
   - **Network-first mit Cache-Fallback** – API-Aufrufe
@@ -170,6 +191,7 @@ Die Anwendung folgt einem klassischen PHP-MVC-nahen Muster ohne Framework:
 - **Rendering:** Server-Side Rendering (SSR) für alle HTML-Seiten
 - **Karte:** Die Hauptseite rendert eine Vollbild-Leaflet-Karte. Spot-Daten werden beim Seitenload asynchron per `Fetch API` aus `spots.php` geladen und als Marker eingetragen
 - **Interaktion:** Karten-Klick öffnet ein Bootstrap-Offcanvas zum Spot erstellen. Marker-Klick öffnet ein weiteres Offcanvas mit der Spot-Vorschau
+- **Direktnachrichten:** Polling-basiert via `messages.php`-API; Gelesen-Status und Benachrichtigungen werden serverseitig verwaltet
 - **Authentifizierungszustand:** Wird per `<meta name="app-logged-in">` und weiteren Meta-Tags sicher an JavaScript übergeben – kein direktes JavaScript-Cookie-Parsing
 - **Legende:** Filtereinstellungen werden serverseitig aus einem Cookie gelesen und per AJAX-Aufruf an `save_legend.php` persistiert
 
@@ -177,7 +199,7 @@ Die Anwendung folgt einem klassischen PHP-MVC-nahen Muster ohne Framework:
 
 ### CSRF-Schutz
 
-Jede Session erhält ein kryptografisch sicheres Token (`bin2hex(random_bytes(32))`), das in allen Formularen als Hidden-Field eingebettet und serverseitig mit `hash_equals()` geprüft wird. Betroffen sind sämtliche schreibenden Endpunkte: Login, Registrierung, Spot-Erstellung, Kommentare, Bewertungen, Uploads und Profiländerungen.
+Jede Session erhält ein kryptografisch sicheres Token (`bin2hex(random_bytes(32))`), das in allen Formularen als Hidden-Field eingebettet und serverseitig mit `hash_equals()` geprüft wird. Betroffen sind sämtliche schreibenden Endpunkte: Login, Registrierung, Spot-Erstellung, Kommentare, Bewertungen, Uploads, Nachrichten und Profiländerungen.
 
 ### SQL-Injection-Schutz
 
@@ -200,7 +222,7 @@ $stmt->execute([$id]);
 - Session-ID-Regeneration nach erfolgreichem Login (`session_regenerate_id()`)
 - Vollständige Session-Zerstörung nach Passwortänderung (erzwingt Re-Login)
 - Passwortanforderungen: 8–50 Zeichen (Obergrenze verhindert BCrypt-Trunkierung)
-- "Angemeldet bleiben": Selector/Validator-Token-Paar, Validator nur als Hash gespeichert
+- „Angemeldet bleiben": Selector/Validator-Token-Paar, Validator nur als Hash gespeichert, Token-Rotation bei jeder Verwendung
 
 ### Autorisierung
 
@@ -237,9 +259,21 @@ preg_match('#^(\.\./)*public/php/[a-zA-Z0-9_]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $red
 
 ### Audit-Logging
 
-Sicherheitsrelevante Aktionen werden mit User-ID und IP-Adresse protokolliert:
+Sicherheitsrelevante Aktionen werden mit User-ID, IP-Adresse und Zeitstempel protokolliert:
 
-- Kommentar-Operationen
+| Aktion | Auslöser |
+|--------|---------|
+| `REGISTER_SUCCESS` | Neue Registrierung |
+| `LOGIN_SUCCESS` | Erfolgreiche Anmeldung |
+| `LOGIN_FAILED` | Fehlgeschlagener Anmeldeversuch (ab 5 in 5 Min. → Rate-Limit 429) |
+| `PASSWORD_RESET_REQUESTED` | Passwort-Reset angefordert |
+| `PASSWORD_RESET_COMPLETED` | Passwort erfolgreich zurückgesetzt |
+| `EMAIL_CHANGED` | E-Mail-Adresse geändert |
+| `USERNAME_CHANGED` | Benutzername geändert |
+| `PASSWORD_CHANGED` | Passwort geändert |
+| `SPOT_CREATED` | Neuer Spot erstellt |
+| `SPOT_EDITED` | Spot bearbeitet |
+| `IMAGE_UPLOADED` | Bild hochgeladen |
 
 ### API-Sicherheit
 
