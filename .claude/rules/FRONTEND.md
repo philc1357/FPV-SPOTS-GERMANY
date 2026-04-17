@@ -1,2 +1,0 @@
-- nutze immer bootstrap 5
-- Achte immer auf sinvolle HTML Tags für SEO.
