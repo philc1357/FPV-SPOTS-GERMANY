@@ -3,7 +3,7 @@
 // FPV Spots Germany – Hauptseite (Karte)
 // =============================================================
 session_start();
-require_once __DIR__ . '/private/php/auth_check.php';
+require_once __DIR__ . '/private/php/core/auth_check.php';
 
 // CSRF-Token einmalig pro Session generieren
 if (empty($_SESSION['csrf_token'])) {
@@ -169,7 +169,7 @@ if (!empty($_SESSION['spot_error'])) {
                         data-bs-dismiss="modal" aria-label="Schliessen"></button>
             </div>
             <div class="modal-body">
-                <form id="loginForm" action="/private/php/login_submit.php" method="POST">
+                <form id="loginForm" action="/private/php/auth/login_submit.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                     <input type="hidden" name="redirect" value="/">
                     <div class="mb-3">
@@ -243,7 +243,7 @@ if (!empty($_SESSION['spot_error'])) {
     <div class="offcanvas-body overflow-auto">
         <div id="createErrorAlert"   class="alert alert-danger  d-none" role="alert"></div>
         <div id="createSuccessAlert" class="alert alert-success d-none" role="alert"></div>
-        <form id="createSpotForm" action="/private/php/spot_submit.php" method="POST" novalidate>
+        <form id="createSpotForm" action="/private/php/spots/spot_submit.php" method="POST" novalidate>
             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
             <!-- Koordinaten werden per JS befüllt -->
             <input type="hidden" id="createLat" name="latitude">

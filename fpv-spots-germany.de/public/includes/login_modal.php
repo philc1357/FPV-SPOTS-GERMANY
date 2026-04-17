@@ -8,7 +8,7 @@
                         data-bs-dismiss="modal" aria-label="Schliessen"></button>
             </div>
             <div class="modal-body">
-                <form action="/private/php/login_submit.php" method="POST">
+                <form action="/private/php/auth/login_submit.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                     <input type="hidden" name="redirect" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8') ?>">
                     <div class="mb-3">

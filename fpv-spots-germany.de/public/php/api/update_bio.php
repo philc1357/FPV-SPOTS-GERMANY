@@ -5,8 +5,8 @@
 // Body (JSON): { bio: string, csrf_token: string }
 // =============================================================
 session_start();
-require_once __DIR__ . '/../../../private/php/auth_check.php';
-require_once __DIR__ . '/../../../private/php/db.php';
+require_once __DIR__ . '/../../../private/php/core/auth_check.php';
+require_once __DIR__ . '/../../../private/php/core/db.php';
 
 header('Content-Type: application/json');
 

@@ -6,7 +6,7 @@
 session_start();
 
 // Datenbankverbindung (von public/php/api/ → 3 Ebenen hoch → ressources/ → private/php/)
-require_once __DIR__ . '/../../../private/php/db.php';
+require_once __DIR__ . '/../../../private/php/core/db.php';
 
 header('Content-Type: application/json; charset=utf-8');
 

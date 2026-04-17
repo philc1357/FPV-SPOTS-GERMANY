@@ -93,7 +93,7 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form method="POST" action="/private/php/logout_submit.php" class="d-inline">
+                        <form method="POST" action="/private/php/auth/logout_submit.php" class="d-inline">
                             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                             <button type="submit" class="dropdown-item text-danger">Logout</button>
                         </form>

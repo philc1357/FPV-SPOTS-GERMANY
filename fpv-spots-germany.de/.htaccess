@@ -39,10 +39,30 @@ RewriteRule ^ /%1 [L,R=301]
 RewriteCond %{THE_REQUEST} /public/html/errors/([a-zA-Z0-9_-]+\.html)[\s?] [NC]
 RewriteRule ^ /%1 [L,R=301]
 
-# Clean URLs: /dateiname.php → public/php/dateiname.php (intern)
+# Clean URLs: /dateiname.php → public/php/[unterordner]/dateiname.php (intern)
 RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.php)$ [NC]
-RewriteCond %{DOCUMENT_ROOT}/public/php/%1 -f
-RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/$1 [L,QSA]
+RewriteCond %{DOCUMENT_ROOT}/public/php/auth/%1 -f
+RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/auth/$1 [L,QSA]
+
+RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.php)$ [NC]
+RewriteCond %{DOCUMENT_ROOT}/public/php/account/%1 -f
+RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/account/$1 [L,QSA]
+
+RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.php)$ [NC]
+RewriteCond %{DOCUMENT_ROOT}/public/php/spots/%1 -f
+RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/spots/$1 [L,QSA]
+
+RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.php)$ [NC]
+RewriteCond %{DOCUMENT_ROOT}/public/php/community/%1 -f
+RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/community/$1 [L,QSA]
+
+RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.php)$ [NC]
+RewriteCond %{DOCUMENT_ROOT}/public/php/contact/%1 -f
+RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/contact/$1 [L,QSA]
+
+RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.php)$ [NC]
+RewriteCond %{DOCUMENT_ROOT}/public/php/legal/%1 -f
+RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/legal/$1 [L,QSA]
 
 # Clean URLs: /dateiname.html → public/html/errors/dateiname.html (intern)
 RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.html)$ [NC]
