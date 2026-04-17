@@ -33,6 +33,8 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
             $_SESSION['username'] = $token['username'];
             $_SESSION['is_admin'] = (int)$token['admin'] === 1;
 
+            $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$token['user_id']]);
+
             // Token rotieren: alten löschen, neuen erstellen (atomar via Transaktion)
             $newSelector  = bin2hex(random_bytes(16));
             $newValidator = bin2hex(random_bytes(32));

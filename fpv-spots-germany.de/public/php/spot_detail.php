@@ -84,6 +84,14 @@ $stmt = $pdo->prepare(
 $stmt->execute([$spotId]);
 $comments = $stmt->fetchAll();
 
+// Favoriten-Status des Users
+$isFavorite = false;
+if ($isLoggedIn) {
+    $stmt = $pdo->prepare("SELECT 1 FROM spot_favorites WHERE user_id = ? AND spot_id = ?");
+    $stmt->execute([$userId, $spotId]);
+    $isFavorite = (bool)$stmt->fetchColumn();
+}
+
 // Typ-Farben
 $typeColors = [
     'Bando'    => '#4b4e5a', 'Feld'     => '#ffe224',
@@ -147,6 +155,15 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                         <a href="/?spot=<?= $spotId ?>" class="btn btn-outline-light btn-sm" title="Auf der Karte anzeigen"><i class="bi bi-map"></i></a>
                         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copySpotLink(this)" title="Spot-Link kopieren"><i class="bi bi-share"></i></button>
                         <?php if ($isLoggedIn): ?>
+                            <form method="POST" action="/private/php/favorite_submit.php" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                <input type="hidden" name="spot_id" value="<?= $spotId ?>">
+                                <input type="hidden" name="redirect" value="/public/php/spot_detail.php?id=<?= $spotId ?>">
+                                <button type="submit" class="btn btn-sm <?= $isFavorite ? 'btn-warning' : 'btn-outline-warning' ?>"
+                                        title="<?= $isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit speichern' ?>">
+                                    <i class="bi bi-heart<?= $isFavorite ? '-fill' : '' ?>"></i>
+                                </button>
+                            </form>
                             <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal" title="Spot melden"><i class="bi bi-flag"></i></button>
                         <?php endif; ?>
                         <?php if ($isLoggedIn && ($userId === (int)$spot['user_id'] || !empty($_SESSION['is_admin']))): ?>

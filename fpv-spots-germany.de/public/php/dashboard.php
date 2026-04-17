@@ -23,6 +23,12 @@ $userId     = (int)$_SESSION['user_id'];
 $username   = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');
 $csrfToken  = $_SESSION['csrf_token'];
 
+// last_seen maximal alle 5 Minuten aktualisieren
+if (empty($_SESSION['last_seen_ts']) || time() - $_SESSION['last_seen_ts'] > 300) {
+    $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$userId]);
+    $_SESSION['last_seen_ts'] = time();
+}
+
 // Profil-Daten laden
 $stmt = $pdo->prepare("SELECT username, email, bio FROM users WHERE id = ?");
 $stmt->execute([$userId]);
@@ -43,6 +49,24 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute([$userId]);
 $mySpots = $stmt->fetchAll();
+
+// Favorisierte Spots laden (neueste Favorisierung zuerst)
+$stmt = $pdo->prepare(
+    "SELECT s.id, s.name, s.spot_type, s.difficulty, sf.created_at AS favorited_at
+     FROM spot_favorites sf
+     JOIN spots s ON sf.spot_id = s.id
+     WHERE sf.user_id = ?
+     ORDER BY sf.created_at DESC"
+);
+$stmt->execute([$userId]);
+$favoriteSpots = $stmt->fetchAll();
+
+$diffBadgeClass = [
+    'Anfänger'        => 'text-bg-success',
+    'Mittel'          => 'text-bg-warning',
+    'Fortgeschritten' => 'text-bg-danger',
+    'Profi'           => 'text-bg-dark',
+];
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -58,6 +82,10 @@ $mySpots = $stmt->fetchAll();
           crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/public/css/dashboard.css">
+    <style>
+        [data-bs-target="#mySpotsCollapse"] .bi-chevron-down { transition: transform .2s; }
+        [data-bs-target="#mySpotsCollapse"][aria-expanded="true"] .bi-chevron-down { transform: rotate(-180deg); }
+    </style>
 </head>
 <body class="text-light">
 
@@ -138,15 +166,84 @@ $mySpots = $stmt->fetchAll();
         </div>
 
         <!-- ====================================================
+             Karte: Meine Favoriten
+        ==================================================== -->
+        <div class="col-12">
+            <div class="card card-dark text-light p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0"><i class="bi bi-heart-fill me-1 text-warning"></i> Meine Favoriten</h2>
+                    <span class="badge bg-warning text-dark"><?= count($favoriteSpots) ?></span>
+                </div>
+
+                <?php if (empty($favoriteSpots)): ?>
+                    <p class="text-secondary">Du hast noch keine Spots favorisiert.</p>
+                <?php else: ?>
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($favoriteSpots as $fav):
+                            $favDate    = date('d.m.Y', strtotime($fav['favorited_at']));
+                            $badgeClass = $diffBadgeClass[$fav['difficulty']] ?? 'text-bg-secondary';
+                        ?>
+                        <div class="list-group-item bg-transparent border-secondary spot-row py-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1 me-3">
+                                    <p class="mb-1 fw-semibold text-light">
+                                        <?= htmlspecialchars($fav['name'], ENT_QUOTES, 'UTF-8') ?>
+                                    </p>
+                                    <small class="text-secondary">
+                                        <?= htmlspecialchars($fav['spot_type'], ENT_QUOTES, 'UTF-8') ?>
+                                        &bull;
+                                        <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($fav['difficulty'], ENT_QUOTES, 'UTF-8') ?></span>
+                                        &bull; <i class="bi bi-heart-fill text-warning"></i> <?= $favDate ?>
+                                    </small>
+                                </div>
+                                <div class="d-flex gap-2 flex-shrink-0">
+                                    <a href="/?spot=<?= $fav['id'] ?>"
+                                       class="btn btn-outline-light btn-sm"
+                                       title="Auf der Karte anzeigen">
+                                        <i class="bi bi-map"></i>
+                                    </a>
+                                    <a href="/public/php/spot_detail.php?id=<?= $fav['id'] ?>"
+                                       class="btn btn-outline-secondary btn-sm"
+                                       title="Details anzeigen">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                    <form method="POST" action="/private/php/favorite_submit.php" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                        <input type="hidden" name="spot_id" value="<?= $fav['id'] ?>">
+                                        <input type="hidden" name="redirect" value="/public/php/dashboard.php">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                title="Als Favorit entfernen"
+                                                onclick="return confirm('Aus Favoriten entfernen?')">
+                                            <i class="bi bi-heart-fill"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- ====================================================
              Karte: Meine Spots
         ==================================================== -->
         <div class="col-12 col-md-7">
             <div class="card card-dark text-light p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h4 mb-0"><i class="bi bi-pin-map-fill me-1"></i> Meine Spots</h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-link text-light text-decoration-none p-0 d-flex align-items-center gap-2"
+                            type="button"
+                            data-bs-toggle="collapse" data-bs-target="#mySpotsCollapse"
+                            aria-expanded="false" aria-controls="mySpotsCollapse">
+                        <h2 class="h4 mb-0"><i class="bi bi-pin-map-fill me-1"></i> Meine Spots</h2>
+                        <i class="bi bi-chevron-down small"></i>
+                    </button>
                     <span class="badge bg-primary"><?= count($mySpots) ?></span>
                 </div>
 
+                <div class="collapse" id="mySpotsCollapse">
+                <div class="mt-3">
                 <?php if (empty($mySpots)): ?>
                     <p class="text-secondary">
                         Du hast noch keine Spots erstellt.
@@ -159,14 +256,7 @@ $mySpots = $stmt->fetchAll();
                     <div id="dashErrorAlert"   class="alert alert-danger  d-none" role="alert"></div>
 
                     <div class="list-group list-group-flush">
-                        <?php
-                        $diffBadgeClass = [
-                            'Anfänger'      => 'text-bg-success',
-                            'Mittel'        => 'text-bg-warning',
-                            'Fortgeschritten' => 'text-bg-danger',
-                            'Profi'         => 'text-bg-dark',
-                        ];
-                        foreach ($mySpots as $spot):
+                        <?php foreach ($mySpots as $spot):
                             $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                             $badgeClass  = $diffBadgeClass[$spot['difficulty']] ?? 'text-bg-secondary';
                         ?>
@@ -211,6 +301,8 @@ $mySpots = $stmt->fetchAll();
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+                </div>
+                </div>
             </div>
         </div>
 
@@ -307,8 +399,12 @@ document.getElementById('bioSaveBtn').addEventListener('click', async () => {
         const data = await res.json();
 
         if (data.success) {
-            document.getElementById('bioDisplay').innerHTML =
-                bio.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+            const display = document.getElementById('bioDisplay');
+            display.innerHTML = '';
+            bio.split('\n').forEach((line, i) => {
+                if (i > 0) display.appendChild(document.createElement('br'));
+                display.appendChild(document.createTextNode(line));
+            });
             showBioAlert('success', 'Beschreibung gespeichert.');
         } else {
             showBioAlert('error', data.error || 'Fehler beim Speichern.');

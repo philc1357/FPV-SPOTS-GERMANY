@@ -4,7 +4,7 @@
     <!-- Startseite -->
     <url>
         <loc>https://fpv-spots-germany.de/</loc>
-        <lastmod>2026-04-05</lastmod>
+        <lastmod>2026-04-17</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
@@ -12,15 +12,31 @@
     <!-- Updates / Changelog -->
     <url>
         <loc>https://fpv-spots-germany.de/updates.php</loc>
-        <lastmod>2026-04-09</lastmod>
+        <lastmod>2026-04-17</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
+    </url>
+
+    <!-- Registrierung -->
+    <url>
+        <loc>https://fpv-spots-germany.de/register.php</loc>
+        <lastmod>2026-04-17</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- Login -->
+    <url>
+        <loc>https://fpv-spots-germany.de/login.php</loc>
+        <lastmod>2026-04-17</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
     </url>
 
     <!-- Verbesserungsvorschläge -->
     <url>
         <loc>https://fpv-spots-germany.de/kritik.php</loc>
-        <lastmod>2026-04-05</lastmod>
+        <lastmod>2026-04-17</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.5</priority>
     </url>
@@ -44,7 +60,7 @@
     <!-- Datenschutz -->
     <url>
         <loc>https://fpv-spots-germany.de/datenschutz.php</loc>
-        <lastmod>2026-04-05</lastmod>
+        <lastmod>2026-04-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.3</priority>
     </url>

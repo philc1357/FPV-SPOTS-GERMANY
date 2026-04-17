@@ -1,3 +1,11 @@
+# Security Headers
+<IfModule mod_headers.c>
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' cdn.jsdelivr.net unpkg.com; style-src 'self' cdn.jsdelivr.net; img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com /public/uploads/; font-src 'self' cdn.jsdelivr.net; connect-src 'self'"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
 # Service Worker: kein Cache, damit Updates sofort greifen
 <IfModule mod_headers.c>
     <Files "sw.js">

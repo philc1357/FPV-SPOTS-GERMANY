@@ -105,7 +105,7 @@ $username   = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8')
                 </div>
                 <a href="/" class="btn btn-primary w-100">Zur Startseite</a>
             <?php else: ?>
-                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+                <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
                 <a href="/public/php/forgot_password.php" class="btn btn-warning w-100">Neuen Link anfordern</a>
             <?php endif; ?>
         </div>

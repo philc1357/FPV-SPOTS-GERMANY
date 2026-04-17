@@ -25,7 +25,7 @@ $stmt = $pdo->prepare(
      JOIN users u ON s.user_id = u.id
      LEFT JOIN suggestion_votes v ON v.suggestion_id = s.id
      GROUP BY s.id, s.body, s.created_at, u.username
-     ORDER BY vote_count DESC, s.created_at DESC"
+     ORDER BY s.created_at DESC"
 );
 $stmt->execute([':uid' => $userId]);
 $suggestions = $stmt->fetchAll();
@@ -60,14 +60,16 @@ if ($isLoggedIn && !empty($suggestions)) {
 // Admin-Kommentare laden
 $comments = [];
 if (!empty($suggestions)) {
-    $ids   = implode(',', array_map('intval', array_column($suggestions, 'id')));
-    $cStmt = $pdo->query(
+    $ids          = array_map('intval', array_column($suggestions, 'id'));
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $cStmt = $pdo->prepare(
         "SELECT sc.id, sc.suggestion_id, sc.body, sc.created_at, u.username
          FROM suggestion_comments sc
          JOIN users u ON sc.user_id = u.id
-         WHERE sc.suggestion_id IN ($ids)
+         WHERE sc.suggestion_id IN ($placeholders)
          ORDER BY sc.created_at ASC"
     );
+    $cStmt->execute($ids);
     foreach ($cStmt->fetchAll() as $c) {
         $comments[(int)$c['suggestion_id']][] = $c;
     }

@@ -80,6 +80,8 @@
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'LOGIN_SUCCESS', ?)";
             $pdo->prepare($logSql)->execute([$user['id'], $_SERVER['REMOTE_ADDR']]);
 
+            $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$user['id']]);
+
             // Redirect-Ziel: nur relative Pfade innerhalb der eigenen Seite erlauben
             $redirect = $_POST['redirect'] ?? '';
             if ($redirect !== '' && !preg_match('#^/[a-zA-Z0-9_/]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)) {
