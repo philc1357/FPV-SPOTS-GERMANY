@@ -197,7 +197,7 @@ async function openSpotDetail(spot) {
     });
 
     document.getElementById('spotDetailLabel').innerHTML =
-        `${esc(spot.name)} <a href="/public/php/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm ms-2" title="Detailansicht"><i class="bi bi-search"></i> Details anzeigen</a>`;
+        `${esc(spot.name)} <a href="/public/php/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm ms-2" title="Detailansicht"><i class="bi bi-info-circle"></i> Details anzeigen</a>`;
     document.getElementById('spotDetailBody').innerHTML = `
         <div class="mb-3">
             <span class="badge me-1" style="background:${TYPE_COLORS[spot.spot_type] ?? '#fd7e14'};color:${TYPE_TEXT_COLORS[spot.spot_type] ?? '#ffffff'}">${esc(spot.spot_type)}</span>
@@ -235,13 +235,14 @@ function renderSpotPhotos(spotId, images, hasMore) {
             <div style="aspect-ratio:16/9;overflow:hidden;border-radius:.375rem;">
                 <img src="${src}" alt="${esc(filename)}"
                      style="width:100%;height:100%;object-fit:cover;"
-                     loading="lazy">
+                     loading="lazy"
+                     onerror="this.closest('.col-6').style.display='none'">
             </div>
         </div>`;
     });
     if (hasMore) {
         html += `<div class="col-6 d-flex align-items-center justify-content-center">
-            <a href="/public/php/spot_detail.php?id=${spotId}"
+            <a href="/spot_detail.php?id=${spotId}"
                class="text-info small text-decoration-none fw-semibold">
                 Mehr Fotos anzeigen…
             </a>
@@ -458,3 +459,18 @@ function initLocationRequest() {
 }
 
 initLocationRequest();
+
+// Parking-Checkbox: Textarea freischalten/sperren
+var parkingUnknown = document.getElementById('parkingUnknown');
+if (parkingUnknown) {
+    parkingUnknown.addEventListener('change', function () {
+        var ta = document.getElementById('parkingInfo');
+        if (this.checked) {
+            ta.disabled = true;
+            ta.value = '';
+        } else {
+            ta.disabled = false;
+            ta.focus();
+        }
+    });
+}

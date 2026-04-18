@@ -117,7 +117,7 @@ if (!empty($_SESSION['spot_error'])) {
 <?php if ($isLoggedIn): ?>
 <div id="mapHint">
     <span class="badge bg-dark bg-opacity-75 text-light px-3 py-2 fs-7">
-        <i class="bi bi-plus-circle-fill me-1"></i> Auf die Karte klicken, um einen Spot zu erstellen
+        Auf die Karte klicken, um einen Spot zu erstellen
     </span>
 </div>
 <?php endif; ?>
@@ -185,7 +185,7 @@ if (!empty($_SESSION['spot_error'])) {
                                autocomplete="current-password" required>
                     </div>
                     <div class="text-end mb-2">
-                        <a href="/public/php/forgot_password.php" class="text-success small">Passwort vergessen?</a>
+                        <a href="/forgot_password.php" class="text-success small">Passwort vergessen?</a>
                     </div>
                     <div class="form-check mb-3">
                         <input type="checkbox" name="remember_me" value="1" id="rememberMe"
@@ -199,7 +199,7 @@ if (!empty($_SESSION['spot_error'])) {
                 <hr class="border-secondary">
                 <p class="text-center mb-0 small">
                     Noch kein Konto?
-                    <a href="/public/php/register.php" class="text-success">Jetzt registrieren</a>
+                    <a href="/register.php" class="text-success">Jetzt registrieren</a>
                 </p>
             </div>
         </div>
@@ -352,18 +352,6 @@ if (!empty($_SESSION['spot_error'])) {
 
 <script src="/public/js/map.js"></script>
 <script src="/public/js/pwa.js"></script>
-<script>
-document.getElementById('parkingUnknown').addEventListener('change', function () {
-    var ta = document.getElementById('parkingInfo');
-    if (this.checked) {
-        ta.disabled = true;
-        ta.value = '';
-    } else {
-        ta.disabled = false;
-        ta.focus();
-    }
-});
-</script>
 
 <!-- PWA: Install-Banner -->
 <aside id="pwaInstallBanner" class="d-none position-fixed bottom-0 start-0 end-0 p-3" style="z-index:1300">

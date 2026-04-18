@@ -1,6 +1,6 @@
 # Security Headers
 <IfModule mod_headers.c>
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' cdn.jsdelivr.net unpkg.com; style-src 'self' cdn.jsdelivr.net; img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com /public/uploads/; font-src 'self' cdn.jsdelivr.net; connect-src 'self'"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' cdn.jsdelivr.net unpkg.com 'unsafe-inline'; style-src 'self' cdn.jsdelivr.net unpkg.com 'unsafe-inline'; img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com; font-src 'self' cdn.jsdelivr.net; connect-src 'self'"
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"

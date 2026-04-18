@@ -44,7 +44,7 @@ $stmt = $pdo->prepare("SELECT filename FROM spot_images WHERE spot_id = ?");
 $stmt->execute([$spotId]);
 $images = $stmt->fetchAll();
 
-$uploadDir = __DIR__ . '/../../public/uploads/imgs/';
+$uploadDir = __DIR__ . '/../../../public/uploads/imgs/';
 foreach ($images as $img) {
     $path = $uploadDir . $img['filename'];
     if (is_file($path)) {
@@ -56,5 +56,5 @@ foreach ($images as $img) {
 $stmt = $pdo->prepare("DELETE FROM spots WHERE id = ?");
 $stmt->execute([$spotId]);
 
-header('Location: /public/php/dashboard.php');
+header('Location: /dashboard.php');
 exit;

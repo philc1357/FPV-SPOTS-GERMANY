@@ -204,7 +204,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
                                     <a href="/public/php/spot_detail.php?id=<?= $spotId ?>"
                                        class="btn btn-outline-primary btn-sm"
                                        title="Spot-Details anzeigen">
-                                        <i class="bi bi-search"></i>
+                                        <i class="bi bi-info-circle"></i>
                                     </a>
                                 </div>
                             </div>
@@ -336,7 +336,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
         overlayTitle.textContent = spot.name;
         overlayBody.innerHTML = `
             <a href="/public/php/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm mb-3">
-                <i class="bi bi-search me-1"></i>Details anzeigen
+                <i class="bi bi-info-circle me-1"></i>Details anzeigen
             </a>
             <div class="mb-3">
                 <span class="badge me-1" style="background:${TYPE_COLORS[spot.spot_type] ?? '#fd7e14'};color:${TYPE_TEXT_COLORS[spot.spot_type] ?? '#ffffff'}">${esc(spot.spot_type)}</span>

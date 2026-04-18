@@ -283,7 +283,7 @@ $diffBadgeClass = [
                                     <a href="/public/php/spot_detail.php?id=<?= $spot['id'] ?>"
                                        class="btn btn-outline-secondary btn-sm"
                                        title="Spot-Details anzeigen">
-                                        <i class="bi bi-search"></i>
+                                        <i class="bi bi-info-circle"></i>
                                     </a>
                                     <a href="/public/php/edit_spot.php?id=<?= $spot['id'] ?>"
                                        class="btn btn-outline-primary btn-sm"

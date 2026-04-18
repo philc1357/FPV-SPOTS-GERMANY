@@ -58,6 +58,7 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
 ?>
 
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="stylesheet" href="/public/css/banners.css">
 <!-- ============================================================
      Navbar
 ============================================================ -->
@@ -80,9 +81,9 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                 <?php if ($isLoggedIn): ?>
-                    <li><a class="dropdown-item" href="/public/php/dashboard.php"><i class="bi bi-person-fill me-1"></i> Dashboard</a></li>
+                    <li><a class="dropdown-item" href="/dashboard.php"><i class="bi bi-person-fill me-1"></i> Dashboard</a></li>
                     <li>
-                        <a class="dropdown-item" href="/public/php/messages.php">
+                        <a class="dropdown-item" href="/messages.php">
                             <i class="bi bi-envelope-fill me-1"></i> Nachrichten
                             <span id="message-notify-badge"
                                   class="badge bg-warning text-dark ms-1<?= $unreadMessageCount === 0 ? ' d-none' : '' ?>"
@@ -100,65 +101,19 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
                     </li>
                 <?php else: ?>
                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a></li>
-                    <li><a class="dropdown-item" href="/public/php/register.php">Registrieren</a></li>
+                    <li><a class="dropdown-item" href="/register.php">Registrieren</a></li>
                 <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="/public/php/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
-                <li><a class="dropdown-item" href="/public/php/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
-                <li><a class="dropdown-item" href="/public/php/kontakt.php">Kontakt</a></li>
-                <li><a class="dropdown-item" href="/public/php/impressum.php">Impressum</a></li>
-                <li><a class="dropdown-item" href="/public/php/datenschutz.php">Datenschutz</a></li>
+                <li><a class="dropdown-item" href="/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/kontakt.php">Kontakt</a></li>
+                <li><a class="dropdown-item" href="/impressum.php">Impressum</a></li>
+                <li><a class="dropdown-item" href="/datenschutz.php">Datenschutz</a></li>
             </ul>
         </div>
     </nav>
 </header>
 
-<?php if ($hasAnyNotifications): ?>
-<script>
-(function () {
-    var btnBadge       = document.getElementById('update-notify-btn');
-    var updateLink     = document.getElementById('update-notify-link');
-    var suggestionLink = document.getElementById('suggestion-notify-link');
-    if (!btnBadge) return;
-    var dropdown = document.querySelector('.dropdown');
-    dropdown.addEventListener('shown.bs.dropdown', function () {
-        btnBadge.classList.add('d-none');
-        if (updateLink)     updateLink.classList.remove('d-none');
-        if (suggestionLink) suggestionLink.classList.remove('d-none');
-    });
-    dropdown.addEventListener('hidden.bs.dropdown', function () {
-        if (updateLink)     updateLink.classList.add('d-none');
-        if (suggestionLink) suggestionLink.classList.add('d-none');
-        btnBadge.classList.remove('d-none');
-    });
-})();
-</script>
-<?php endif; ?>
-<?php if ($isLoggedIn): ?>
-<script>
-(function () {
-    var badge   = document.getElementById('message-notify-badge');
-    var btnBadge = document.getElementById('update-notify-btn');
-    if (!badge) return;
-    function checkMessages() {
-        fetch('/public/php/api/messages.php?action=unread_count', { credentials: 'same-origin' })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                var count = data.unread_count || 0;
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.classList.remove('d-none');
-                    if (btnBadge) btnBadge.classList.remove('d-none');
-                } else {
-                    badge.classList.add('d-none');
-                }
-            })
-            .catch(function () {});
-    }
-    setInterval(checkMessages, 30000);
-})();
-</script>
-<?php endif; ?>
-
 <?php include __DIR__ . '/cookie_banner.php'; ?>
 <?php include __DIR__ . '/update_banner.php'; ?>
+<script src="/public/js/banners.js" defer></script>

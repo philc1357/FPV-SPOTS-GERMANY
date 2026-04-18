@@ -42,7 +42,7 @@ if (!$stmt->fetch()) {
 // Datei vorhanden?
 if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
     $_SESSION['upload_error'] = 'Keine Datei hochgeladen oder Upload-Fehler.';
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -52,7 +52,7 @@ $file = $_FILES['photo'];
 $maxSize = 5 * 1024 * 1024;
 if ($file['size'] > $maxSize) {
     $_SESSION['upload_error'] = 'Die Datei ist zu gross (max. 5 MB).';
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -63,7 +63,7 @@ $mimeType = $finfo->file($file['tmp_name']);
 
 if (!in_array($mimeType, $allowedMime, true)) {
     $_SESSION['upload_error'] = 'Nur JPG/JPEG und PNG sind erlaubt.';
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -74,7 +74,7 @@ $allowedExt = ['jpg', 'jpeg', 'png'];
 
 if (!in_array($ext, $allowedExt, true)) {
     $_SESSION['upload_error'] = 'Nur JPG/JPEG und PNG sind erlaubt.';
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -82,13 +82,13 @@ if (!in_array($ext, $allowedExt, true)) {
 $imageInfo = getimagesize($file['tmp_name']);
 if ($imageInfo === false) {
     $_SESSION['upload_error'] = 'Die Datei ist kein gueltiges Bild.';
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
 // Eindeutigen Dateinamen erzeugen
 $newFilename = bin2hex(random_bytes(16)) . '.' . $ext;
-$uploadDir = __DIR__ . '/../../public/uploads/imgs/';
+$uploadDir = __DIR__ . '/../../../public/uploads/imgs/';
 $destination = $uploadDir . $newFilename;
 
 // Zielverzeichnis anlegen falls noetig
@@ -98,7 +98,7 @@ if (!is_dir($uploadDir)) {
 
 if (!move_uploaded_file($file['tmp_name'], $destination)) {
     $_SESSION['upload_error'] = 'Fehler beim Speichern der Datei.';
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -116,9 +116,9 @@ try {
     @unlink($destination);
     error_log('upload_submit.php error: ' . $e->getMessage());
     $_SESSION['upload_error'] = 'Datenbankfehler. Bitte erneut versuchen.';
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId");
+header("Location: /spot_detail.php?id=$spotId");
 exit;

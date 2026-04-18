@@ -18,7 +18,7 @@ $csrfToken  = $_SESSION['csrf_token'];
     <title>Datenschutzerklärung – FPV Spots Germany</title>
     <meta name="description" content="Datenschutzerklärung von FPV Spots Germany – Informationen zur Verarbeitung personenbezogener Daten.">
     <meta name="robots" content="noindex, follow">
-    <link rel="canonical" href="https://fpv-spots-germany.de/public/php/datenschutz.php">
+    <link rel="canonical" href="https://fpv-spots-germany.de/datenschutz.php">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/public/css/dashboard.css">
@@ -154,7 +154,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                     <li>Benutzer-ID bei Abstimmungen (eine Stimme pro Nutzer und Vorschlag)</li>
                     <li>Erstellungszeitpunkt</li>
                 </ul>
-                <p><strong>Sichtbarkeit:</strong> Vorschläge und Abstimmungen sind ausschließlich für Administratoren einsehbar, nicht für andere Nutzer.</p>
+                <p><strong>Sichtbarkeit:</strong> Eingereichte Vorschläge sind öffentlich einsehbar – auch für nicht registrierte Nutzer. Abstimmungen (Benutzer-ID) sind ausschließlich für Administratoren einsehbar.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Weiterentwicklung und Verbesserung des Plattformangebots.</p>
                 <p><strong>Speicherdauer:</strong> Bis zur Löschung durch einen Administrator oder bei Kontoauflösung.</p>
             </section>

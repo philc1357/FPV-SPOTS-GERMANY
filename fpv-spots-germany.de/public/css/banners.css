@@ -1,0 +1,32 @@
+/* Cookie Banner */
+#cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #16213e;
+    border-top: 1px solid #0f3460;
+    padding: 1rem 1.5rem;
+    display: none;
+}
+
+/* Update Banner */
+#update-banner-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+#update-banner {
+    background: #1a2e1a;
+    border: 1px solid #198754;
+    border-radius: .5rem;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 560px;
+}

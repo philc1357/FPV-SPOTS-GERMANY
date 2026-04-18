@@ -70,6 +70,9 @@ $stmt = $pdo->prepare(
 $stmt->execute([$spotId]);
 $images = $stmt->fetchAll();
 
+$uploadDir = __DIR__ . '/../../uploads/imgs/';
+$images = array_values(array_filter($images, fn($img) => is_file($uploadDir . $img['filename'])));
+
 $uploadError = $_SESSION['upload_error'] ?? null;
 unset($_SESSION['upload_error']);
 
@@ -276,7 +279,8 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                                          alt="Foto von <?= htmlspecialchars($spot['name']) ?>, hochgeladen von <?= htmlspecialchars($img['username']) ?>"
                                          class="img-fluid rounded"
                                          loading="lazy"
-                                         style="width:100%; height:160px; object-fit:cover;">
+                                         style="width:100%; height:160px; object-fit:cover;"
+                                         onerror="this.closest('.col-6').style.display='none'">
                                 </a>
                                 <small class="text-secondary d-block mt-1">
                                     <?= htmlspecialchars($img['username']) ?> &bull; <?= date('d.m.Y', strtotime($img['created_at'])) ?>

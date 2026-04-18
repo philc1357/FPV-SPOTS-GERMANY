@@ -1,24 +1,3 @@
-<style>
-#update-banner-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 9998;
-    background: rgba(0, 0, 0, 0.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-}
-#update-banner {
-    background: #1a2e1a;
-    border: 1px solid #198754;
-    border-radius: .5rem;
-    padding: 1.5rem;
-    width: 100%;
-    max-width: 560px;
-}
-</style>
-
 <div id="update-banner-backdrop" role="dialog" aria-modal="true" aria-label="Update-Hinweis">
     <aside id="update-banner">
         <strong class="text-success d-block mb-2"><i class="bi bi-rocket-fill me-1"></i> Großes Update &ndash; Neue Features</strong>
@@ -53,38 +32,3 @@
         </div>
     </aside>
 </div>
-
-<script>
-(function () {
-    'use strict';
-
-    var COOKIE_NAME = 'update_notice_v3';
-    var COOKIE_DAYS = 356;
-
-    function getCookie(name) {
-        var match = document.cookie.split('; ').find(function (row) {
-            return row.startsWith(name + '=');
-        });
-        return match ? match.split('=')[1] : null;
-    }
-
-    function setCookie(name, value, days) {
-        var expires = new Date(Date.now() + days * 864e5).toUTCString();
-        document.cookie = name + '=' + encodeURIComponent(value)
-            + '; expires=' + expires
-            + '; path=/'
-            + '; SameSite=Lax';
-    }
-
-    var backdrop = document.getElementById('update-banner-backdrop');
-
-    if (!getCookie(COOKIE_NAME)) {
-        backdrop.style.display = 'flex';
-    }
-
-    document.getElementById('update-banner-btn').addEventListener('click', function () {
-        setCookie(COOKIE_NAME, 'seen', COOKIE_DAYS);
-        backdrop.style.display = 'none';
-    });
-}());
-</script>

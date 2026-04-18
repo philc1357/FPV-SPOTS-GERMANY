@@ -36,7 +36,7 @@
                 <hr class="border-secondary">
                 <p class="text-center mb-0 small">
                     Noch kein Konto?
-                    <a href="/public/php/register.php" class="text-success">Jetzt registrieren</a>
+                    <a href="/register.php" class="text-success">Jetzt registrieren</a>
                 </p>
             </div>
         </div>
