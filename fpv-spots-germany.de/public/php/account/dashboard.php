@@ -97,7 +97,7 @@ $diffBadgeClass = [
         <!-- ====================================================
              Karte: Profil & Konto-Daten
         ==================================================== -->
-        <div class="col-12 col-md-5">
+        <div class="col-12">
             <div class="card card-dark text-light p-4 h-100">
                 <h1 class="h4 mb-3">
                     <i class="bi bi-person-fill me-1"></i><?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>
@@ -165,6 +165,7 @@ $diffBadgeClass = [
             </div>
         </div>
 
+
         <!-- ====================================================
              Karte: Meine Favoriten
         ==================================================== -->
@@ -229,7 +230,7 @@ $diffBadgeClass = [
         <!-- ====================================================
              Karte: Meine Spots
         ==================================================== -->
-        <div class="col-12 col-md-7">
+        <div class="col-12">
             <div class="card card-dark text-light p-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-link text-light text-decoration-none p-0 d-flex align-items-center gap-2"

@@ -7,7 +7,8 @@ CREATE TABLE users (
     password_hash VARCHAR(255)    NOT NULL,
     admin         TINYINT(1)      NOT NULL DEFAULT 0,
     created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    private       TINYINT(1)      NOT NULL DEFAULT 0,
+    private           TINYINT(1)      NOT NULL DEFAULT 0,
+    terms_accepted_at DATETIME            NULL DEFAULT NULL,
 
     PRIMARY KEY (id),
     UNIQUE KEY uq_users_username (username),

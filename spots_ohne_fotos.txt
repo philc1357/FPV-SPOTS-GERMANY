@@ -1,0 +1,40 @@
+SPOTS OHNE FOTOS
+================
+
+Insgesamt: 33 Spots ohne Bilder (von 76 Spots total)
+
+ID | Name
+---+----------------------------------------
+  3 | Spielplatz Großmannsplatz
+  5 | Bando am Bayerischen Bahnhof
+  7 | Schleusenruine Wüsteneutzsch
+ 19 | Heinrich List
+ 20 | Spielplatz
+ 33 | Windpark Woltersdorf
+ 35 | Verlassener Bauernanlage
+ 36 | Windpark Bördeland
+ 37 | Windpark Egeln
+ 38 | Fabrik Güsten
+ 41 | Teufelsberg
+ 43 | Zementwerk
+ 47 | Verlassenes Parkhaus
+ 48 | Fabrik
+ 49 | Windpark am Tagebau
+ 50 | Tagebau Hamach
+ 52 | Schotterwerk
+ 53 | Ziegelei
+ 54 | IKEA Schild
+ 55 | Großer Feldberg
+ 58 | Parkplatz am Feld
+ 60 | Windräder Galgenberg
+ 61 | IKEA-Schild
+ 63 | Ausbesserungswerk
+ 74 | Wald & Feldmix Brechten
+ 75 | Betonsteinwerk Rüdersdorf
+ 76 | Wald & Feldmix Lünen
+ 77 | Kieswerk
+ 78 | altes Zementwerk
+ 82 | Zementfabrik
+ 83 | Kohlenmine
+ 86 | Fabrik
+ 87 | Windpark Rehfeld

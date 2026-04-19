@@ -305,6 +305,12 @@ if (!empty($_SESSION['spot_error'])) {
                 </div>
 
                 <div class="col-12">
+                    <div class="alert alert-warning py-2 small mb-2" role="note">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        Das Eintragen ist keine Aufforderung zum illegalen Betreten oder Fliegen.
+                        Du bist selbst verantwortlich für die Einhaltung von Luftrecht, Betretungsrechten
+                        und lokalen Verordnungen. <a href="/nutzungsbedingungen.php" target="_blank" class="alert-link">Mehr erfahren</a>
+                    </div>
                     <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">
                         Spot speichern
                     </button>

@@ -41,6 +41,12 @@ $csrfToken  = $_SESSION['csrf_token'];
                         Die Passwörter stimmen nicht überein.
                     </div>
                 </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="terms" name="terms" value="1" required>
+                    <label class="form-check-label small" for="terms">
+                        Ich habe die <a href="/nutzungsbedingungen.php" target="_blank" class="text-white fw-semibold">Nutzungsbedingungen</a> gelesen und akzeptiere sie. *
+                    </label>
+                </div>
                 <button type="submit" class="btn btn-success w-100 mb-2">Registrieren</button>
             </form>
             <a href="/"><button class="btn btn-primary w-100 mb-2">Zurück</button></a>

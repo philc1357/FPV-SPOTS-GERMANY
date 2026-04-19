@@ -64,6 +64,33 @@ $csrfToken  = $_SESSION['csrf_token'];
                 </p>
                 <p>Unsere E-Mail-Adresse findest du oben im Impressum.</p>
             </section>
+            <section aria-labelledby="haftung-inhalte" class="mb-4">
+                <h2 id="haftung-inhalte" class="h5">Haftung für Inhalte</h2>
+                <p>
+                    Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. Für die Richtigkeit,
+                    Vollständigkeit und Aktualität der nutzergenerierten Spot-Informationen übernehmen
+                    wir keine Gewähr. Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene
+                    Inhalte verantwortlich, aber nicht verpflichtet, übermittelte oder gespeicherte
+                    fremde Informationen zu überwachen.
+                </p>
+                <p>
+                    Diese Plattform stellt keine Aufforderung dar, Orte zu betreten oder dort zu fliegen.
+                    Nutzer sind selbst verantwortlich für die Einhaltung des Luftrechts, der
+                    Betretungsrechte sowie lokaler Verordnungen. Weitere Informationen in unseren
+                    <a href="/nutzungsbedingungen.php" class="text-white">Nutzungsbedingungen</a>.
+                </p>
+            </section>
+
+            <section aria-labelledby="haftung-links" class="mb-4">
+                <h2 id="haftung-links" class="h5">Haftung für Links</h2>
+                <p>
+                    Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte
+                    wir keinen Einfluss haben. Für diese fremden Inhalte können wir keine Gewähr
+                    übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige
+                    Anbieter oder Betreiber verantwortlich.
+                </p>
+            </section>
+
             <a href="/"><button class="btn btn-primary w-100 mb-2">Zur Karte</button></a>
         </div>
     </main>

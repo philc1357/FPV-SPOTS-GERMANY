@@ -107,6 +107,7 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
                 <li><a class="dropdown-item" href="/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
                 <li><a class="dropdown-item" href="/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
                 <li><a class="dropdown-item" href="/kontakt.php">Kontakt</a></li>
+                <li><a class="dropdown-item" href="/nutzungsbedingungen.php">Nutzungsbedingungen</a></li>
                 <li><a class="dropdown-item" href="/impressum.php">Impressum</a></li>
                 <li><a class="dropdown-item" href="/datenschutz.php">Datenschutz</a></li>
             </ul>

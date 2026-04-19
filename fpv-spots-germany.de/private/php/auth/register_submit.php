@@ -25,13 +25,15 @@ if (empty($username) || empty($email) || empty($pass1) || empty($pass2)) {
     $message = "Bitte alle Felder ausfüllen.";
 } elseif ($pass1 !== $pass2) {
     $message = "Die Passwörter stimmen nicht überein.";
+} elseif (($_POST['terms'] ?? '') !== '1') {
+    $message = "Bitte akzeptiere die Nutzungsbedingungen.";
 } else {
     // 4. Passwort sicher hashen
     $passwordHash = password_hash($pass1, PASSWORD_DEFAULT);
 
     try {
         // 5. Daten mit Prepared Statements einfügen
-        $sql = "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO users (username, email, password_hash, terms_accepted_at) VALUES (?, ?, ?, NOW())";
         $stmt = $pdo->prepare($sql);
 
         if ($stmt->execute([$username, $email, $passwordHash])) {

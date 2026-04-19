@@ -145,6 +145,14 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Schließen"></button>
         </div>
     <?php endif; ?>
+    <div class="alert alert-info alert-dismissible fade show small" role="note">
+        <i class="bi bi-info-circle-fill me-1"></i>
+        Diese Spotinformation ist nutzergeneriert. Informiere dich vor dem Besuch über geltende Gesetze
+        (Betretungsrechte, Luftrecht, Naturschutz).
+        <a href="/nutzungsbedingungen.php" class="alert-link">Mehr erfahren &rarr;</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Schließen"></button>
+    </div>
+
     <div class="row g-4 justify-content-center">
 
         <!-- ====================================================
@@ -156,7 +164,6 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                     <h1 class="h3 mb-0"><?= htmlspecialchars($spot['name']) ?></h1>
                     <div class="d-flex gap-2 align-items-center">
                         <a href="/?spot=<?= $spotId ?>" class="btn btn-outline-light btn-sm" title="Auf der Karte anzeigen"><i class="bi bi-map"></i></a>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copySpotLink(this)" title="Spot-Link kopieren"><i class="bi bi-share"></i></button>
                         <?php if ($isLoggedIn): ?>
                             <form method="POST" action="/private/php/spots/favorite_submit.php" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
@@ -167,17 +174,44 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                                     <i class="bi bi-heart<?= $isFavorite ? '-fill' : '' ?>"></i>
                                 </button>
                             </form>
-                            <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal" title="Spot melden"><i class="bi bi-flag"></i></button>
                         <?php endif; ?>
-                        <?php if ($isLoggedIn && ($userId === (int)$spot['user_id'] || !empty($_SESSION['is_admin']))): ?>
-                            <a href="/public/php/edit_spot.php?id=<?= $spotId ?>" class="btn btn-outline-primary btn-sm" title="Spot bearbeiten"><i class="bi bi-pencil"></i></a>
-                            <form method="POST" action="/private/php/spots/delete_spot_submit.php"
-                                  onsubmit="return confirm('Spot wirklich löschen? Alle Kommentare, Bewertungen und Fotos werden ebenfalls gelöscht.')">
-                                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                                <input type="hidden" name="spot_id" value="<?= $spotId ?>">
-                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Spot löschen"><i class="bi bi-trash3"></i></button>
-                            </form>
-                        <?php endif; ?>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                                <li>
+                                    <button class="dropdown-item" onclick="copySpotLink(this)">
+                                        <i class="bi bi-share me-2"></i>Link kopieren
+                                    </button>
+                                </li>
+                                <?php if ($isLoggedIn): ?>
+                                    <li>
+                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#reportModal">
+                                            <i class="bi bi-flag me-2"></i>Spot melden
+                                        </button>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if ($isLoggedIn && ($userId === (int)$spot['user_id'] || !empty($_SESSION['is_admin']))): ?>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/public/php/edit_spot.php?id=<?= $spotId ?>">
+                                            <i class="bi bi-pencil me-2"></i>Spot bearbeiten
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <form method="POST" action="/private/php/spots/delete_spot_submit.php"
+                                              onsubmit="return confirm('Spot wirklich löschen? Alle Kommentare, Bewertungen und Fotos werden ebenfalls gelöscht.')">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                            <input type="hidden" name="spot_id" value="<?= $spotId ?>">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-trash3 me-2"></i>Spot löschen
+                                            </button>
+                                        </form>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
@@ -234,7 +268,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                     <i class="bi bi-geo-alt-fill"></i> <?= number_format($spot['latitude'], 5) ?>, <?= number_format($spot['longitude'], 5) ?>
                 </p>
                 <p class="text-secondary small mb-0">
-                    <i class="bi bi-person-fill"></i> <?= htmlspecialchars($spot['username']) ?> &bull; <i class="bi bi-calendar3"></i> <?= $createdDate ?>
+                    <i class="bi bi-person-fill"></i> <a href="/profile.php?id=<?= (int)$spot['user_id'] ?>" class="text-info text-decoration-none profile-link" title="Profil"><?= htmlspecialchars($spot['username']) ?></a> &bull; <i class="bi bi-calendar3"></i> <?= $createdDate ?>
                 </p>
             </div>
 

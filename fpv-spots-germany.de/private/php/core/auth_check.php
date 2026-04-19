@@ -17,7 +17,7 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
 
         $stmt = $pdo->prepare(
             "SELECT rt.id, rt.validator_hash, rt.user_id, rt.expires_at,
-                    u.username, u.admin
+                    u.username, u.admin, u.terms_accepted_at
              FROM remember_tokens rt
              JOIN users u ON rt.user_id = u.id
              WHERE rt.selector = ? AND rt.expires_at > NOW()
@@ -29,9 +29,10 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
         if ($token && hash_equals($token['validator_hash'], hash('sha256', $validator))) {
             // Auto-Login erfolgreich
             session_regenerate_id(true);
-            $_SESSION['user_id']  = (int)$token['user_id'];
-            $_SESSION['username'] = $token['username'];
-            $_SESSION['is_admin'] = (int)$token['admin'] === 1;
+            $_SESSION['user_id']       = (int)$token['user_id'];
+            $_SESSION['username']      = $token['username'];
+            $_SESSION['is_admin']      = (int)$token['admin'] === 1;
+            $_SESSION['terms_ok']      = !empty($token['terms_accepted_at']);
 
             $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$token['user_id']]);
 
@@ -80,6 +81,47 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
                 'secure'   => true,
                 'samesite' => 'Lax',
             ]);
+        }
+    }
+}
+
+// =============================================================
+// Terms-of-Service-Wall
+// Eingeloggte Nutzer ohne akzeptierte Nutzungsbedingungen werden
+// auf die Akzeptanz-Seite weitergeleitet. Ergebnis wird in der
+// Session gecacht, um wiederholte DB-Abfragen zu vermeiden.
+// =============================================================
+if (isset($_SESSION['user_id'])) {
+    // Exemptions: Akzeptanz-Seite, Submit-Handler, Logout
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    $isExempt = (
+        str_contains($requestUri, '/terms_accept')  ||
+        str_contains($requestUri, '/logout_submit') ||
+        str_contains($requestUri, '/terms_accept_submit')
+    );
+
+    if (!$isExempt) {
+        // terms_ok wurde noch nicht in dieser Session gesetzt → einmalig DB prüfen
+        if (!isset($_SESSION['terms_ok'])) {
+            if (!isset($pdo)) {
+                require_once __DIR__ . '/db.php';
+            }
+            $tStmt = $pdo->prepare("SELECT terms_accepted_at FROM users WHERE id = ? LIMIT 1");
+            $tStmt->execute([(int)$_SESSION['user_id']]);
+            $tRow = $tStmt->fetchColumn();
+            $_SESSION['terms_ok'] = !empty($tRow);
+        }
+
+        if ($_SESSION['terms_ok'] === false) {
+            // API-Endpunkte: JSON-Fehler statt Redirect
+            if (str_contains($requestUri, '/api/')) {
+                header('Content-Type: application/json; charset=utf-8');
+                http_response_code(403);
+                echo json_encode(['error' => 'terms_not_accepted', 'redirect' => '/terms_accept.php']);
+                exit;
+            }
+            header('Location: /terms_accept.php');
+            exit;
         }
     }
 }

@@ -35,7 +35,7 @@
 
     // 4. User in der Datenbank suchen
     try {
-        $sql = "SELECT id, username, password_hash, admin FROM users WHERE username = ? LIMIT 1";
+        $sql = "SELECT id, username, password_hash, admin, terms_accepted_at FROM users WHERE username = ? LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$usernameInput]);
         $user = $stmt->fetch();
@@ -49,6 +49,7 @@
             $_SESSION['user_id']  = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['is_admin'] = (int)$user['admin'] === 1;
+            $_SESSION['terms_ok'] = !empty($user['terms_accepted_at']);
 
             // Remember-Me-Token erstellen wenn Checkbox aktiv
             if (!empty($_POST['remember_me'])) {
