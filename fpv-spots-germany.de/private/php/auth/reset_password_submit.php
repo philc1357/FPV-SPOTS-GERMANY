@@ -5,13 +5,14 @@
 session_start();
 
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/../core/password_blacklist.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /public/php/forgot_password.php');
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
     die('CSRF-Fehler');
 }
 
@@ -31,6 +32,10 @@ if (!isset($error) && strlen($newPass1) < 8) {
 
 if (!isset($error) && strlen($newPass1) > 50) {
     $error = "Das Passwort darf maximal 50 Zeichen lang sein.";
+}
+
+if (!isset($error) && is_blacklisted_password($newPass1)) {
+    $error = "Dieses Passwort ist zu häufig verwendet. Bitte wähle ein sichereres.";
 }
 
 if (!isset($error) && !hash_equals($newPass1, $newPass2)) {
@@ -69,7 +74,7 @@ if (!isset($error)) {
 
         // Audit-Log
         $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_RESET_COMPLETED', ?)")
-            ->execute([$token['user_id'], $_SERVER['REMOTE_ADDR']]);
+            ->execute([$token['user_id'], client_ip()]);
 
         $success = true;
 

@@ -19,14 +19,32 @@
     // 3. Eingabe holen & bereinigen
     $userId      = $_SESSION['user_id'];
     $newUsername = trim($_POST['new_username'] ?? '');
+    $currentPw   = $_POST['current_password'] ?? '';
 
     // 4. Server-seitige Validierung
-    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
         die("CSRF-Fehler");
     }
-    
+
+    // 4a. Re-Authentifizierung: aktuelles Passwort prüfen (Defense-in-Depth gegen
+    //     Session-Hijacking; verhindert, dass ein Angreifer die Account-Identität
+    //     übernimmt, ohne das Passwort zu kennen).
+    if (empty($currentPw)) {
+        $error = "Bitte aktuelles Passwort eingeben.";
+    }
+    if (!isset($error)) {
+        $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+        if (!$row || !password_verify($currentPw, $row['password_hash'])) {
+            $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'USERNAME_CHANGE_REAUTH_FAILED', ?)";
+            $pdo->prepare($logSql)->execute([$userId, client_ip()]);
+            $error = "Das aktuelle Passwort ist falsch.";
+        }
+    }
+
     //    (minlength="5" im HTML ist kein Schutz – client-side validation ist bypassbar)
-    if (strlen($newUsername) < 5 || strlen($newUsername) > 50) {
+    if (!isset($error) && (strlen($newUsername) < 5 || strlen($newUsername) > 50)) {
         $error = "Der Benutzername muss zwischen 5 und 50 Zeichen lang sein.";
     }
 
@@ -57,7 +75,7 @@
 
             // Audit-Log schreiben
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'USERNAME_CHANGED', ?)";
-            $pdo->prepare($logSql)->execute([$userId, $_SERVER['REMOTE_ADDR']]);
+            $pdo->prepare($logSql)->execute([$userId, client_ip()]);
 
             $success = "Benutzername erfolgreich geändert.";
 

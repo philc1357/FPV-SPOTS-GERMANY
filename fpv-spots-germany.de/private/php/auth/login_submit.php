@@ -10,7 +10,7 @@
 
     // 3. Validierung
     // Im Submit-Handler prüfen:
-    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
         die("CSRF-Fehler");
     }
     
@@ -20,7 +20,7 @@
     }
 
     // Brute-Force-Schutz: IP nach 5 Fehlversuchen in 5 Minuten sperren
-    $ip = $_SERVER['REMOTE_ADDR'];
+    $ip = client_ip();
     $stmt = $pdo->prepare(
         "SELECT COUNT(*) FROM audit_logs
          WHERE action = 'LOGIN_FAILED'
@@ -39,6 +39,22 @@
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$usernameInput]);
         $user = $stmt->fetch();
+
+        // 4a. Account-basiertes Rate-Limit: 10 Fehlversuche / 15 Min sperren das
+        //     Konto IP-übergreifend (Schutz gegen Password-Spraying via Botnetz).
+        if ($user) {
+            $acctStmt = $pdo->prepare(
+                "SELECT COUNT(*) FROM audit_logs
+                 WHERE action = 'LOGIN_FAILED'
+                   AND user_id = ?
+                   AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)"
+            );
+            $acctStmt->execute([$user['id']]);
+            if ((int)$acctStmt->fetchColumn() >= 10) {
+                http_response_code(429);
+                die("Zu viele Fehlversuche. Bitte warte 15 Minuten.");
+            }
+        }
 
         // 5. Passwort-Check
         // password_verify vergleicht das Klartext-Passwort mit dem Hash aus der DB
@@ -79,7 +95,7 @@
 
             // Audit Log schreiben
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'LOGIN_SUCCESS', ?)";
-            $pdo->prepare($logSql)->execute([$user['id'], $_SERVER['REMOTE_ADDR']]);
+            $pdo->prepare($logSql)->execute([$user['id'], client_ip()]);
 
             $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$user['id']]);
 
@@ -94,9 +110,10 @@
 
         } else {
             // LOGIN FEHLGESCHLAGEN
-            // Audit Log für Fehlversuch (Wichtig für Brute-Force Erkennung)
-            $logSql = "INSERT INTO audit_logs (action, ip_address) VALUES ('LOGIN_FAILED', ?)";
-            $pdo->prepare($logSql)->execute([$_SERVER['REMOTE_ADDR']]);
+            // Audit Log für Fehlversuch – inkl. user_id falls Konto existiert,
+            // damit das Account-basierte Rate-Limit (4a) greifen kann.
+            $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'LOGIN_FAILED', ?)";
+            $pdo->prepare($logSql)->execute([$user ? $user['id'] : null, client_ip()]);
 
             header("Location: /public/html/errors/login_failed.html");
             exit;

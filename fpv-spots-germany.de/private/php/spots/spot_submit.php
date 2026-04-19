@@ -19,7 +19,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // CSRF-Token pruefen
-if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
     die('CSRF-Fehler');
 }
 
@@ -91,7 +91,7 @@ try {
 
     // Audit-Log
     $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'SPOT_CREATED', ?)";
-    $pdo->prepare($logSql)->execute([$userId, $_SERVER['REMOTE_ADDR']]);
+    $pdo->prepare($logSql)->execute([$userId, client_ip()]);
 
     // Legende-Cookies aktualisieren: Typ und Schwierigkeit des neuen Spots aktivieren,
     // damit der Marker nach dem Redirect nicht durch den Filter versteckt wird.

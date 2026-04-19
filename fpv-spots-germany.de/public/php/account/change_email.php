@@ -44,6 +44,8 @@ $userData = $stmt->fetch();
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <label for="new_email" class="mb-2">Neue Email:</label>
             <input type="email" class="form-control mb-2" name="new_email" minlength="10" maxlength="100" required>
+            <label for="current_password" class="mb-2">Aktuelles Passwort zur Bestätigung:</label>
+            <input id="current_password" type="password" class="form-control mb-2" name="current_password" maxlength="50" required autocomplete="current-password">
             <button type="submit" class="btn btn-success">Bestätigen</button>
             <a href="/public/php/dashboard.php" class="btn btn-danger">Zurück</a>
         </form>

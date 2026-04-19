@@ -11,12 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
     die('CSRF-Fehler');
 }
 
 // Rate-Limit: max 3 Anfragen pro IP in 5 Minuten
-$ip = $_SERVER['REMOTE_ADDR'];
+$ip = client_ip();
 $stmt = $pdo->prepare(
     "SELECT COUNT(*) FROM audit_logs
      WHERE action = 'PASSWORD_RESET_REQUESTED'

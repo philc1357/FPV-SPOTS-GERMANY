@@ -44,6 +44,7 @@ if ($method === 'GET') {
     switch ($action) {
         case 'send':                sendMessage($pdo, $userId, $body);          break;
         case 'delete_conversation': deleteConversation($pdo, $userId, $body);   break;
+        case 'mark_read':           markRead($pdo, $userId, $body);             break;
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Unbekannte Aktion.']);
@@ -168,19 +169,9 @@ function getMessages(PDO $pdo, int $userId): void
     }
     unset($msg);
 
-    // Ungelesene Nachrichten als gelesen markieren
-    $markStmt = $pdo->prepare("
-        UPDATE messages SET read_at = NOW()
-        WHERE conversation_id = ? AND sender_id != ? AND read_at IS NULL
-    ");
-    $markStmt->execute([$conversationId, $userId]);
-
-    // Nachrichten-Benachrichtigungen als gelesen markieren
-    $notifStmt = $pdo->prepare("
-        UPDATE user_notifications SET read_at = NOW()
-        WHERE user_id = ? AND type = 'new_message' AND reference_id = ? AND read_at IS NULL
-    ");
-    $notifStmt->execute([$userId, $conversationId]);
+    // Read-Marker werden NICHT mehr hier gesetzt (würde GET zur State-Change-Operation
+    // machen → CSRF-Vector via <img src="…?action=messages&conversation_id=X">).
+    // Frontend muss explizit POST action=mark_read aufrufen.
 
     $otherId = ($conv['user1_id'] === $userId) ? $conv['user2_id'] : $conv['user1_id'];
     $otherStmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
@@ -359,20 +350,7 @@ function pollMessages(PDO $pdo, int $userId): void
     }
     unset($msg);
 
-    // Ungelesene als gelesen markieren
-    if (!empty($newMessages)) {
-        $markStmt = $pdo->prepare("
-            UPDATE messages SET read_at = NOW()
-            WHERE conversation_id = ? AND sender_id != ? AND read_at IS NULL
-        ");
-        $markStmt->execute([$conversationId, $userId]);
-
-        $notifStmt = $pdo->prepare("
-            UPDATE user_notifications SET read_at = NOW()
-            WHERE user_id = ? AND type = 'new_message' AND reference_id = ? AND read_at IS NULL
-        ");
-        $notifStmt->execute([$userId, $conversationId]);
-    }
+    // Read-Marker NICHT in GET-Pfad setzen – Frontend nutzt POST action=mark_read.
 
     // Gesamte ungelesene Nachrichten (fuer Header-Badge)
     $unreadStmt = $pdo->prepare("
@@ -405,6 +383,43 @@ function getUnreadCount(PDO $pdo, int $userId): void
     ");
     $stmt->execute([$userId, $userId, $userId]);
     echo json_encode(['unread_count' => (int)$stmt->fetchColumn()]);
+}
+
+// ==================================================================
+// POST: Nachrichten einer Konversation als gelesen markieren
+// (zustandsändernd, läuft über CSRF-Gate des POST-Branches)
+// ==================================================================
+function markRead(PDO $pdo, int $userId, array $body): void
+{
+    $conversationId = filter_var($body['conversation_id'] ?? 0, FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1],
+    ]);
+    if (!$conversationId) {
+        http_response_code(400);
+        echo json_encode(['error' => 'conversation_id fehlt oder ungueltig.']);
+        return;
+    }
+
+    $conv = getConversationForUser($pdo, $conversationId, $userId);
+    if (!$conv) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Kein Zugriff auf diese Konversation.']);
+        return;
+    }
+
+    $markStmt = $pdo->prepare("
+        UPDATE messages SET read_at = NOW()
+        WHERE conversation_id = ? AND sender_id != ? AND read_at IS NULL
+    ");
+    $markStmt->execute([$conversationId, $userId]);
+
+    $notifStmt = $pdo->prepare("
+        UPDATE user_notifications SET read_at = NOW()
+        WHERE user_id = ? AND type = 'new_message' AND reference_id = ? AND read_at IS NULL
+    ");
+    $notifStmt->execute([$userId, $conversationId]);
+
+    echo json_encode(['success' => true]);
 }
 
 // ==================================================================

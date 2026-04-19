@@ -18,9 +18,25 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
 $email   = trim($_POST['email'] ?? '');
 $message = trim($_POST['contact_field'] ?? '');
 $userId  = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+$ip      = client_ip();
 
 if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) || empty($message) || strlen($message) > 5000) {
     header('Location: /public/php/kontakt_error.php');
+    exit;
+}
+
+// Rate-Limit: max. 5 Submits pro IP ODER pro E-Mail in der letzten Stunde
+// (Schutz gegen Mail-Flood / SMTP-Quotas-DoS, auch wenn der Angreifer eine
+// gültige Session und CSRF-Token besitzt).
+$rl = $pdo->prepare(
+    "SELECT COUNT(*) FROM contact_requests
+     WHERE created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+       AND (email = ? OR (? IS NOT NULL AND user_id = ?))"
+);
+$rl->execute([$email, $userId, $userId]);
+if ((int)$rl->fetchColumn() >= 5) {
+    http_response_code(429);
+    header('Location: /public/php/kontakt_error.php?rl=1');
     exit;
 }
 

@@ -39,6 +39,8 @@ $userId     = (int)$_SESSION['user_id'];
         </div>
         <form id="passwordForm" action="/private/php/account/change_password_submit.php" method="post">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+            <label for="current_password" class="mb-2">Aktuelles Passwort:</label>
+            <input id="current_password" type="password" name="current_password" class="form-control mb-2" maxlength="50" required autocomplete="current-password">
             <label for="new_password" class="mb-2">Neues Passwort:</label>
             <input id="password" type="password" name="password_field1" class="form-control mb-2" minlength="8" maxlength="50" required>
             <label for="new_password" class="mb-2">Passwort wiederholen:</label>

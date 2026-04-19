@@ -70,7 +70,7 @@ if ($method === 'POST') {
 
     // CSRF-Token prüfen
     $csrfToken = $_POST['csrf_token'] ?? '';
-    if (!hash_equals($_SESSION['csrf_token'], $csrfToken)) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
         http_response_code(403);
         echo json_encode(['error' => 'Ungültiger CSRF-Token.']);
         exit;
@@ -175,6 +175,18 @@ if ($method === 'POST') {
         }
 
         try {
+            // Bilder vom Dateisystem entfernen, bevor der DB-Cascade die
+            // Referenzen löscht (sonst entstehen Orphan-Files in /uploads/imgs/).
+            $imgStmt = $pdo->prepare("SELECT filename FROM spot_images WHERE spot_id = ?");
+            $imgStmt->execute([$spotId]);
+            $uploadDir = __DIR__ . '/../../uploads/imgs/';
+            foreach ($imgStmt->fetchAll() as $img) {
+                $path = $uploadDir . $img['filename'];
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+
             $stmt = $pdo->prepare("DELETE FROM spots WHERE id = ?");
             $stmt->execute([$spotId]);
             echo json_encode(['success' => true]);

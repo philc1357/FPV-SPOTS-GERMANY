@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
     die('CSRF-Fehler');
 }
 
@@ -41,6 +41,29 @@ $stmt = $pdo->prepare("SELECT id FROM spots WHERE id = ?");
 $stmt->execute([$spotId]);
 if (!$stmt->fetch()) {
     header('Location: /');
+    exit;
+}
+
+// Rate-Limit: max. 10 Meldungen pro User in 1h; zusätzlich: pro (spot, user,
+// report_type) max. 1 Meldung pro Tag (verhindert Report-Spam gegen fremde Spots).
+$rl = $pdo->prepare(
+    "SELECT COUNT(*) FROM spot_reports
+     WHERE user_id = ? AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)"
+);
+$rl->execute([$userId]);
+if ((int)$rl->fetchColumn() >= 10) {
+    header("Location: /public/php/spot_detail.php?id=$spotId&reported=rl");
+    exit;
+}
+
+$dup = $pdo->prepare(
+    "SELECT COUNT(*) FROM spot_reports
+     WHERE user_id = ? AND spot_id = ? AND report_type = ?
+       AND created_at > DATE_SUB(NOW(), INTERVAL 1 DAY)"
+);
+$dup->execute([$userId, $spotId, $reportType]);
+if ((int)$dup->fetchColumn() >= 1) {
+    header("Location: /public/php/spot_detail.php?id=$spotId&reported=dup");
     exit;
 }
 

@@ -28,7 +28,7 @@ $stmt->execute([(int)$_SESSION['user_id']]);
 $_SESSION['terms_ok'] = true;
 
 $logStmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'TERMS_ACCEPTED', ?)");
-$logStmt->execute([(int)$_SESSION['user_id'], $_SERVER['REMOTE_ADDR']]);
+$logStmt->execute([(int)$_SESSION['user_id'], client_ip()]);
 
 header('Location: /');
 exit;

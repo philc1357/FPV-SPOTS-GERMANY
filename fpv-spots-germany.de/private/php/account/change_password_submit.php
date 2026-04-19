@@ -4,6 +4,7 @@
 
     //Datenbankverbindungsdatei holen
     require_once __DIR__ . '/../core/db.php';
+    require_once __DIR__ . '/../core/password_blacklist.php';
 
     if (!isset($_SESSION['user_id'])) {
         header("Location: /");
@@ -18,17 +19,18 @@
 
     // 3. Eingaben holen (KEIN trim() bei Passwörtern – Leerzeichen können gewollt sein)
     $userId    = $_SESSION['user_id'];
-    $newPass1  = $_POST['password_field1'] ?? '';
-    $newPass2  = $_POST['password']        ?? '';
+    $currentPw = $_POST['current_password'] ?? '';
+    $newPass1  = $_POST['password_field1']  ?? '';
+    $newPass2  = $_POST['password']         ?? '';
 
     // 4. Server-seitige Validierung
-    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
         die("CSRF-Fehler");
     }
-    
+
     // 4a. Felder dürfen nicht leer sein
-    if (empty($newPass1) || empty($newPass2)) {
-        $error = "Bitte beide Passwortfelder ausfüllen.";
+    if (empty($currentPw) || empty($newPass1) || empty($newPass2)) {
+        $error = "Bitte alle Passwortfelder ausfüllen.";
     }
 
     // 4b. Mindestlänge (minlength="8" im HTML ist bypassbar)
@@ -42,6 +44,11 @@
     //     identisch sind. Hard-Limit hier verhindert das.
     if (!isset($error) && strlen($newPass1) > 50) {
         $error = "Das Passwort darf maximal 50 Zeichen lang sein.";
+    }
+
+    // 4c2. Schutz gegen häufig verwendete Passwörter (Top-1000-Blacklist)
+    if (!isset($error) && is_blacklisted_password($newPass1)) {
+        $error = "Dieses Passwort ist zu häufig verwendet. Bitte wähle ein sichereres.";
     }
 
     // 4d. Passwörter müssen übereinstimmen
@@ -62,6 +69,14 @@
         }
     }
 
+    // 6a. Aktuelles Passwort verifizieren (Re-Auth gegen Session-Hijacking / CSRF-Defense-in-Depth)
+    if (!isset($error) && !password_verify($currentPw, $userData['password_hash'])) {
+        // Audit-Log: Fehlversuch
+        $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_CHANGE_REAUTH_FAILED', ?)";
+        $pdo->prepare($logSql)->execute([$userId, client_ip()]);
+        $error = "Das aktuelle Passwort ist falsch.";
+    }
+
     // 7. Sicherstellen, dass das neue Passwort nicht identisch zum alten ist
     if (!isset($error) && password_verify($newPass1, $userData['password_hash'])) {
         $error = "Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.";
@@ -78,7 +93,7 @@
 
             // 9. Audit-Log schreiben
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_CHANGED', ?)";
-            $pdo->prepare($logSql)->execute([$userId, $_SERVER['REMOTE_ADDR']]);
+            $pdo->prepare($logSql)->execute([$userId, client_ip()]);
 
             // 10. Session invalidieren – nach Passwortänderung neu einloggen erzwingen
             //     Verhindert, dass gestohlene Sessions weiterhin gültig sind

@@ -39,6 +39,28 @@ if (!$stmt->fetch()) {
     exit;
 }
 
+// Rate-Limit: max. 20 Uploads pro User in der letzten Stunde (Storage-DoS-Schutz)
+$rl = $pdo->prepare(
+    "SELECT COUNT(*) FROM audit_logs
+     WHERE action = 'IMAGE_UPLOADED' AND user_id = ?
+       AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)"
+);
+$rl->execute([$userId]);
+if ((int)$rl->fetchColumn() >= 20) {
+    $_SESSION['upload_error'] = 'Upload-Limit erreicht (20 Bilder pro Stunde).';
+    header("Location: /spot_detail.php?id=$spotId");
+    exit;
+}
+
+// Hard-Cap: max. 30 Bilder pro Spot (Vandalismus-/Spam-Schutz)
+$cap = $pdo->prepare("SELECT COUNT(*) FROM spot_images WHERE spot_id = ?");
+$cap->execute([$spotId]);
+if ((int)$cap->fetchColumn() >= 30) {
+    $_SESSION['upload_error'] = 'Dieser Spot hat das maximale Bilderlimit (30) erreicht.';
+    header("Location: /spot_detail.php?id=$spotId");
+    exit;
+}
+
 // Datei vorhanden?
 if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
     $_SESSION['upload_error'] = 'Keine Datei hochgeladen oder Upload-Fehler.';
@@ -110,7 +132,7 @@ try {
     $stmt->execute([$spotId, $userId, $newFilename]);
 
     $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'IMAGE_UPLOADED', ?)";
-    $pdo->prepare($logSql)->execute([$userId, $_SERVER['REMOTE_ADDR']]);
+    $pdo->prepare($logSql)->execute([$userId, client_ip()]);
 } catch (PDOException $e) {
     // Datei wieder loeschen wenn DB-Insert fehlschlaegt
     @unlink($destination);

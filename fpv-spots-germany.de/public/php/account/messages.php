@@ -242,12 +242,28 @@ try {
             if (!res.ok) throw new Error(res.status);
             const data = await res.json();
             renderMessages(data.messages);
+            // Read-Marker via POST setzen (CSRF-geschützt; nicht im GET-Pfad)
+            markRead(convId);
         } catch (e) {
             chatMessages.innerHTML = '<div class="text-danger small p-2">Fehler beim Laden der Nachrichten.</div>';
         }
 
         // Polling starten
         startPolling();
+    }
+
+    async function markRead(convId) {
+        try {
+            await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'mark_read',
+                    conversation_id: convId,
+                    csrf_token: CSRF,
+                }),
+            });
+        } catch (_) {}
     }
 
     function renderMessages(messages) {
@@ -418,6 +434,7 @@ try {
             const data = await res.json();
             if (data.new_messages && data.new_messages.length > 0) {
                 appendMessages(data.new_messages);
+                markRead(activeConvId);
                 loadConversations(); // Sidebar aktualisieren
             }
         } catch (_) {}
@@ -443,6 +460,7 @@ try {
                     if (res.ok) {
                         const data = await res.json();
                         openConversation(convId, data.other_user_id, data.other_username);
+                        // openConversation lädt erneut + ruft markRead selbst auf
                     }
                 } catch (_) {}
             }

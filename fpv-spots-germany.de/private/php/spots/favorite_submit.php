@@ -6,7 +6,12 @@ session_start();
 
 require_once __DIR__ . '/../core/db.php';
 
-$redirect = filter_var($_POST['redirect'] ?? '', FILTER_SANITIZE_URL) ?: '/';
+// Redirect-Ziel: nur relative Pfade auf eigene Seite zulassen (Schutz vor Open Redirect).
+// FILTER_SANITIZE_URL entfernt nur ungültige Zeichen, validiert aber NICHT den Host.
+$redirectInput = $_POST['redirect'] ?? '';
+$redirect = (preg_match('#^/[a-zA-Z0-9_\-/]*\.php(\?[a-zA-Z0-9_=&%\-]*)?(#[a-zA-Z0-9_\-]*)?$#', $redirectInput))
+    ? $redirectInput
+    : '/';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ' . $redirect);

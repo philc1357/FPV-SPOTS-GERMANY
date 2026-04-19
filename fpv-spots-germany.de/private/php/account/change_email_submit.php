@@ -17,15 +17,33 @@
     }
 
     // 3. Eingabe holen & bereinigen
-    $userId   = $_SESSION['user_id'];
-    $newEmail = trim($_POST['new_email'] ?? '');
+    $userId    = $_SESSION['user_id'];
+    $newEmail  = trim($_POST['new_email'] ?? '');
+    $currentPw = $_POST['current_password'] ?? '';
 
     // 4. Server-seitige Validierung
-    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
         die("CSRF-Fehler");
     }
-    
-    if (empty($newEmail)) {
+
+    // 4a. Re-Authentifizierung: aktuelles Passwort prüfen (Defense-in-Depth gegen
+    //     Session-Hijacking; Angreifer mit gestohlenem Session-Cookie kann ohne
+    //     Passwort die Mail nicht auf eine Adresse unter eigener Kontrolle ändern).
+    if (empty($currentPw)) {
+        $error = "Bitte aktuelles Passwort eingeben.";
+    }
+    if (!isset($error)) {
+        $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+        if (!$row || !password_verify($currentPw, $row['password_hash'])) {
+            $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'EMAIL_CHANGE_REAUTH_FAILED', ?)";
+            $pdo->prepare($logSql)->execute([$userId, client_ip()]);
+            $error = "Das aktuelle Passwort ist falsch.";
+        }
+    }
+
+    if (!isset($error) && empty($newEmail)) {
         $error = "Bitte eine E-Mail-Adresse eingeben.";
     }
 
@@ -58,7 +76,7 @@
 
             // Audit-Log schreiben
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'EMAIL_CHANGED', ?)";
-            $pdo->prepare($logSql)->execute([$userId, $_SERVER['REMOTE_ADDR']]);
+            $pdo->prepare($logSql)->execute([$userId, client_ip()]);
 
             $success = "E-Mail-Adresse erfolgreich geändert.";
 

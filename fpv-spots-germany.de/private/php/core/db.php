@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../../../vendor/autoload.php'; // Composer autoload
+require_once __DIR__ . '/client_ip.php';                   // client_ip()-Helper global verfügbar
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../..');
 $dotenv->load();
@@ -12,5 +13,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    die("Datenbankfehler");  // Nie die echte Fehlermeldung ausgeben!
+    error_log('db.php connection failed: ' . $e->getMessage());
+    http_response_code(500);
+    die("Datenbankfehler");  // Nie die echte Fehlermeldung an den User
 }

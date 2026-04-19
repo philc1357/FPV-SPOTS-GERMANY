@@ -4,6 +4,31 @@
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always edit Set-Cookie ^(.*)$ $1;HttpOnly;Secure;SameSite=Lax
+</IfModule>
+
+# Session-Hardening (wirkt bei mod_php, wird bei PHP-FPM ignoriert –
+# dort greifen die Werte, die zusätzlich über session_init.php gesetzt werden)
+<IfModule mod_php.c>
+    php_flag  session.cookie_httponly  On
+    php_flag  session.cookie_secure    On
+    php_value session.cookie_samesite  Lax
+    php_flag  session.use_strict_mode  On
+    php_flag  session.use_only_cookies On
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag  session.cookie_httponly  On
+    php_flag  session.cookie_secure    On
+    php_value session.cookie_samesite  Lax
+    php_flag  session.use_strict_mode  On
+    php_flag  session.use_only_cookies On
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag  session.cookie_httponly  On
+    php_flag  session.cookie_secure    On
+    php_value session.cookie_samesite  Lax
+    php_flag  session.use_strict_mode  On
+    php_flag  session.use_only_cookies On
 </IfModule>
 
 # Service Worker: kein Cache, damit Updates sofort greifen

@@ -39,6 +39,8 @@ $userId     = (int)$_SESSION['user_id'];
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <label for="new_username" class="mb-2">Neuer Benutzername:</label>
             <input type="text" class="form-control mb-2" name="new_username" minlength="5" maxlength="50" required>
+            <label for="current_password" class="mb-2">Aktuelles Passwort zur Bestätigung:</label>
+            <input id="current_password" type="password" class="form-control mb-2" name="current_password" maxlength="50" required autocomplete="current-password">
             <button type="submit" class="btn btn-success">Bestätigen</button>
             <a href="/public/php/dashboard.php" class="btn btn-danger">Zurück</a>
         </form>
