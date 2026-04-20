@@ -306,16 +306,25 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                     <p class="text-secondary">Noch keine Fotos vorhanden.</p>
                 <?php else: ?>
                     <div class="row g-2">
-                        <?php foreach ($images as $img): ?>
+                        <?php foreach ($images as $img):
+                            $imgSrc = '/public/uploads/imgs/' . htmlspecialchars($img['filename'], ENT_QUOTES, 'UTF-8');
+                            $imgAlt = 'Foto von ' . htmlspecialchars($spot['name'], ENT_QUOTES, 'UTF-8') . ', hochgeladen von ' . htmlspecialchars($img['username'], ENT_QUOTES, 'UTF-8');
+                        ?>
                             <div class="col-6 col-md-4">
-                                <a href="/public/uploads/imgs/<?= htmlspecialchars($img['filename']) ?>" target="_blank">
-                                    <img src="/public/uploads/imgs/<?= htmlspecialchars($img['filename']) ?>"
-                                         alt="Foto von <?= htmlspecialchars($spot['name']) ?>, hochgeladen von <?= htmlspecialchars($img['username']) ?>"
+                                <button type="button"
+                                        class="btn p-0 border-0 w-100"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#photoModal"
+                                        data-img-src="<?= $imgSrc ?>"
+                                        data-img-alt="<?= $imgAlt ?>"
+                                        aria-label="Foto vergrößern">
+                                    <img src="<?= $imgSrc ?>"
+                                         alt="<?= $imgAlt ?>"
                                          class="img-fluid rounded"
                                          loading="lazy"
-                                         style="width:100%; height:160px; object-fit:cover;"
+                                         style="width:100%; height:160px; object-fit:cover; cursor:zoom-in;"
                                          onerror="this.closest('.col-6').style.display='none'">
-                                </a>
+                                </button>
                                 <small class="text-secondary d-block mt-1">
                                     <?= htmlspecialchars($img['username']) ?> &bull; <?= date('d.m.Y', strtotime($img['created_at'])) ?>
                                 </small>
@@ -530,6 +539,43 @@ if (starRating) {
         });
     });
 }
+</script>
+
+<!-- ============================================================
+     Foto-Popup-Modal (Lightbox)
+============================================================ -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-modal="true" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h2 class="modal-title h5" id="photoModalLabel"><i class="bi bi-image me-2"></i>Foto</h2>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="photoModalImg" src="" alt="" class="img-fluid rounded mx-auto d-block">
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var modal = document.getElementById('photoModal');
+    if (!modal) return;
+    var imgEl = document.getElementById('photoModalImg');
+    modal.addEventListener('show.bs.modal', function (event) {
+        var trigger = event.relatedTarget;
+        if (!trigger) return;
+        imgEl.src = trigger.getAttribute('data-img-src') || '';
+        imgEl.alt = trigger.getAttribute('data-img-alt') || '';
+    });
+    modal.addEventListener('hidden.bs.modal', function () {
+        imgEl.src = '';
+        imgEl.alt = '';
+    });
+})();
 </script>
 
 <?php if ($isLoggedIn): ?>
