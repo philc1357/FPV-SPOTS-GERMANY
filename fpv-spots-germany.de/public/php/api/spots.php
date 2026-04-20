@@ -76,7 +76,7 @@ if ($method === 'POST') {
     $longitude   = $_POST['longitude'] ?? '';
 
     // Erlaubte Enum-Werte (serverseitige Validierung – nie nur Client vertrauen!)
-    $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Verein', 'Wasser', 'Sonstige'];
+    $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
     $allowedDiff  = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
 
     // Validierung

@@ -107,7 +107,7 @@ if ($method === 'POST') {
         $spotType    = trim($_POST['spot_type']   ?? '');
         $difficulty  = trim($_POST['difficulty']  ?? '');
 
-        $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Verein', 'Wasser', 'Sonstige'];
+        $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
         $allowedDiff  = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
 
         if (empty($name) || strlen($name) > 100) {

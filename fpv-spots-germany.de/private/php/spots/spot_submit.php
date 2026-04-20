@@ -38,7 +38,7 @@ if ($parkingInfo === '') {
 }
 
 // Erlaubte Enum-Werte (muessen mit Formular UND DB-Schema uebereinstimmen)
-$allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Verein', 'Wasser', 'Sonstige'];
+$allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allowedDiff  = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
 
 // Validierung

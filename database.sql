@@ -22,7 +22,7 @@ CREATE TABLE spots (
     description TEXT                                                                            NOT NULL DEFAULT '',
     latitude    DECIMAL(10,7)                                                                   NOT NULL,
     longitude   DECIMAL(10,7)                                                                   NOT NULL,
-    spot_type          ENUM('Bando','Feld','Gebirge','Park','Verein','Wasser','Sonstige')       NOT NULL,
+    spot_type          ENUM('Bando','Feld','Gebirge','Park','Wald','Windpark','Sonstige')        NOT NULL,
     difficulty         ENUM('Anfänger','Mittel','Fortgeschritten','Profi')                      NOT NULL,
     parking_info       VARCHAR(500)                                                             NOT NULL DEFAULT 'Unbekannt',
     parking_updated_by INT UNSIGNED                                                                 NULL DEFAULT NULL,

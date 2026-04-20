@@ -16,7 +16,7 @@ if (!is_array($input) || !isset($input['types']) || !isset($input['diffs'])) {
     exit;
 }
 
-$allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Verein', 'Wasser', 'Sonstige'];
+$allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allowedDiffs = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
 
 $types = array_values(array_intersect((array)$input['types'], $allowedTypes));

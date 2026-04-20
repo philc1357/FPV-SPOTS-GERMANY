@@ -262,8 +262,8 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
         'Feld':     '#ffe224',
         'Gebirge':  '#b1602d',
         'Park':     '#3f9826',
-        'Verein':   '#ab3cbf',
-        'Wasser':   '#2056ac',
+        'Wald':     '#2d6a4f',
+        'Windpark': '#74c2e0',
         'Sonstige': '#ffffff',
     };
     const TYPE_TEXT_COLORS = {

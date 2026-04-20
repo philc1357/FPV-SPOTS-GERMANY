@@ -16,7 +16,7 @@ $userId     = (int)($_SESSION['user_id'] ?? 0);
 $csrfToken  = $_SESSION['csrf_token'];
 
 // Legende-Filter aus Cookie (Default: alle aktiv)
-$allTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Verein', 'Wasser', 'Sonstige'];
+$allTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allDiffs = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
 $legendTypes = isset($_COOKIE['legend_types'])
     ? array_intersect(explode(',', $_COOKIE['legend_types']), $allTypes)
@@ -96,7 +96,7 @@ if (!empty($_SESSION['spot_error'])) {
     <div id="legendContent" hidden>
         <hr>
         <?php
-        $typeColors = ['Bando'=>'#4b4e5a','Feld'=>'#ffe224','Gebirge'=>'#b1602d','Park'=>'#3f9826','Verein'=>'#ab3cbf','Wasser'=>'#2056ac','Sonstige'=>'#ffffff'];
+        $typeColors = ['Bando'=>'#4b4e5a','Feld'=>'#ffe224','Gebirge'=>'#b1602d','Park'=>'#4ab52c','Wald'=>'#2d6a4f','Windpark'=>'#74c2e0','Sonstige'=>'#ffffff'];
         foreach ($typeColors as $type => $color):
             $chk = in_array($type, $legendTypes) ? ' checked' : '';
         ?>
@@ -268,8 +268,8 @@ if (!empty($_SESSION['spot_error'])) {
                         <option value="Feld">Feld</option>
                         <option value="Gebirge">Gebirge</option>
                         <option value="Park">Park</option>
-                        <option value="Verein">Verein</option>
-                        <option value="Wasser">Wasser</option>
+                        <option value="Wald">Wald</option>
+                        <option value="Windpark">Windpark</option>
                         <option value="Sonstige">Sonstige</option>
                     </select>
                 </div>

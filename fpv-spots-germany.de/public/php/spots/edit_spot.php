@@ -92,7 +92,7 @@ $success = isset($_GET['success']);
                             <label for="editType" class="form-label small fw-semibold">Typ *</label>
                             <select id="editType" name="spot_type"
                                     class="form-select bg-secondary text-light border-0" required>
-                                <?php foreach (['Bando','Feld','Gebirge','Park','Verein','Wasser','Sonstige'] as $t): ?>
+                                <?php foreach (['Bando','Feld','Gebirge','Park','Wald','Windpark','Sonstige'] as $t): ?>
                                     <option value="<?= $t ?>" <?= $spot['spot_type'] === $t ? 'selected' : '' ?>><?= $t ?></option>
                                 <?php endforeach; ?>
                             </select>

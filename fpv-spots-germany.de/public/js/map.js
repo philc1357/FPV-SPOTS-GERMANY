@@ -91,9 +91,9 @@ const TYPE_COLORS = {
     'Bando':    '#4b4e5a',
     'Feld':     '#ffe224',
     'Gebirge':  '#b1602d',
-    'Park':     '#3f9826',
-    'Verein':   '#ab3cbf',
-    'Wasser':   '#2056ac',
+    'Park':     '#4ab52c',
+    'Wald':     '#2d6a4f',
+    'Windpark': '#74c2e0',
     'Sonstige': '#ffffff',
 };
 
