@@ -56,6 +56,7 @@ $error   = isset($_GET['error']);
 
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 <?php include __DIR__ . '/../../includes/login_modal.php'; ?>
+<?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
 <main class="container py-4">
     <div class="row justify-content-center">

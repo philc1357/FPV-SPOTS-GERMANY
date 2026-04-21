@@ -137,6 +137,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
 <?php include __DIR__ . '/../../includes/login_modal.php'; ?>
+<?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
 <main class="container py-4">
     <?php if (!empty($_GET['reported'])): ?>

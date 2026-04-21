@@ -37,6 +37,7 @@ if ($isLoggedIn) {
 
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 <?php include __DIR__ . '/../../includes/login_modal.php'; ?>
+<?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
     <main class="container mt-5">
         <div class="card bg-secondary text-white p-4" style="max-width: 400px; margin: auto;">

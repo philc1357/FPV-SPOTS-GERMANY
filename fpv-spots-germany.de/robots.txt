@@ -3,7 +3,6 @@ Allow: /
 
 # Nicht-indexierbare Seiten
 Disallow: /login.php
-Disallow: /register.php
 Disallow: /dashboard.php
 Disallow: /forgot_password.php
 Disallow: /reset_password.php
