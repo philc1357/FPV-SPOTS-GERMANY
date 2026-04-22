@@ -263,6 +263,11 @@ function sendMessage(PDO $pdo, int $userId, array $body): void
     $insertMsg->execute([$conversationId, $userId, $msgBody]);
     $messageId = (int)$pdo->lastInsertId();
 
+    // Server-seitigen created_at Timestamp auslesen
+    $tsStmt = $pdo->prepare("SELECT created_at FROM messages WHERE id = ?");
+    $tsStmt->execute([$messageId]);
+    $createdAt = $tsStmt->fetchColumn();
+
     // last_message_at aktualisieren
     $pdo->prepare("UPDATE conversations SET last_message_at = NOW() WHERE id = ?")->execute([$conversationId]);
 
@@ -282,6 +287,7 @@ function sendMessage(PDO $pdo, int $userId, array $body): void
         'success'         => true,
         'conversation_id' => $conversationId,
         'message_id'      => $messageId,
+        'created_at'      => $createdAt,
     ]);
 }
 

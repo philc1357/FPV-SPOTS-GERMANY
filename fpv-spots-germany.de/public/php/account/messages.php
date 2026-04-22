@@ -328,9 +328,8 @@ try {
                 activeConvId = data.conversation_id;
             }
 
-            // Nachricht direkt anhaengen
-            const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-            appendMessages([{ body: body, is_own: true, created_at: now }]);
+            // Nachricht direkt anhaengen (mit server-seitigem Timestamp zur Vermeidung von Duplikaten beim Poll)
+            appendMessages([{ body: body, is_own: true, created_at: data.created_at }]);
 
             // Sidebar aktualisieren
             loadConversations();
