@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // FPV Spots Germany – Website-Update erstellen (Admin only)
 // =============================================================

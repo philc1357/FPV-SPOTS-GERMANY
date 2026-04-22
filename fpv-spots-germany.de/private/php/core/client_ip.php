@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // Liefert die reale Client-IP – bei Betrieb hinter einem Reverse-
 // Proxy/CDN (z. B. Cloudflare) würde $_SERVER['REMOTE_ADDR'] sonst

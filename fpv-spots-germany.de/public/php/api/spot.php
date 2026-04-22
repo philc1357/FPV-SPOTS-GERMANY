@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // API: GET  /public/php/api/spot.php?id=X  – Einzelnen Spot laden
 //      POST /public/php/api/spot.php?id=X  – Spot bearbeiten (_method=PUT)

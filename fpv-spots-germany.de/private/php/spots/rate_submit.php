@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // Bewertung abgeben (INSERT oder UPDATE bei erneutem Bewerten)
 // =============================================================

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // Passwort-Blacklist: verhindert die Wahl weit verbreiteter
 // Passwörter (Top-1000-Liste aus best1050.txt).

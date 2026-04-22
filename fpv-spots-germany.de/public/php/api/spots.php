@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // API: GET /public/php/api/spots.php   – Alle Spots laden
 //      POST /public/php/api/spots.php  – Neuen Spot erstellen

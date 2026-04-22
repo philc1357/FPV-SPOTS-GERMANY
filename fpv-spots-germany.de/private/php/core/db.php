@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 require_once __DIR__ . '/../../../../vendor/autoload.php'; // Composer autoload
 require_once __DIR__ . '/client_ip.php';                   // client_ip()-Helper global verfügbar
 
@@ -16,4 +17,9 @@ try {
     error_log('db.php connection failed: ' . $e->getMessage());
     http_response_code(500);
     die("Datenbankfehler");  // Nie die echte Fehlermeldung an den User
+}
+
+// DSGVO: audit_logs werden nach 90 Tagen automatisch gelöscht (probabilistisch, ~1 % pro Request)
+if (random_int(1, 100) === 1) {
+    $pdo->exec("DELETE FROM audit_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY)");
 }

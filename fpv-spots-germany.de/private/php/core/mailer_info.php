@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // PHPMailer-Factory – SMTP-Konfiguration für info@fpv-spots-germany.de
 // =============================================================

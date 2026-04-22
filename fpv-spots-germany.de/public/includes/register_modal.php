@@ -1,4 +1,6 @@
-<?php if (!$isLoggedIn):
+<?php
+declare(strict_types=1);
+if (!$isLoggedIn):
     $registerFlash = $_SESSION['register_flash'] ?? null;
     unset($_SESSION['register_flash']);
 ?>

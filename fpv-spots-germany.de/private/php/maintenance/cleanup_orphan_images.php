@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // Wartung: Verwaiste spot_images-Eintraege bereinigen
 // Loescht DB-Zeilen, deren Datei nicht mehr unter

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
     // 1. Session starten & Authentifizierung prüfen
     require_once __DIR__ . "/../core/session_init.php";
 

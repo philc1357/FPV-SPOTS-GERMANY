@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // Auto-Login über Remember-Me-Cookie
 // Wird VOR session_start()-abhängiger Logik eingebunden.

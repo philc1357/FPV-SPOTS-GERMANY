@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // FPV Spots Germany – Spot bearbeiten
 // =============================================================
@@ -122,7 +123,7 @@ $success = isset($_GET['success']);
                                 <?= !empty($selectedSizes) ? htmlspecialchars(implode(', ', $selectedSizes), ENT_QUOTES, 'UTF-8') : 'Alle Größen wählen…' ?>
                             </button>
                             <ul class="dropdown-menu bg-secondary w-100 px-4 py-1" aria-labelledby="editCopterBtn">
-                                <?php foreach (['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'] as $cs):
+                                <?php foreach (['Tinywhoop', '2-3 Zoll', '3-5 Zoll', '5+ Zoll'] as $cs):
                                     $csId = 'cs_edit_' . preg_replace('/[^a-z0-9]/i', '_', $cs);
                                 ?>
                                 <li class="form-check px-2 py-1">

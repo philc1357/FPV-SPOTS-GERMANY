@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // Spot erstellen – klassisches Form-POST aus index.php
 // =============================================================
@@ -38,7 +39,7 @@ if ($parkingInfo === '') {
 }
 
 // Coptergröße: Whitelist-Filterung der Mehrfachauswahl
-$allowedSizes  = ['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'];
+$allowedSizes  = ['Tinywhoop', '2-3 Zoll', '3-5 Zoll', '5+ Zoll'];
 $rawSizes      = is_array($_POST['copter_size'] ?? null) ? $_POST['copter_size'] : [];
 $copterSize    = implode(',', array_values(array_intersect($rawSizes, $allowedSizes)));
 

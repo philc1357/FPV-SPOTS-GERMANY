@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // =============================================================
 // FPV Spots Germany – Hauptseite (Karte)
 // =============================================================
@@ -18,7 +19,7 @@ $csrfToken  = $_SESSION['csrf_token'];
 // Legende-Filter aus Cookie (Default: alle aktiv)
 $allTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allDiffs = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
-$allSizes = ['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'];
+$allSizes = ['Tinywhoop', '2-3 Zoll', '3-5 Zoll', '5+ Zoll'];
 $legendTypes = isset($_COOKIE['legend_types'])
     ? array_intersect(explode(',', $_COOKIE['legend_types']), $allTypes)
     : $allTypes;
@@ -280,7 +281,7 @@ if (!empty($_SESSION['spot_error'])) {
                             Alle Größen wählen…
                         </button>
                         <ul class="dropdown-menu bg-secondary w-100 p-2" aria-labelledby="createCopterBtn">
-                            <?php foreach (['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'] as $cs): ?>
+                            <?php foreach (['Tinywhoop', '2-3 Zoll', '3-5 Zoll', '5+ Zoll'] as $cs): ?>
                             <li class="form-check px-4 py-1">
                                 <input class="form-check-input create-copter-check" type="checkbox"
                                        name="copter_size[]"
