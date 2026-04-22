@@ -1,5 +1,7 @@
 # Security Headers
 <IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self), payment=()"
     Header set Content-Security-Policy "default-src 'self'; script-src 'self' cdn.jsdelivr.net unpkg.com 'unsafe-inline'; style-src 'self' cdn.jsdelivr.net unpkg.com 'unsafe-inline'; img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com; font-src 'self' cdn.jsdelivr.net; connect-src 'self'"
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"

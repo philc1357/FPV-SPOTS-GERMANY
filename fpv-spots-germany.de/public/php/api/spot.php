@@ -7,7 +7,7 @@
 // Hinweis: HTML-Formulare und die Fetch-API senden kein PUT/DELETE.
 // Wir nutzen das _method-Override-Muster über POST.
 // =============================================================
-session_start();
+require_once __DIR__ . "/../../../private/php/core/session_init.php";
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
 

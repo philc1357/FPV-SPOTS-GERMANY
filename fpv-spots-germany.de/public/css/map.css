@@ -50,6 +50,20 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
 #legendToggle:hover { color: #adb5bd; }
 #legendContent {
     padding: 0 14px 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #495057 #2b2f33;
+}
+#legendContent::-webkit-scrollbar {
+    width: 5px;
+}
+#legendContent::-webkit-scrollbar-track {
+    background: transparent;
+}
+#legendContent::-webkit-scrollbar-thumb {
+    background: #495057;
+    border-radius: 3px;
 }
 #mapLegend .legend-dot {
     display: inline-block;

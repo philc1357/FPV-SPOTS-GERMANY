@@ -2,7 +2,7 @@
 // =============================================================
 // FPV Spots Germany – Spot bearbeiten
 // =============================================================
-session_start();
+require_once __DIR__ . "/../../../private/php/core/session_init.php";
 require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -28,7 +28,7 @@ if ($spotId <= 0) {
 }
 
 // Spot laden
-$stmt = $pdo->prepare("SELECT id, user_id, name, description, spot_type, difficulty, parking_info FROM spots WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, user_id, name, description, spot_type, difficulty, parking_info, copter_size FROM spots WHERE id = ?");
 $stmt->execute([$spotId]);
 $spot = $stmt->fetch();
 
@@ -109,6 +109,36 @@ $success = isset($_GET['success']);
                     </div>
 
                     <div class="mb-3">
+                        <?php
+                            $selectedSizes = !empty($spot['copter_size'])
+                                ? explode(',', $spot['copter_size'])
+                                : [];
+                        ?>
+                        <label class="form-label small fw-semibold">Coptergröße <span class="text-secondary fw-normal">(Mehrfachauswahl)</span></label>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                                    type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                    aria-expanded="false" id="editCopterBtn">
+                                <?= !empty($selectedSizes) ? htmlspecialchars(implode(', ', $selectedSizes), ENT_QUOTES, 'UTF-8') : 'Alle Größen wählen…' ?>
+                            </button>
+                            <ul class="dropdown-menu bg-secondary w-100 px-4 py-1" aria-labelledby="editCopterBtn">
+                                <?php foreach (['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'] as $cs):
+                                    $csId = 'cs_edit_' . preg_replace('/[^a-z0-9]/i', '_', $cs);
+                                ?>
+                                <li class="form-check px-2 py-1">
+                                    <input class="form-check-input edit-copter-check" type="checkbox"
+                                           name="copter_size[]"
+                                           value="<?= htmlspecialchars($cs, ENT_QUOTES, 'UTF-8') ?>"
+                                           id="<?= $csId ?>"
+                                           <?= in_array($cs, $selectedSizes, true) ? 'checked' : '' ?>>
+                                    <label class="form-check-label text-light" for="<?= $csId ?>"><?= htmlspecialchars($cs, ENT_QUOTES, 'UTF-8') ?></label>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label small fw-semibold">Parkmöglichkeit</label>
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" id="editParkingUnknown"
@@ -121,6 +151,7 @@ $success = isset($_GET['success']);
                                   rows="2" maxlength="500"
                                   <?= ($spot['parking_info'] ?? 'Unbekannt') === 'Unbekannt' ? 'disabled' : '' ?>><?= ($spot['parking_info'] ?? 'Unbekannt') !== 'Unbekannt' ? htmlspecialchars($spot['parking_info'], ENT_QUOTES, 'UTF-8') : '' ?></textarea>
                     </div>
+
 
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
                         Änderungen speichern
@@ -138,6 +169,17 @@ $success = isset($_GET['success']);
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
 <script>
+(function () {
+    var checks = document.querySelectorAll('.edit-copter-check');
+    var btn = document.getElementById('editCopterBtn');
+    if (!btn) return;
+    checks.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var selected = Array.from(checks).filter(c => c.checked).map(c => c.value);
+            btn.textContent = selected.length ? selected.join(', ') : 'Alle Größen wählen…';
+        });
+    });
+})();
 document.getElementById('editParkingUnknown').addEventListener('change', function () {
     var ta = document.getElementById('editParkingInfo');
     if (this.checked) {

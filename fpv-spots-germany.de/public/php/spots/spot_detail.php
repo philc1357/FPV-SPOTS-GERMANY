@@ -2,7 +2,7 @@
 // =============================================================
 // FPV Spots Germany – Spot-Detailansicht mit Kommentaren & Bewertungen
 // =============================================================
-session_start();
+require_once __DIR__ . "/../../../private/php/core/session_init.php";
 require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
@@ -27,6 +27,7 @@ if ($spotId <= 0) {
 $stmt = $pdo->prepare(
     "SELECT s.id, s.user_id, s.name, s.description,
             s.latitude, s.longitude, s.spot_type, s.difficulty,
+            s.copter_size,
             s.parking_info, s.parking_updated_by, s.parking_updated_at,
             s.created_at, u.username,
             pu.username AS parking_editor
@@ -219,6 +220,11 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                 <div class="mb-3">
                     <span class="badge me-1" style="background:<?= $typeColor ?>;color:<?= $typeTextColor ?>"><?= htmlspecialchars($spot['spot_type']) ?></span>
                     <span class="badge text-bg-<?= $diffColor ?>"><?= htmlspecialchars($spot['difficulty']) ?></span>
+                    <?php if (!empty($spot['copter_size'])): ?>
+                        <?php foreach (explode(',', $spot['copter_size']) as $cs): ?>
+                            <span class="badge text-bg-secondary ms-1"><?= htmlspecialchars(trim($cs), ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
 
                 <p class="mb-3"><?= nl2br(htmlspecialchars($spot['description'] ?: 'Keine Beschreibung vorhanden.')) ?></p>

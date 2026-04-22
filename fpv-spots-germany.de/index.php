@@ -2,7 +2,7 @@
 // =============================================================
 // FPV Spots Germany – Hauptseite (Karte)
 // =============================================================
-session_start();
+require_once __DIR__ . "/private/php/core/session_init.php";
 require_once __DIR__ . '/private/php/core/auth_check.php';
 
 // CSRF-Token einmalig pro Session generieren
@@ -18,12 +18,16 @@ $csrfToken  = $_SESSION['csrf_token'];
 // Legende-Filter aus Cookie (Default: alle aktiv)
 $allTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allDiffs = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
+$allSizes = ['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'];
 $legendTypes = isset($_COOKIE['legend_types'])
     ? array_intersect(explode(',', $_COOKIE['legend_types']), $allTypes)
     : $allTypes;
 $legendDiffs = isset($_COOKIE['legend_diffs'])
     ? array_intersect(explode(',', $_COOKIE['legend_diffs']), $allDiffs)
     : $allDiffs;
+$legendSizes = isset($_COOKIE['legend_sizes'])
+    ? array_intersect(explode(',', $_COOKIE['legend_sizes']), $allSizes)
+    : $allSizes;
 
 // Fehlermeldung aus Spot-Erstellung (gesetzt von spot_submit.php)
 $spotError = '';
@@ -108,7 +112,13 @@ if (!empty($_SESSION['spot_error'])) {
         foreach ($diffColors as $diff => $color):
             $chk = in_array($diff, $legendDiffs) ? ' checked' : '';
         ?>
-        <label><span class="legend-dot" style="background:<?= $color ?>"></span><?= $diff ?><input type="checkbox" class="legend-cb" data-filter="diff" value="<?= $diff ?>"<?= $chk ?>></label><br>
+        <label><span class="legend-dot" style="background:transparent;border-color:<?= $color ?>;border-width:3px"></span><?= $diff ?><input type="checkbox" class="legend-cb" data-filter="diff" value="<?= $diff ?>"<?= $chk ?>></label><br>
+        <?php endforeach; ?>
+        <hr class="border-secondary my-3">
+        <?php foreach ($allSizes as $size):
+            $chk = in_array($size, $legendSizes) ? ' checked' : '';
+        ?>
+        <label><span class="legend-dot" style="background:#6c757d"></span><?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?><input type="checkbox" class="legend-cb" data-filter="size" value="<?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?>"<?= $chk ?>></label><br>
         <?php endforeach; ?>
     </div>
 </div>
@@ -159,6 +169,28 @@ if (!empty($_SESSION['spot_error'])) {
 
 <?php include __DIR__ . '/public/includes/login_modal.php'; ?>
 <?php include __DIR__ . '/public/includes/register_modal.php'; ?>
+
+<!-- ============================================================
+     Modal: Eingaben beim Spot-Erstellen verwerfen?
+============================================================ -->
+<div class="modal fade" id="discardSpotModal" tabindex="-1" aria-labelledby="discardSpotModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="discardSpotModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Eingaben verwerfen?
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Du hast bereits Daten eingegeben. Wenn du einen neuen Standort wählst, gehen diese verloren.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" id="discardCancelBtn">Weiter bearbeiten</button>
+                <button type="button" class="btn btn-danger" id="discardConfirmBtn">Verwerfen</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ============================================================
      Modal: Standortanfrage (Erstbesuch)
@@ -240,6 +272,29 @@ if (!empty($_SESSION['spot_error'])) {
                 </div>
 
                 <div class="col-12">
+                    <label class="form-label small fw-semibold">Coptergröße <span class="text-secondary fw-normal">(Mehrfachauswahl)</span></label>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                                type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                aria-expanded="false" id="createCopterBtn">
+                            Alle Größen wählen…
+                        </button>
+                        <ul class="dropdown-menu bg-secondary w-100 p-2" aria-labelledby="createCopterBtn">
+                            <?php foreach (['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'] as $cs): ?>
+                            <li class="form-check px-4 py-1">
+                                <input class="form-check-input create-copter-check" type="checkbox"
+                                       name="copter_size[]"
+                                       value="<?= htmlspecialchars($cs, ENT_QUOTES, 'UTF-8') ?>"
+                                       id="cs_create_<?= preg_replace('/[^a-z0-9]/i', '_', $cs) ?>">
+                                <label class="form-check-label text-light"
+                                       for="cs_create_<?= preg_replace('/[^a-z0-9]/i', '_', $cs) ?>"><?= htmlspecialchars($cs, ENT_QUOTES, 'UTF-8') ?></label>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-12">
                     <label class="form-label small fw-semibold">Parkmöglichkeit</label>
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="parkingUnknown" checked>
@@ -250,6 +305,7 @@ if (!empty($_SESSION['spot_error'])) {
                               placeholder="z. B. Kostenloser Parkplatz direkt am Feld…"
                               rows="2" maxlength="500" disabled></textarea>
                 </div>
+
 
                 <div class="col-12">
                     <p class="text-secondary small mb-0">
@@ -312,6 +368,19 @@ if (!empty($_SESSION['spot_error'])) {
 
 <script src="/public/js/map.js"></script>
 <script src="/public/js/pwa.js"></script>
+<script>
+(function () {
+    var checks = document.querySelectorAll('.create-copter-check');
+    var btn = document.getElementById('createCopterBtn');
+    if (!btn) return;
+    checks.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var selected = Array.from(checks).filter(c => c.checked).map(c => c.value);
+            btn.textContent = selected.length ? selected.join(', ') : 'Alle Größen wählen…';
+        });
+    });
+})();
+</script>
 
 <!-- PWA: Install-Banner -->
 <aside id="pwaInstallBanner" class="d-none position-fixed bottom-0 start-0 end-0 p-3" style="z-index:1300">

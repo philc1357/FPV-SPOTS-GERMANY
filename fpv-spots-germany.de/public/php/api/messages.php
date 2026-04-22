@@ -2,7 +2,7 @@
 // =============================================================
 // FPV Spots Germany – Nachrichten-API
 // =============================================================
-session_start();
+require_once __DIR__ . "/../../../private/php/core/session_init.php";
 require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 require_once __DIR__ . '/../../../private/php/core/db.php';
 

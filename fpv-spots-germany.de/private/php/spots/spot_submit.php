@@ -2,7 +2,7 @@
 // =============================================================
 // Spot erstellen – klassisches Form-POST aus index.php
 // =============================================================
-session_start();
+require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 
@@ -36,6 +36,11 @@ $longitude    = $_POST['longitude'] ?? '';
 if ($parkingInfo === '') {
     $parkingInfo = 'Unbekannt';
 }
+
+// Coptergröße: Whitelist-Filterung der Mehrfachauswahl
+$allowedSizes  = ['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'];
+$rawSizes      = is_array($_POST['copter_size'] ?? null) ? $_POST['copter_size'] : [];
+$copterSize    = implode(',', array_values(array_intersect($rawSizes, $allowedSizes)));
 
 // Erlaubte Enum-Werte (muessen mit Formular UND DB-Schema uebereinstimmen)
 $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
@@ -84,10 +89,10 @@ $userId = (int)$_SESSION['user_id'];
 
 try {
     $stmt = $pdo->prepare(
-        "INSERT INTO spots (user_id, name, description, latitude, longitude, spot_type, difficulty, parking_info)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO spots (user_id, name, description, latitude, longitude, spot_type, difficulty, parking_info, copter_size)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    $stmt->execute([$userId, $name, $description, $lat, $lng, $spotType, $difficulty, $parkingInfo]);
+    $stmt->execute([$userId, $name, $description, $lat, $lng, $spotType, $difficulty, $parkingInfo, $copterSize]);
 
     // Audit-Log
     $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'SPOT_CREATED', ?)";

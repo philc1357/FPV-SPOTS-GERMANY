@@ -2,7 +2,7 @@
 // =============================================================
 // FPV Spots Germany – Spot-Meldung speichern
 // =============================================================
-session_start();
+require_once __DIR__ . "/../core/session_init.php";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /');

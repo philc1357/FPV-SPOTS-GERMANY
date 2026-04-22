@@ -3,7 +3,7 @@
 // API: GET /public/php/api/spots.php   – Alle Spots laden
 //      POST /public/php/api/spots.php  – Neuen Spot erstellen
 // =============================================================
-session_start();
+require_once __DIR__ . "/../../../private/php/core/session_init.php";
 
 // Datenbankverbindung (von public/php/api/ → 3 Ebenen hoch → ressources/ → private/php/)
 require_once __DIR__ . '/../../../private/php/core/db.php';
@@ -25,7 +25,7 @@ if ($method === 'GET') {
         $stmt = $pdo->prepare(
             "SELECT s.id, s.user_id, s.name, s.description,
                     s.latitude, s.longitude, s.spot_type, s.difficulty,
-                    s.parking_info, s.created_at, u.username
+                    s.copter_size, s.parking_info, s.created_at, u.username
              FROM spots s
              JOIN users u ON s.user_id = u.id
              WHERE s.user_id = ?
@@ -36,7 +36,7 @@ if ($method === 'GET') {
         $stmt = $pdo->query(
             "SELECT s.id, s.user_id, s.name, s.description,
                     s.latitude, s.longitude, s.spot_type, s.difficulty,
-                    s.parking_info, s.created_at, u.username
+                    s.copter_size, s.parking_info, s.created_at, u.username
              FROM spots s
              JOIN users u ON s.user_id = u.id
              ORDER BY s.created_at DESC"
@@ -124,7 +124,7 @@ if ($method === 'POST') {
         $stmt = $pdo->prepare(
             "SELECT s.id, s.user_id, s.name, s.description,
                     s.latitude, s.longitude, s.spot_type, s.difficulty,
-                    s.parking_info, s.created_at, u.username
+                    s.copter_size, s.parking_info, s.created_at, u.username
              FROM spots s
              JOIN users u ON s.user_id = u.id
              WHERE s.id = ?"

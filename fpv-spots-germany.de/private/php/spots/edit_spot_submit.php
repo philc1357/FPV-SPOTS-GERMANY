@@ -2,7 +2,7 @@
 // =============================================================
 // Spot bearbeiten – Form-Submit
 // =============================================================
-session_start();
+require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 
@@ -33,6 +33,11 @@ $parkingInfo  = trim($_POST['parking_info'] ?? '');
 if ($parkingInfo === '') {
     $parkingInfo = 'Unbekannt';
 }
+
+// Coptergröße: Whitelist-Filterung der Mehrfachauswahl
+$allowedSizes = ['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'];
+$rawSizes     = is_array($_POST['copter_size'] ?? null) ? $_POST['copter_size'] : [];
+$copterSize   = implode(',', array_values(array_intersect($rawSizes, $allowedSizes)));
 
 if ($spotId <= 0) {
     header('Location: /public/php/dashboard.php');
@@ -72,9 +77,9 @@ if (!in_array($spotType, $allowedTypes, true) || !in_array($difficulty, $allowed
 
 try {
     $stmt = $pdo->prepare(
-        "UPDATE spots SET name = ?, description = ?, spot_type = ?, difficulty = ?, parking_info = ? WHERE id = ?"
+        "UPDATE spots SET name = ?, description = ?, spot_type = ?, difficulty = ?, parking_info = ?, copter_size = ? WHERE id = ?"
     );
-    $stmt->execute([$name, $description, $spotType, $difficulty, $parkingInfo, $spotId]);
+    $stmt->execute([$name, $description, $spotType, $difficulty, $parkingInfo, $copterSize, $spotId]);
 } catch (PDOException $e) {
     error_log('edit_spot_submit.php error: ' . $e->getMessage());
 }

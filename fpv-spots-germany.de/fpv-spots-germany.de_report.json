@@ -1,0 +1,69 @@
+{
+  "target": "https://fpv-spots-germany.de",
+  "domain": "fpv-spots-germany.de",
+  "scan_time": "2026-04-21T15:01:41.617700",
+  "reachable": true,
+  "latency_ms": 279,
+  "status_code": 200,
+  "headers": {
+    "Strict-Transport-Security": {
+      "status": "FAIL",
+      "value": null,
+      "note": "FEHLT oder max-age < 1 Jahr"
+    },
+    "Content-Security-Policy": {
+      "status": "WARN",
+      "value": "default-src 'self'; script-src 'self' cdn.jsdelivr.net unpkg.com 'unsafe-inline'; style-src 'self' cdn.jsdelivr.net unpkg.com 'unsafe-inline'; img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com; font-src 'self' cdn.jsdelivr.net; connect-src 'self'",
+      "note": "unsafe-inline oder unsafe-eval vorhanden — XSS-Risiko"
+    },
+    "X-Frame-Options": {
+      "status": "PASS",
+      "value": "SAMEORIGIN",
+      "note": "Clickjacking-Schutz aktiv"
+    },
+    "X-Content-Type-Options": {
+      "status": "PASS",
+      "value": "nosniff",
+      "note": "MIME-Sniffing deaktiviert"
+    },
+    "Referrer-Policy": {
+      "status": "PASS",
+      "value": "strict-origin-when-cross-origin",
+      "note": "Referrer-Policy gesetzt"
+    },
+    "Permissions-Policy": {
+      "status": "INFO",
+      "value": null,
+      "note": "FEHLT"
+    },
+    "X-XSS-Protection": {
+      "status": "INFO",
+      "value": null,
+      "note": "FEHLT (veraltet, nicht kritisch)"
+    }
+  },
+  "disclosure": {
+    "Server": {
+      "value": "Apache",
+      "status": "WARN",
+      "note": "Information Disclosure"
+    }
+  },
+  "cookies": [
+    {
+      "name": "PHPSESSID",
+      "issues": [
+        "Secure-Flag fehlt",
+        "HttpOnly-Flag fehlt",
+        "SameSite-Flag fehlt"
+      ],
+      "status": "WARN"
+    }
+  ],
+  "https_redirect": {
+    "redirects_to_https": true,
+    "final_url": "https://fpv-spots-germany.de/"
+  },
+  "score": "3/5",
+  "rating": "MITTEL"
+}

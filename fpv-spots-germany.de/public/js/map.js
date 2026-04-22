@@ -202,6 +202,7 @@ async function openSpotDetail(spot) {
         <div class="mb-3">
             <span class="badge me-1" style="background:${TYPE_COLORS[spot.spot_type] ?? '#fd7e14'};color:${TYPE_TEXT_COLORS[spot.spot_type] ?? '#ffffff'}">${esc(spot.spot_type)}</span>
             <span class="badge text-bg-${diffColor}">${esc(spot.difficulty)}</span>
+            ${spot.copter_size ? spot.copter_size.split(',').map(s => `<span class="badge text-bg-secondary ms-1">${esc(s.trim())}</span>`).join('') : ''}
         </div>
         <p class="mb-3">${escNl2br(spot.description || 'Keine Beschreibung vorhanden.')}</p>
         <p class="mb-3"><strong>Parkmöglichkeit:</strong><br>${esc(spot.parking_info || 'Unbekannt')}</p>
@@ -255,30 +256,76 @@ function renderSpotPhotos(spotId, images, hasMore) {
 // ---------------------------------------------------------------
 // Karten-Klick: Spot-Erstellen-Offcanvas öffnen
 // ---------------------------------------------------------------
+let _pendingAction = null;
+let _forceClose    = false;
+
+function createFormHasData() {
+    const form = document.getElementById('createSpotForm');
+    return form.querySelector('[name="name"]').value.trim() !== '' ||
+           form.querySelector('[name="description"]').value.trim() !== '' ||
+           form.querySelector('[name="spot_type"]').value !== '' ||
+           form.querySelector('[name="difficulty"]').value !== '';
+}
+
+function applyNewSpotLocation(lat, lng) {
+    document.getElementById('createSpotForm').reset();
+    document.getElementById('createLat').value = lat;
+    document.getElementById('createLng').value = lng;
+    document.getElementById('createCoordsDisplay').textContent = `${lat}, ${lng}`;
+    hideAlert('createErrorAlert');
+    hideAlert('createSuccessAlert');
+    getOrCreateOffcanvas('createSpotOffcanvas').show();
+}
+
+// Offcanvas-Close abfangen: Bootstrap feuert dieses Event BEVOR es das Offcanvas schließt,
+// also noch bevor Leaflet den Map-Click verarbeitet. Nur so können wir rechtzeitig blockieren.
+document.getElementById('createSpotOffcanvas').addEventListener('hide.bs.offcanvas', (e) => {
+    if (_forceClose) return;
+    if (createFormHasData()) {
+        e.preventDefault();
+        new bootstrap.Modal(document.getElementById('discardSpotModal')).show();
+    }
+});
+
 map.on('click', (e) => {
     if (!IS_LOGGED_IN) {
-        // Nicht eingeloggten Nutzern Toast anzeigen
         new bootstrap.Toast(document.getElementById('loginHintToast')).show();
         return;
     }
 
     const lat = e.latlng.lat.toFixed(6);
     const lng = e.latlng.lng.toFixed(6);
+    const offcanvasEl = document.getElementById('createSpotOffcanvas');
 
-    // Koordinaten ins Formular übertragen
-    document.getElementById('createLat').value = lat;
-    document.getElementById('createLng').value = lng;
-    document.getElementById('createCoordsDisplay').textContent = `${lat}, ${lng}`;
+    if (offcanvasEl.classList.contains('show')) {
+        // Offcanvas ist noch offen (hide.bs.offcanvas hat den Close verhindert)
+        if (createFormHasData()) {
+            // Modal wurde bereits durch den hide.bs.offcanvas-Handler gezeigt –
+            // hier nur die ausstehende Aktion mit den neuen Koordinaten speichern.
+            _pendingAction = () => applyNewSpotLocation(lat, lng);
+        } else {
+            applyNewSpotLocation(lat, lng);
+        }
+        return;
+    }
 
-    // Formular und Alerts zurücksetzen
-    document.getElementById('createSpotForm').reset();
-    document.getElementById('createLat').value = lat;   // reset() leert auch hidden inputs
-    document.getElementById('createLng').value = lng;
-    document.getElementById('createCoordsDisplay').textContent = `${lat}, ${lng}`;
-    hideAlert('createErrorAlert');
-    hideAlert('createSuccessAlert');
+    applyNewSpotLocation(lat, lng);
+});
 
-    getOrCreateOffcanvas('createSpotOffcanvas').show();
+document.getElementById('discardConfirmBtn').addEventListener('click', () => {
+    bootstrap.Modal.getInstance(document.getElementById('discardSpotModal')).hide();
+    _forceClose = true;
+    getOrCreateOffcanvas('createSpotOffcanvas').hide();
+    _forceClose = false;
+    if (_pendingAction) {
+        _pendingAction();
+        _pendingAction = null;
+    }
+});
+
+document.getElementById('discardCancelBtn').addEventListener('click', () => {
+    bootstrap.Modal.getInstance(document.getElementById('discardSpotModal')).hide();
+    _pendingAction = null;
 });
 
 // Spot erstellen wird jetzt per klassischem Form-POST an spot_submit.php gesendet.
@@ -330,9 +377,16 @@ function filterMarkersByType() {
     const checkedDiffs = new Set(
         Array.from(document.querySelectorAll('.legend-cb[data-filter="diff"]:checked')).map(cb => cb.value)
     );
+    const checkedSizes = new Set(
+        Array.from(document.querySelectorAll('.legend-cb[data-filter="size"]:checked')).map(cb => cb.value)
+    );
 
     for (const { marker, spot } of Object.values(markerStore)) {
-        if (checkedTypes.has(spot.spot_type) && checkedDiffs.has(spot.difficulty)) {
+        const passesSize = (() => {
+            if (!spot.copter_size) return true; // Größe nicht angegeben → immer anzeigen
+            return spot.copter_size.split(',').some(s => checkedSizes.has(s.trim()));
+        })();
+        if (checkedTypes.has(spot.spot_type) && checkedDiffs.has(spot.difficulty) && passesSize) {
             if (!map.hasLayer(marker)) map.addLayer(marker);
         } else {
             if (map.hasLayer(marker)) map.removeLayer(marker);
@@ -343,10 +397,11 @@ function filterMarkersByType() {
 function saveLegendToSession() {
     const types = Array.from(document.querySelectorAll('.legend-cb[data-filter="type"]:checked')).map(cb => cb.value);
     const diffs = Array.from(document.querySelectorAll('.legend-cb[data-filter="diff"]:checked')).map(cb => cb.value);
+    const sizes = Array.from(document.querySelectorAll('.legend-cb[data-filter="size"]:checked')).map(cb => cb.value);
     fetch('/public/php/api/save_legend.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ types, diffs }),
+        body: JSON.stringify({ types, diffs, sizes }),
     }).catch(() => {});
 }
 

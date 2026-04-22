@@ -1,5 +1,5 @@
 <?php
-    session_start();
+    require_once __DIR__ . "/../core/session_init.php";
 
     //Datenbankverbindungsdatei holen
     require_once __DIR__ . '/../core/db.php';

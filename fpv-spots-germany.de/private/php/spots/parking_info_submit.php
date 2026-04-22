@@ -2,7 +2,7 @@
 // =============================================================
 // Parkmöglichkeit bearbeiten – jeder eingeloggte Nutzer
 // =============================================================
-session_start();
+require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 

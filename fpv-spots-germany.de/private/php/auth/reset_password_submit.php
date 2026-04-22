@@ -2,7 +2,7 @@
 // =============================================================
 // Passwort zurücksetzen – Form-Submit
 // =============================================================
-session_start();
+require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/password_blacklist.php';
