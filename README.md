@@ -73,9 +73,10 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 
 ### Karte & Spots
 - Interaktive Vollbild-Karte mit Spot-Markern (Leaflet + OpenStreetMap / Esri Satellit)
-- Spot-Kategorien: Bando, Feld, Gebirge, Park, Verein, Wasser, Sonstige
+- Spot-Kategorien: Bando, Feld, Gebirge, Park, Wald, Windpark, Sonstige
 - Schwierigkeitsgrade: Anfänger, Mittel, Fortgeschritten, Profi
-- Filterbare Kartenlegende (Typ und Schwierigkeit, persistiert per Cookie)
+- Coptergröße je Spot: Tinywhoop, 2–3 Zoll, 4–5 Zoll, 5+ Zoll
+- Filterbare Kartenlegende (Typ, Schwierigkeit und Coptergröße, persistiert per Cookie)
 - Standortanzeige (nur lokal im Browser, nicht gespeichert)
 - Spot-Favoriten: Spots merken und im Dashboard abrufen
 
@@ -83,24 +84,27 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Spot-Detailansicht mit Fotos, Bewertungen und Kommentaren
 - Spot-Bearbeitung und -Löschung durch Eigentümer oder Admin
 - Sternebewertungen (1–5) und Kommentarsystem (bearbeiten/löschen)
-- Foto-Upload (JPG/PNG, max. 5 MB) pro Spot
-- Community-pflegbare Parkinformationen je Spot
-- Spot-Meldungen (Inhaltsverstöße an Admins melden)
+- Foto-Upload (JPG/PNG, max. 5 MB, bis zu 30 Bilder pro Spot) pro Spot
+- Community-pflegbare Parkinformationen je Spot (jeder angemeldete Nutzer kann bearbeiten)
+- Spot-Meldungen (Inhaltsverstöße an Admins melden: Kommentar, Foto, Spot-Info, Spot-Allgemein)
 
 ### Benutzer & Profil
 - Benutzerverwaltung (Registrierung, Login, Profil)
-- Benutzerdaten ändern: Benutzername, E-Mail-Adresse, Passwort, Bio
-- Öffentliche Nutzerprofile mit optionaler Bio und Spot-Übersicht
+- Benutzerdaten ändern: Benutzername, E-Mail-Adresse, Passwort, Bio (jeweils mit Passwort-Bestätigung)
+- Öffentliche Nutzerprofile mit optionaler Bio, Spot-Übersicht und `last_seen`-Anzeige
 - Privates Profil (Profil für andere Nutzer verbergen)
 - „Angemeldet bleiben" via sicherem Remember-Me-Token (30 Tage)
-- Passwort-Reset per E-Mail (zeitlich begrenzte Tokens)
+- Passwort-Reset per E-Mail (zeitlich begrenzte Tokens, 1 Stunde)
 - Dashboard mit eigenen Spots und gemerkten Favoriten
 - Direktnachrichten zwischen registrierten Nutzern (inkl. Benachrichtigungen)
 
 ### Community & Sonstiges
-- Verbesserungsvorschläge mit Community-Voting
-- Öffentlicher Changelog / Update-Feed
+- Verbesserungsvorschläge mit Community-Voting (1 Vote pro Nutzer)
+- Admin kann Vorschläge kommentieren – Autor erhält E-Mail- und In-App-Benachrichtigung
+- Benachrichtigungs-System (neue Direktnachrichten, Vorschlag-Kommentare)
+- Öffentlicher Changelog / Update-Feed (nur Admin kann Einträge erstellen)
 - Kontaktformular
+- Nutzungsbedingungen mit Acceptance-Wall (neue Nutzer müssen aktiv zustimmen)
 - Impressum und Datenschutzerklärung
 - Progressive Web App (installierbar, offline-fähig)
 
@@ -137,6 +141,7 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │   ├── includes/
 │   │   ├── header.php
 │   │   ├── login_modal.php
+│   │   ├── register_modal.php
 │   │   ├── cookie_banner.php
 │   │   └── update_banner.php
 │   └── php/
@@ -170,15 +175,22 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │       │   └── kontakt_error.php
 │       └── legal/
 │           ├── impressum.php
-│           └── datenschutz.php
+│           ├── datenschutz.php
+│           ├── nutzungsbedingungen.php
+│           └── terms_accept.php
 │
 └── private/
+    ├── data/
+    │   └── best1050.txt        ← Top-1050 Passwort-Blacklist
     ├── js/
     │   └── password_confirm.js ← Client-seitige Passwortbestätigung
     └── php/
         ├── core/
         │   ├── db.php          ← PDO-Verbindung via .env
-        │   ├── auth_check.php  ← Remember-Me Auto-Login
+        │   ├── session_init.php← Session-Cookie-Härtung
+        │   ├── auth_check.php  ← Remember-Me Auto-Login, ToS-Wall
+        │   ├── client_ip.php   ← Trusted-Proxy-fähige IP-Erkennung
+        │   ├── password_blacklist.php ← Blacklist-Prüfung
         │   ├── mailer.php      ← Kontaktformular-Mailer
         │   └── mailer_info.php ← Transaktionale Mailer (Passwort-Reset)
         ├── auth/
@@ -212,6 +224,10 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
         │   ├── suggestion_delete_submit.php
         │   ├── suggestion_comment_submit.php
         │   └── suggestion_comment_delete_submit.php
+        ├── legal/
+        │   └── terms_accept_submit.php
+        ├── maintenance/
+        │   └── cleanup_orphan_images.php ← CLI-Wartungsskript
         └── admin/
             └── update_submit.php
 ```
@@ -242,9 +258,12 @@ Apache mod_rewrite mappt saubere URLs intern auf `public/php/` – Unterordner n
 | `/kontakt.php` | `public/php/contact/kontakt.php` |
 | `/impressum.php` | `public/php/legal/impressum.php` |
 | `/datenschutz.php` | `public/php/legal/datenschutz.php` |
+| `/nutzungsbedingungen.php` | `public/php/legal/nutzungsbedingungen.php` |
+| `/terms_accept.php` | `public/php/legal/terms_accept.php` |
 | `/api/spots.php` | `public/php/api/spots.php` |
 | `/api/spot.php` | `public/php/api/spot.php` |
 | `/api/messages.php` | `public/php/api/messages.php` |
+| `/api/update_bio.php` | `public/php/api/update_bio.php` |
 
 Direkte Aufrufe der internen Pfade (z. B. `/public/php/auth/login.php`) werden per 301 auf die saubere URL umgeleitet. HTTPS wird ebenfalls erzwungen.
 
@@ -256,18 +275,18 @@ Das Schema (`database.sql`) enthält folgende Tabellen:
 
 | Tabelle | Beschreibung |
 |---------|-------------|
-| `users` | Benutzerkonten (username, email, password_hash, bio, admin-Flag, private-Flag) |
-| `spots` | FPV-Spots mit Koordinaten, Typ, Schwierigkeit und Parkinformationen |
+| `users` | Benutzerkonten (username, email, password_hash, bio, admin-Flag, private-Flag, last_seen, terms_accepted_at) |
+| `spots` | FPV-Spots mit Koordinaten, Typ, Schwierigkeit, Coptergröße und Parkinformationen |
 | `comments` | Kommentare zu Spots |
 | `ratings` | Sternebewertungen (1 Bewertung pro Nutzer pro Spot) |
 | `spot_images` | Hochgeladene Bilder, verknüpft mit Spot und Nutzer |
 | `spot_reports` | Meldungen zu Spots (Inhaltsverstöße: Kommentar, Foto, Spot-Info, Spot-Allgemein) |
-| `spot_favorites` | Gemerkter Spots je Nutzer (n:m, Composite PK) |
+| `spot_favorites` | Gemerkte Spots je Nutzer (n:m, Composite PK) |
 | `conversations` | Konversationen zwischen je zwei Nutzern (soft-delete per Nutzer) |
-| `messages` | Einzelne Nachrichten einer Konversation |
-| `user_notifications` | Interne Benachrichtigungen (z. B. neue Nachricht) |
+| `messages` | Einzelne Nachrichten einer Konversation (read_at-Timestamp) |
+| `user_notifications` | Interne Benachrichtigungen (neue Nachricht, Vorschlag-Kommentar) |
 | `remember_tokens` | Selector/Validator-Paare für „Angemeldet bleiben" |
-| `password_reset_tokens` | Zeitlich begrenzte Tokens für Passwort-Reset per E-Mail |
+| `password_reset_tokens` | Zeitlich begrenzte Tokens für Passwort-Reset per E-Mail (1 Stunde) |
 | `suggestions` | Verbesserungsvorschläge der Community |
 | `suggestion_votes` | Votes auf Vorschläge (1 Vote pro Nutzer pro Vorschlag, Composite PK) |
 | `contact_requests` | Eingehende Kontaktformular-Nachrichten |
@@ -289,7 +308,7 @@ Alle API-Endpunkte liegen unter `public/php/api/` und antworten mit `Content-Typ
 | `GET` | `/api/spot.php?id=X` | nein | Einzelnen Spot laden |
 | `POST` + `_method=PUT` | `/api/spot.php?id=X` | ja + CSRF | Spot bearbeiten (Eigentümer/Admin) |
 | `POST` + `_method=DELETE` | `/api/spot.php?id=X` | ja + CSRF | Spot löschen (Eigentümer/Admin) |
-| `GET` | `/api/messages.php` | ja | Konversationen / Nachrichten abrufen |
+| `GET` | `/api/messages.php` | ja | Konversationen / Nachrichten abrufen, Polling |
 | `POST` | `/api/messages.php` | ja + CSRF | Nachricht senden, Konversation löschen |
 | `POST` | `/api/update_bio.php` | ja + CSRF | Profil-Bio aktualisieren |
 | `POST` | `/api/save_legend.php` | nein | Legendenfilter als Cookie speichern |
@@ -324,13 +343,14 @@ Die Anwendung folgt einem klassischen PHP-MVC-nahen Muster ohne Framework:
 - **Direktnachrichten:** Polling-basiert via `/api/messages.php`; Gelesen-Status und Benachrichtigungen werden serverseitig verwaltet
 - **Authentifizierungszustand:** Wird per `<meta name="app-logged-in">` und weiteren Meta-Tags sicher an JavaScript übergeben – kein direktes JavaScript-Cookie-Parsing
 - **Legende:** Filtereinstellungen werden serverseitig aus einem Cookie gelesen und per AJAX-Aufruf an `save_legend.php` persistiert
+- **Flash Messages:** Statusmeldungen nach Formular-Submissions werden als Session-Variable gesetzt und nach dem Redirect einmalig angezeigt (Post-Redirect-Get-Pattern)
 
 ### Seiten-Rendering-Muster
 
 ```
 public/php/{bereich}/X.php
   └─ session_start()
-  └─ require core/auth_check.php      (Remember-Me Auto-Login)
+  └─ require core/auth_check.php      (Remember-Me Auto-Login, ToS-Wall)
   └─ Daten via PDO laden
   └─ include header.php
   └─ HTML ausgeben mit htmlspecialchars()
@@ -356,12 +376,24 @@ Alle Antworten enthalten folgende Sicherheitsheader (gesetzt via `.htaccess`):
 
 | Header | Wert |
 |--------|------|
-| `Content-Security-Policy` | `default-src 'self'`; erlaubt Scripts von `cdn.jsdelivr.net`, `unpkg.com`; Bilder von OSM und Esri |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` (HSTS, 1 Jahr) |
+| `Content-Security-Policy` | `default-src 'self'`; erlaubt Scripts/Styles von `cdn.jsdelivr.net`, `unpkg.com`; Bilder von OSM und Esri |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `SAMEORIGIN` |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(self), payment=()` |
 
 CDN-Ressourcen (Bootstrap, Leaflet) werden zusätzlich mit **Subresource Integrity (SRI)** eingebunden.
+
+### Session-Härtung
+
+Session-Cookies werden via `session_init.php` und ergänzend per `.htaccess` gehärtet:
+
+- `HttpOnly: true` – kein JavaScript-Zugriff auf Session-Cookie
+- `Secure: true` – Cookie nur über HTTPS übertragen
+- `SameSite: Lax` – CSRF-Mitigation auf Cookie-Ebene
+- `session.use_strict_mode = On` – lehnt uninitalisierte Session-IDs ab
+- `session.use_only_cookies = On` – kein `?PHPSESSID` in URLs
 
 ### CSRF-Schutz
 
@@ -388,32 +420,45 @@ $stmt->execute([$id]);
 - Session-ID-Regeneration nach erfolgreichem Login (`session_regenerate_id()`)
 - Vollständige Session-Zerstörung nach Passwortänderung (erzwingt Re-Login)
 - Passwortanforderungen: 8–50 Zeichen (Obergrenze verhindert BCrypt-Trunkierung)
-- „Angemeldet bleiben": Selector/Validator-Token-Paar, Validator nur als Hash gespeichert, Token-Rotation bei jeder Verwendung
+- „Angemeldet bleiben": Selector/Validator-Token-Paar, Validator nur als SHA-256-Hash gespeichert, Token-Rotation bei jeder Verwendung (atomar via Transaktion)
+
+### Passwort-Blacklist
+
+Beim Registrieren, beim Passwort-Reset und beim Passwort-Ändern wird das gewählte Passwort gegen eine Liste der 1050 häufigsten Passwörter geprüft (`private/data/best1050.txt`). Die Prüfung ist case-insensitiv.
+
+### Re-Authentifizierung bei sensitiven Kontoänderungen
+
+Änderungen von E-Mail-Adresse, Benutzername und Passwort erfordern die Eingabe des aktuellen Passworts. Fehlgeschlagene Re-Auth-Versuche werden im Audit-Log protokolliert.
 
 ### Autorisierung
 
 - Spot-Bearbeitung/-Löschung: nur Eigentümer oder Admin
 - Kommentar-Bearbeitung: nur Eigentümer
 - Kommentar-Löschung: Eigentümer oder Admin
-- Verbesserungsvorschlag-Löschung: nur Admin
+- Verbesserungsvorschlag-Löschung/-Kommentierung: nur Admin
 - Changelog-Einträge erstellen: nur Admin
 - Dashboard/Profilseiten: Login erforderlich
+- Direktnachrichten: nur Gesprächsteilnehmer dürfen Konversation lesen
 
 ### Datei-Upload-Sicherheit
 
 | Prüfung | Methode |
 |---------|---------|
-| MIME-Type | `finfo()` (liest tatsächlichen Dateiinhalt) |
+| MIME-Type | `finfo()` (liest tatsächlichen Dateiinhalt / Magic Bytes) |
 | Dateiendung | Whitelist: jpg, jpeg, png |
 | Bildvalidierung | `getimagesize()` |
 | Dateigröße | Max. 5 MB |
 | Dateiname | Randomisiert: `bin2hex(random_bytes(16))` |
+| Upload-Rate | Max. 20 Uploads pro Nutzer pro Stunde |
+| Bilder pro Spot | Hard-Cap: 30 Bilder |
 
 ### Eingabevalidierung
 
-- Enum-Validierung für Spot-Typen und Schwierigkeitsgrade (Allowlist)
+- Enum-Validierung für Spot-Typen, Schwierigkeitsgrade und Coptergröße (Allowlist, `in_array` strict)
 - Koordinaten-Prüfung: Latitude −90 bis 90, Longitude −180 bis 180
-- Längenprüfung auf Strings (Name, Beschreibung, Kommentare, Vorschläge)
+- Längenprüfung auf Strings (Name, Beschreibung, Kommentare, Vorschläge, Bio, Nachrichten)
+- Username-Regex: `/^[a-zA-Z0-9_\-]+$/`, 5–50 Zeichen
+- E-Mail-Validierung via `FILTER_VALIDATE_EMAIL`
 - Serverseitige Validierung auf allen Endpunkten (Client-Validierung wird nicht vertraut)
 
 ### Redirect-Validierung
@@ -426,7 +471,27 @@ preg_match('#^(\.\./)*public/php/[a-zA-Z0-9_]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $red
 
 ### Rate-Limiting
 
-Fehlgeschlagene Login-Versuche werden in `audit_logs` protokolliert. Ab 5 fehlgeschlagenen Versuchen innerhalb von 5 Minuten von derselben IP-Adresse antwortet der Server mit HTTP `429 Too Many Requests`.
+Alle Rate-Limits werden über Abfragen in der `audit_logs`- bzw. Aktions-Tabelle implementiert und antworten bei Überschreitung mit HTTP `429 Too Many Requests`.
+
+| Aktion | Limit | Zeitfenster | Basis |
+|--------|-------|-------------|-------|
+| Login fehlgeschlagen | 5 Versuche | 5 Minuten | IP |
+| Login fehlgeschlagen | 10 Versuche | 15 Minuten | Konto |
+| Registrierung | 5 Versuche | 15 Minuten | IP |
+| Passwort-Reset-Anfrage | 3 Anfragen | 5 Minuten | IP |
+| Kontaktformular | 5 Einreichungen | 1 Stunde | IP + E-Mail |
+| Foto-Upload | 20 Uploads | 1 Stunde | Nutzer |
+| Nachrichten senden | 30 Nachrichten | 1 Minute | Nutzer |
+| Spot-Meldungen | 10 Meldungen | 1 Stunde | Nutzer |
+| Spot-Meldungen (Duplikat) | 1 Meldung | 1 Tag | Nutzer + Spot + Typ |
+
+### User-Enumerierungs-Schutz
+
+Beim Passwort-Reset antwortet der Server immer mit derselben Erfolgsmeldung, unabhängig davon ob die angegebene E-Mail-Adresse existiert.
+
+### Soft-Delete bei Direktnachrichten
+
+Konversationen werden nicht physisch gelöscht, sondern per Nutzer als gelöscht markiert (`deleted_by_user1/user2`). Trifft eine neue Nachricht ein, wird die Konversation wieder sichtbar.
 
 ### Audit-Logging
 
@@ -435,20 +500,30 @@ Sicherheitsrelevante Aktionen werden mit User-ID, IP-Adresse und Zeitstempel pro
 | Aktion | Auslöser |
 |--------|---------|
 | `REGISTER_SUCCESS` | Neue Registrierung |
+| `REGISTER_FAILED` | Fehlgeschlagener Registrierungsversuch |
 | `LOGIN_SUCCESS` | Erfolgreiche Anmeldung |
-| `LOGIN_FAILED` | Fehlgeschlagener Anmeldeversuch (ab 5 in 5 Min. → Rate-Limit 429) |
+| `LOGIN_FAILED` | Fehlgeschlagener Anmeldeversuch (IP + Konto-Rate-Limit) |
 | `PASSWORD_RESET_REQUESTED` | Passwort-Reset angefordert |
 | `PASSWORD_RESET_COMPLETED` | Passwort erfolgreich zurückgesetzt |
 | `EMAIL_CHANGED` | E-Mail-Adresse geändert |
+| `EMAIL_CHANGE_REAUTH_FAILED` | Re-Auth beim E-Mail-Ändern fehlgeschlagen |
 | `USERNAME_CHANGED` | Benutzername geändert |
+| `USERNAME_CHANGE_REAUTH_FAILED` | Re-Auth beim Benutzernamen-Ändern fehlgeschlagen |
 | `PASSWORD_CHANGED` | Passwort geändert |
+| `PASSWORD_CHANGE_REAUTH_FAILED` | Re-Auth beim Passwort-Ändern fehlgeschlagen |
 | `SPOT_CREATED` | Neuer Spot erstellt |
 | `SPOT_EDITED` | Spot bearbeitet |
 | `IMAGE_UPLOADED` | Bild hochgeladen |
+| `IMAGE_ORPHAN_CLEANED` | Verwaiste Bilddatei durch Wartungsskript gelöscht |
+| `TERMS_ACCEPTED` | Nutzungsbedingungen akzeptiert |
 
 ### API-Sicherheit
 
 - **GET:** Öffentlich, nur lesender Zugriff
 - **POST/PUT/DELETE:** Authentifizierung und CSRF-Token erforderlich
-- Korrekte HTTP-Statuscodes (400, 401, 403, 404, 405, 500)
-- Generische Fehlermeldungen nach außen, Details nur intern geloggt
+- Korrekte HTTP-Statuscodes (400, 401, 403, 404, 405, 429, 500)
+- Generische Fehlermeldungen nach außen, Details nur intern geloggt (kein Stack-Trace an den Client)
+
+### Client-IP-Erkennung
+
+`client_ip.php` extrahiert die echte Client-IP auch hinter Reverse-Proxies und CDNs (Cloudflare-ready). `X-Forwarded-For` wird nur von konfigurierten Vertrauens-IPs ausgewertet, um IP-Spoofing in Rate-Limits und Audit-Logs zu verhindern.
