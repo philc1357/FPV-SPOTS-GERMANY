@@ -119,7 +119,7 @@ if (!empty($_SESSION['spot_error'])) {
         <?php foreach ($allSizes as $size):
             $chk = in_array($size, $legendSizes) ? ' checked' : '';
         ?>
-        <label><span class="legend-dot" style="background:#6c757d"></span><?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?><input type="checkbox" class="legend-cb" data-filter="size" value="<?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?>"<?= $chk ?>></label><br>
+        <label><?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?><input type="checkbox" class="legend-cb" data-filter="size" value="<?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?>"<?= $chk ?>></label><br>
         <?php endforeach; ?>
     </div>
 </div>

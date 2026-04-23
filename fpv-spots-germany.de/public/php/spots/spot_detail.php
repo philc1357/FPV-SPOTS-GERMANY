@@ -45,11 +45,20 @@ if (!$spot) {
     exit;
 }
 
+// Null-Normalisierung für String-Felder
+$spot['name']        = (string)($spot['name']        ?? '');
+$spot['description'] = (string)($spot['description'] ?? '');
+$spot['spot_type']   = (string)($spot['spot_type']   ?? '');
+$spot['difficulty']  = (string)($spot['difficulty']  ?? '');
+$spot['copter_size'] = (string)($spot['copter_size'] ?? '');
+$spot['parking_info']= (string)($spot['parking_info']?? 'Unbekannt');
+$spot['username']    = (string)($spot['username']    ?? '');
+
 // Durchschnittsbewertung + Anzahl
 $stmt = $pdo->prepare("SELECT AVG(stars) AS avg_stars, COUNT(*) AS count FROM ratings WHERE spot_id = ?");
 $stmt->execute([$spotId]);
 $ratingData = $stmt->fetch();
-$avgStars   = $ratingData['avg_stars'] ? round($ratingData['avg_stars'], 1) : null;
+$avgStars   = $ratingData['avg_stars'] !== null ? round((float)$ratingData['avg_stars'], 1) : null;
 $ratingCount = (int)$ratingData['count'];
 
 // Eigene Bewertung des Users
@@ -72,6 +81,12 @@ $stmt = $pdo->prepare(
 $stmt->execute([$spotId]);
 $images = $stmt->fetchAll();
 
+$images = array_map(static function (array $img): array {
+    $img['username'] = (string)($img['username'] ?? '');
+    $img['filename'] = (string)($img['filename'] ?? '');
+    return $img;
+}, $images);
+
 $uploadDir = __DIR__ . '/../../uploads/imgs/';
 $images = array_values(array_filter($images, fn($img) => is_file($uploadDir . $img['filename'])));
 
@@ -88,6 +103,12 @@ $stmt = $pdo->prepare(
 );
 $stmt->execute([$spotId]);
 $comments = $stmt->fetchAll();
+
+$comments = array_map(static function (array $comment): array {
+    $comment['username'] = (string)($comment['username'] ?? '');
+    $comment['body']     = (string)($comment['body']     ?? '');
+    return $comment;
+}, $comments);
 
 // Favoriten-Status des Users
 $isFavorite = false;
@@ -112,7 +133,7 @@ $diffColors = [
 $typeColor     = $typeColors[$spot['spot_type']] ?? '#fd7e14';
 $typeTextColor = in_array($spot['spot_type'], ['Feld', 'Sonstige']) ? '#000000' : '#ffffff';
 $diffColor = $diffColors[$spot['difficulty']] ?? 'secondary';
-$createdDate = date('d.m.Y', strtotime($spot['created_at']));
+$createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['created_at'])) : 'Unbekannt';
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -243,7 +264,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                         <?= nl2br(htmlspecialchars($spot['parking_info'] ?: 'Unbekannt')) ?>
                         <?php if ($spot['parking_editor'] && $spot['parking_updated_at']): ?>
                             <small class="text-secondary d-block mt-1">
-                                <i class="bi bi-pencil"></i> <?= htmlspecialchars($spot['parking_editor']) ?> &bull; <?= date('d.m.Y H:i', strtotime($spot['parking_updated_at'])) ?> Uhr
+                                <i class="bi bi-pencil"></i> <?= htmlspecialchars($spot['parking_editor']) ?> &bull; <?= date('d.m.Y H:i', strtotime((string)$spot['parking_updated_at'])) ?> Uhr
                             </small>
                         <?php endif; ?>
                     </div>
@@ -273,7 +294,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                 </div>
 
                 <p class="text-secondary small mb-1">
-                    <i class="bi bi-geo-alt-fill"></i> <?= number_format($spot['latitude'], 5) ?>, <?= number_format($spot['longitude'], 5) ?>
+                    <i class="bi bi-geo-alt-fill"></i> <?= $spot['latitude'] !== null ? number_format((float)$spot['latitude'], 5) : 'N/A' ?>, <?= $spot['longitude'] !== null ? number_format((float)$spot['longitude'], 5) : 'N/A' ?>
                 </p>
                 <p class="text-secondary small mb-0">
                     <i class="bi bi-person-fill"></i> <a href="/profile.php?id=<?= (int)$spot['user_id'] ?>" class="text-info text-decoration-none profile-link" title="Profil"><?= htmlspecialchars($spot['username']) ?></a> &bull; <i class="bi bi-calendar3"></i> <?= $createdDate ?>
@@ -334,7 +355,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                                          onerror="this.closest('.col-6').style.display='none'">
                                 </button>
                                 <small class="text-secondary d-block mt-1">
-                                    <?= htmlspecialchars($img['username']) ?> &bull; <?= date('d.m.Y', strtotime($img['created_at'])) ?>
+                                    <?= htmlspecialchars($img['username']) ?> &bull; <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
                                 </small>
                             </div>
                         <?php endforeach; ?>
@@ -411,7 +432,7 @@ $createdDate = date('d.m.Y', strtotime($spot['created_at']));
                     <p class="text-secondary">Noch keine Kommentare. Sei der Erste!</p>
                 <?php else: ?>
                     <?php foreach ($comments as $comment):
-                        $commentDate = date('d.m.Y H:i', strtotime($comment['created_at']));
+                        $commentDate = $comment['created_at'] ? date('d.m.Y H:i', strtotime((string)$comment['created_at'])) : 'Unbekannt';
                         $isCommentOwner = $isLoggedIn && $userId === (int)$comment['user_id'];
                         $isAdmin = !empty($_SESSION['is_admin']);
                         $canDelete = $isCommentOwner || $isAdmin;
