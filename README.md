@@ -6,7 +6,7 @@ Community-Plattform zum Teilen und Bewerten von FPV-Drohnen-Flugspots in Deutsch
 
 | Komponente | Technologie |
 |------------|-------------|
-| Backend | PHP 7.4+ mit PDO (MySQL/MariaDB) |
+| Backend | PHP 8.2 mit PDO (MySQL/MariaDB) |
 | Frontend | Bootstrap 5.3, Leaflet 1.9 |
 | Kartenkacheln | OpenStreetMap (Standard), Esri World Imagery (Satellit) |
 | Abhängigkeiten | Composer (`vlucas/phpdotenv`) |
