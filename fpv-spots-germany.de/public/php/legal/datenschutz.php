@@ -78,6 +78,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Rechtsgrundlage:</strong> Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO).</p>
                 <p><strong>Zweck:</strong> Bereitstellung des Benutzerkontos, Zuordnung von Spot-Einträgen, Bewertungen und Kommentaren.</p>
                 <p><strong>Änderungen an Kontodaten:</strong> Benutzername, E-Mail-Adresse und Passwort können jederzeit im Dashboard geändert werden. Jede Änderung wird in unserem Sicherheitsprotokoll (Audit-Log) mit IP-Adresse und Zeitstempel erfasst (siehe Abschnitt 14).</p>
+                <p><strong>Nutzungsbedingungen-Zustimmung:</strong> Bei der Registrierung (oder beim erstmaligen Login nach einer Aktualisierung der Nutzungsbedingungen) müssen Sie unseren Nutzungsbedingungen zustimmen. Der Zeitstempel dieser Zustimmung wird gespeichert und ermöglicht uns, Ihre aktuelle Zustimmung zu überprüfen.</p>
                 <p><strong>Speicherdauer:</strong> Die Daten werden für die Dauer der Kontonutzung gespeichert und nach Löschung des Kontos gelöscht, sofern keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</p>
             </section>
 
@@ -117,12 +118,13 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <h2 id="nutzerinhalte" class="h5 mt-4">7. Nutzergenerierte Inhalte</h2>
                 <p>Registrierte Nutzer können folgende Inhalte erstellen, die öffentlich auf der Website angezeigt werden:</p>
                 <ul>
-                    <li><strong>FPV-Spots:</strong> Name, Beschreibung (max. 2.000 Zeichen), GPS-Koordinaten, Kategorie (z.&nbsp;B. Bando, Feld, Park), Schwierigkeitsgrad sowie Parkinformationen.</li>
+                    <li><strong>FPV-Spots:</strong> Name, Beschreibung (max. 2.000 Zeichen), GPS-Koordinaten, Kategorie (z.&nbsp;B. Bando, Feld, Park), Schwierigkeitsgrad sowie Parkinformationen. Die Parkinformationen können von jedem eingeloggten Nutzer bearbeitet werden; in diesem Fall wird die Benutzer-ID des letzten Bearbeiters und der Bearbeitungszeitpunkt gespeichert.</li>
                     <li><strong>Bilder:</strong> Fotos zu einzelnen Spots (JPEG/PNG, max. 5&nbsp;MB). Hochgeladene Bilder werden unter einem zufällig generierten Dateinamen gespeichert; der ursprüngliche Dateiname wird nicht übernommen oder gespeichert.</li>
                     <li><strong>Bewertungen:</strong> Sternbewertungen (1–5) je Spot; pro Nutzer und Spot ist eine Bewertung möglich.</li>
                     <li><strong>Kommentare:</strong> Textbeiträge zu einzelnen Spots (max. 1.000 Zeichen).</li>
+                    <li><strong>Favoriten:</strong> Eingeloggte Nutzer können Spots als persönliche Favoriten speichern. Diese sind ausschließlich für den jeweiligen Nutzer sichtbar.</li>
                 </ul>
-                <p>Alle Inhalte werden zusammen mit der Benutzer-ID und dem Erstellungszeitpunkt gespeichert und sind öffentlich einsehbar.</p>
+                <p>Alle Inhalte werden zusammen mit der Benutzer-ID und dem Erstellungszeitpunkt gespeichert und sind öffentlich einsehbar (außer Favoriten).</p>
                 <p><strong>Rechtsgrundlage:</strong> Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO).</p>
                 <p><strong>Löschung:</strong> Inhalte können jederzeit vom Ersteller oder einem Administrator gelöscht werden. Bei Löschung eines Spots werden alle zugehörigen Bilder, Kommentare, Bewertungen und Meldungen automatisch mitgelöscht.</p>
                 <p><strong>Speicherdauer:</strong> Bis zur Löschung durch den Nutzer, einen Administrator oder bei Kontoauflösung.</p>
@@ -157,26 +159,46 @@ $csrfToken  = $_SESSION['csrf_token'];
                     <li>Erstellungszeitpunkt</li>
                 </ul>
                 <p><strong>Sichtbarkeit:</strong> Eingereichte Vorschläge sind öffentlich einsehbar – auch für nicht registrierte Nutzer. Abstimmungen (Benutzer-ID) sind ausschließlich für Administratoren einsehbar.</p>
+                <p><strong>Admin-Kommentare und Benachrichtigungen:</strong> Administratoren können Kommentare zu Verbesserungsvorschlägen hinzufügen. Wenn ein Administrator kommentiert, erhält der Einreicher des Vorschlags eine interne Plattform-Benachrichtigung und eine E-Mail-Benachrichtigung, die den Kommentartext (max. 200 Zeichen) und einen Link zum Vorschlag enthält.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Weiterentwicklung und Verbesserung des Plattformangebots.</p>
                 <p><strong>Speicherdauer:</strong> Bis zur Löschung durch einen Administrator oder bei Kontoauflösung.</p>
             </section>
 
-            <!-- 10. Kontaktformular -->
+            <!-- 10. Spot-Meldungen -->
+            <section aria-labelledby="spot-meldungen">
+                <h2 id="spot-meldungen" class="h5 mt-4">10. Spot-Meldungen</h2>
+                <p>Eingeloggte Nutzer können Spots über ein Meldeformular melden, falls sie Probleme mit Kommentaren, Fotos, oder den Spot-Informationen entdecken.</p>
+                <p><strong>Verarbeitete Daten:</strong></p>
+                <ul>
+                    <li>Benutzer-ID des Einreichenden</li>
+                    <li>Spot-ID</li>
+                    <li>Meldungstyp (Kommentar, Foto, Spot-Info, Spot-Allgemein)</li>
+                    <li>Meldungstext (10–1.000 Zeichen)</li>
+                    <li>Erstellungszeitpunkt</li>
+                </ul>
+                <p><strong>Sichtbarkeit:</strong> Meldungen sind ausschließlich für Administratoren einsehbar.</p>
+                <p><strong>Rate-Limit:</strong> Maximal 10 Meldungen pro Nutzer und Stunde; pro Spot und Meldungstyp ist maximal 1 Meldung pro Nutzer pro Tag möglich.</p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Plattformintegrität und Missbrauchsprävention.</p>
+                <p><strong>Speicherdauer:</strong> Bis zur Bearbeitung durch einen Administrator oder bei Kontoauflösung des Einreichenden.</p>
+            </section>
+
+            <!-- 11. Kontaktformular -->
             <section aria-labelledby="kontaktformular">
-                <h2 id="kontaktformular" class="h5 mt-4">10. Kontaktformular</h2>
+                <h2 id="kontaktformular" class="h5 mt-4">11. Kontaktformular</h2>
                 <p>Wenn Sie unser Kontaktformular nutzen, werden folgende Daten erhoben und verarbeitet:</p>
                 <ul>
                     <li>E-Mail-Adresse</li>
                     <li>Inhalt Ihrer Nachricht</li>
+                    <li>Falls Sie eingeloggt sind: Ihre Benutzer-ID</li>
                 </ul>
-                <p>Die Übermittlung erfolgt per E-Mail über unseren Mailserver. Die Daten werden ausschließlich zur Bearbeitung Ihrer Anfrage verwendet und danach gelöscht, sofern keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</p>
+                <p><strong>Verarbeitung:</strong> Die Anfrage wird in unserer Datenbank gespeichert und per E-Mail an <strong>kontakt@fpv-spots-germany.de</strong> weitergeleitet. Die Daten werden zur Bearbeitung Ihrer Anfrage verwendet.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Bearbeitung Ihrer Kontaktanfrage.</p>
-                <p><strong>Speicherdauer:</strong> Die Daten werden nach abschließender Bearbeitung Ihrer Anfrage gelöscht, spätestens nach 90 Tagen.</p>
+                <p><strong>Speicherdauer:</strong> Die Daten werden in der Datenbank nach abschließender Bearbeitung Ihrer Anfrage gelöscht, spätestens nach 90 Tagen.</p>
             </section>
 
-            <!-- 11. Passwort zurücksetzen -->
+            <!-- 12. Passwort zurücksetzen -->
             <section aria-labelledby="passwort-reset">
-                <h2 id="passwort-reset" class="h5 mt-4">11. Passwort zurücksetzen</h2>
+                <h2 id="passwort-reset" class="h5 mt-4">12. Passwort zurücksetzen</h2>
                 <p>Über die Funktion „Passwort vergessen" können Nutzer ihr Passwort per E-Mail zurücksetzen.</p>
                 <p><strong>Verarbeitete Daten:</strong></p>
                 <ul>
@@ -190,23 +212,24 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Speicherdauer:</strong> Das Reset-Token wird nach Verwendung oder nach 60&nbsp;Minuten automatisch gelöscht.</p>
             </section>
 
-            <!-- 12. E-Mail-Versand -->
+            <!-- 13. E-Mail-Versand -->
             <section aria-labelledby="email-versand">
-                <h2 id="email-versand" class="h5 mt-4">12. E-Mail-Versand (SMTP-Dienstleister)</h2>
-                <p>Zum Versand transaktionaler E-Mails (Passwort-Reset-Links, Weiterleitung von Kontaktanfragen) nutzen wir den SMTP-Dienst unseres deutschen Hosting-Anbieters <strong>Kasserver</strong>.</p>
+                <h2 id="email-versand" class="h5 mt-4">13. E-Mail-Versand (SMTP-Dienstleister)</h2>
+                <p>Zum Versand transaktionaler E-Mails nutzen wir den SMTP-Dienst unseres deutschen Hosting-Anbieters <strong>Kasserver</strong>.</p>
                 <p><strong>Anbieter:</strong> maxcluster GmbH, Edmund-Rumpler-Straße 6, 51149 Köln, Deutschland.</p>
                 <p><strong>Versandte E-Mail-Typen:</strong></p>
                 <ul>
                     <li>Passwort-Reset-Links (an die hinterlegte E-Mail-Adresse des jeweiligen Nutzers)</li>
                     <li>Weitergeleitete Kontaktanfragen (an unsere interne Postfachadresse)</li>
+                    <li>Benachrichtigungen bei Admin-Kommentaren zu Verbesserungsvorschlägen (an den Einreicher des Vorschlags)</li>
                 </ul>
                 <p>Es werden <strong>keine</strong> Marketing- oder Newsletter-E-Mails versendet.</p>
-                <p><strong>Rechtsgrundlage:</strong> Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) für Passwort-Reset-E-Mails; Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) für die Weiterleitung von Kontaktanfragen.</p>
+                <p><strong>Rechtsgrundlage:</strong> Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) für Passwort-Reset-E-Mails; Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) für die Weiterleitung von Kontaktanfragen und Benachrichtigungen.</p>
             </section>
 
-            <!-- 13. Protokollierung / Audit-Logs -->
+            <!-- 14. Protokollierung / Audit-Logs -->
             <section aria-labelledby="protokollierung">
-                <h2 id="protokollierung" class="h5 mt-4">13. Sicherheitsprotokollierung (Audit-Logs)</h2>
+                <h2 id="protokollierung" class="h5 mt-4">14. Sicherheitsprotokollierung (Audit-Logs)</h2>
                 <p>Zur Erkennung und Abwehr von Missbrauch sowie zum Schutz unserer Systeme protokollieren wir sicherheitsrelevante Aktionen. Dabei werden folgende Daten erfasst:</p>
                 <ul>
                     <li>Benutzer-ID (sofern angemeldet)</li>
@@ -219,9 +242,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Speicherdauer:</strong> Audit-Logs werden nach 90 Tagen gelöscht, sofern kein berechtigtes Interesse an einer längeren Aufbewahrung besteht (z.&nbsp;B. bei laufenden Untersuchungen).</p>
             </section>
 
-            <!-- 14. Cookies und Sessions -->
+            <!-- 15. Cookies und Sessions -->
             <section aria-labelledby="cookies">
-                <h2 id="cookies" class="h5 mt-4">14. Cookies, Session-Verwaltung und lokaler Speicher</h2>
+                <h2 id="cookies" class="h5 mt-4">15. Cookies, Session-Verwaltung und lokaler Speicher</h2>
                 <p>Unsere Website verwendet ausschließlich technisch notwendige Cookies und Präferenz-Cookies. Analyse-, Tracking- oder Marketing-Cookies werden <strong>nicht</strong> eingesetzt.</p>
 
                 <h3 class="h6 mt-3">Sitzungs- und Authentifizierungs-Cookies</h3>
@@ -239,28 +262,28 @@ $csrfToken  = $_SESSION['csrf_token'];
 
                 <h3 class="h6 mt-3">Präferenz-Cookies</h3>
                 <ul>
-                    <li><strong><code>legend_types</code> und <code>legend_diffs</code>:</strong> Speichern Ihre gewählten Kartenfilter (Spot-Typen und Schwierigkeitsgrade). Gültig für 30&nbsp;Tage bei aktiver „Eingeloggt bleiben"-Funktion, andernfalls als Session-Cookie.</li>
-                    <li><strong><code>fpv_map_layer</code>:</strong> Speichert Ihre bevorzugte Kartenansicht (Straße oder Satellit). Session-Cookie.</li>
+                    <li><strong><code>legend_types</code>, <code>legend_diffs</code> und <code>legend_sizes</code>:</strong> Speichern Ihre gewählten Kartenfilter (Spot-Typen, Schwierigkeitsgrade und Kopter-Größen). Gültig für 30&nbsp;Tage bei aktiver „Eingeloggt bleiben"-Funktion, andernfalls als Session-Cookie.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Benachrichtigungs-Cookies</h3>
                 <ul>
-                    <li><strong><code>last_seen_update</code></strong> und <strong><code>last_seen_suggestion</code>:</strong> Session-Cookies, die speichern, welche Plattform-Updates und Verbesserungsvorschläge Sie zuletzt gesehen haben, um Hinweissymbole korrekt darzustellen.</li>
+                    <li><strong><code>last_seen_update</code></strong> und <strong><code>last_seen_suggestion</code>:</strong> Speichern Zeitstempel der letzten Ansicht von Plattform-Updates und Verbesserungsvorschlägen, um Hinweissymbole korrekt darzustellen. Gültig für 365&nbsp;Tage.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Lokaler Browser-Speicher</h3>
                 <p>Zusätzlich zu Cookies nutzen wir den lokalen Speicher des Browsers:</p>
                 <ul>
                     <li><strong>sessionStorage (<code>fpv_map_state</code>):</strong> Speichert den aktuellen Kartenausschnitt (Koordinaten und Zoom-Stufe) für die Dauer der Browser-Sitzung. Wird beim Schließen des Tabs gelöscht und nicht an unsere Server übertragen.</li>
+                    <li><strong>sessionStorage (<code>fpv_map_layer</code>):</strong> Speichert Ihre bevorzugte Kartenansicht (Straße oder Satellit) für die aktuelle Browser-Sitzung.</li>
                     <li><strong>localStorage (<code>pwa-install-dismissed</code>, <code>pwa-ios-dismissed</code>):</strong> Speichert, ob Sie den Hinweis zur Installation der App (PWA) abgelehnt haben. Gültig für 30&nbsp;Tage, ausschließlich im Browser gespeichert.</li>
                 </ul>
 
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) sowie § 25 Abs. 2 TTDSG – technisch notwendiger Betrieb der Website und Speicherung von Nutzereinstellungen.</p>
             </section>
 
-            <!-- 15. Kartendienste -->
+            <!-- 16. Kartendienste -->
             <section aria-labelledby="kartendienst">
-                <h2 id="kartendienst" class="h5 mt-4">15. Kartendienste</h2>
+                <h2 id="kartendienst" class="h5 mt-4">16. Kartendienste</h2>
                 <p>Für die Darstellung der interaktiven Karte werden je nach gewählter Kartenansicht Kartenkacheln (Map Tiles) von zwei verschiedenen externen Diensten geladen:</p>
 
                 <h3 class="h6 mt-3">OpenStreetMap (Standard-Kartenansicht)</h3>
@@ -278,9 +301,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p>Wir selbst speichern keine Daten über Ihren Kartenzugriff oder die geladenen Kartenkacheln. Kartenkacheln können vom Browser oder Service Worker lokal zwischengespeichert werden (siehe Abschnitt 18).</p>
             </section>
 
-            <!-- 16. Standortfreigabe -->
+            <!-- 17. Standortfreigabe -->
             <section aria-labelledby="standort">
-                <h2 id="standort" class="h5 mt-4">16. Standortfreigabe (Geolocation)</h2>
+                <h2 id="standort" class="h5 mt-4">17. Standortfreigabe (Geolocation)</h2>
                 <p>Beim ersten Besuch unserer Website werden Sie gefragt, ob Sie Ihren aktuellen Standort auf der Karte anzeigen möchten. Die Abfrage erfolgt über die standardisierte Browser-API <code>navigator.geolocation</code> und nur nach Ihrer ausdrücklichen Zustimmung.</p>
                 <p><strong>Verarbeitete Daten:</strong> Geografische Koordinaten (Breitengrad, Längengrad) Ihres Endgeräts zum Zeitpunkt der Freigabe.</p>
                 <p><strong>Zweck:</strong> Visuelle Darstellung Ihres Standorts auf der interaktiven Karte, um nahegelegene FPV-Spots leichter zu finden.</p>
@@ -289,9 +312,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Widerruf:</strong> Sie können Ihre Einwilligung jederzeit widerrufen, indem Sie den Cookie <code>location_consent</code> in den Einstellungen Ihres Browsers löschen oder die Standortberechtigung in den Browser-Einstellungen entziehen.</p>
             </section>
 
-            <!-- 17. Externe Ressourcen -->
+            <!-- 18. Externe Ressourcen -->
             <section aria-labelledby="cdn">
-                <h2 id="cdn" class="h5 mt-4">17. Einbindung externer Ressourcen (CDN)</h2>
+                <h2 id="cdn" class="h5 mt-4">18. Einbindung externer Ressourcen (CDN)</h2>
                 <p>Wir binden CSS- und JavaScript-Bibliotheken über externe Content Delivery Networks (CDN) ein. Beim Aufruf unserer Seiten wird eine Verbindung zu den jeweiligen CDN-Servern hergestellt, wobei Ihre IP-Adresse übermittelt wird.</p>
                 <ul>
                     <li>
@@ -307,9 +330,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – performante und zuverlässige Auslieferung der Website.</p>
             </section>
 
-            <!-- 18. PWA / Service Worker -->
+            <!-- 19. PWA / Service Worker -->
             <section aria-labelledby="pwa">
-                <h2 id="pwa" class="h5 mt-4">18. Progressive Web App (PWA) und Service Worker</h2>
+                <h2 id="pwa" class="h5 mt-4">19. Progressive Web App (PWA) und Service Worker</h2>
                 <p>Unsere Website kann als Progressive Web App (PWA) auf dem Gerät installiert werden. Zu diesem Zweck wird ein <strong>Service Worker</strong> im Browser registriert.</p>
                 <p><strong>Funktionen des Service Workers:</strong></p>
                 <ul>
@@ -321,9 +344,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Verbesserung der Nutzererfahrung und Betriebsbereitschaft der Anwendung.</p>
             </section>
 
-            <!-- 19. Betroffenenrechte -->
+            <!-- 20. Betroffenenrechte -->
             <section aria-labelledby="betroffenenrechte">
-                <h2 id="betroffenenrechte" class="h5 mt-4">19. Ihre Rechte als betroffene Person</h2>
+                <h2 id="betroffenenrechte" class="h5 mt-4">20. Ihre Rechte als betroffene Person</h2>
                 <p>Sie haben gemäß der DSGVO folgende Rechte:</p>
                 <ul>
                     <li><strong>Auskunftsrecht (Art. 15 DSGVO):</strong> Sie können Auskunft über die von uns verarbeiteten personenbezogenen Daten verlangen.</li>
@@ -337,9 +360,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p>Zur Ausübung Ihrer Rechte wenden Sie sich bitte an: <a href="mailto:info@fpv-spots-germany.de" class="text-white">info@fpv-spots-germany.de</a></p>
             </section>
 
-            <!-- 20. Datensicherheit -->
+            <!-- 21. Datensicherheit -->
             <section aria-labelledby="datensicherheit">
-                <h2 id="datensicherheit" class="h5 mt-4">20. Datensicherheit</h2>
+                <h2 id="datensicherheit" class="h5 mt-4">21. Datensicherheit</h2>
                 <p>Wir setzen technische und organisatorische Maßnahmen ein, um Ihre Daten zu schützen. Dazu gehören unter anderem:</p>
                 <ul>
                     <li>Verschlüsselte Übertragung per HTTPS/TLS</li>
@@ -351,9 +374,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                 </ul>
             </section>
 
-            <!-- 21. Aktualität -->
+            <!-- 22. Aktualität -->
             <section aria-labelledby="aktualitaet">
-                <h2 id="aktualitaet" class="h5 mt-4">21. Aktualität und Änderung dieser Datenschutzerklärung</h2>
+                <h2 id="aktualitaet" class="h5 mt-4">22. Aktualität und Änderung dieser Datenschutzerklärung</h2>
                 <p>Diese Datenschutzerklärung ist aktuell gültig und hat den Stand April 2026.</p>
                 <p>Durch die Weiterentwicklung unserer Website oder aufgrund geänderter gesetzlicher Vorgaben kann es notwendig werden, diese Datenschutzerklärung zu ändern. Die jeweils aktuelle Fassung kann jederzeit auf dieser Seite abgerufen werden.</p>
             </section>

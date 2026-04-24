@@ -19,7 +19,7 @@ if (!is_array($input) || !isset($input['types']) || !isset($input['diffs'])) {
 
 $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allowedDiffs = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
-$allowedSizes = ['Tinywhoop', '2-3 Zoll', '4-5 Zoll', '5+ Zoll'];
+$allowedSizes = ['Tinywhoop', '2-3 Zoll', '3-5 Zoll', '5+ Zoll'];
 
 $types = array_values(array_intersect((array)$input['types'], $allowedTypes));
 $diffs = array_values(array_intersect((array)$input['diffs'], $allowedDiffs));

@@ -111,6 +111,7 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
                 <li><a class="dropdown-item" href="/nutzungsbedingungen.php">Nutzungsbedingungen</a></li>
                 <li><a class="dropdown-item" href="/impressum.php">Impressum</a></li>
                 <li><a class="dropdown-item" href="/datenschutz.php">Datenschutz</a></li>
+                <li><a class="dropdown-item" href="/github.php"><i class="bi bi-github me-1"></i> GitHub</a></li>
             </ul>
         </div>
     </nav>
