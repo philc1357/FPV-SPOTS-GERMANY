@@ -119,7 +119,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p>Registrierte Nutzer können folgende Inhalte erstellen, die öffentlich auf der Website angezeigt werden:</p>
                 <ul>
                     <li><strong>FPV-Spots:</strong> Name, Beschreibung (max. 2.000 Zeichen), GPS-Koordinaten, Kategorie (z.&nbsp;B. Bando, Feld, Park), Schwierigkeitsgrad sowie Parkinformationen. Die Parkinformationen können von jedem eingeloggten Nutzer bearbeitet werden; in diesem Fall wird die Benutzer-ID des letzten Bearbeiters und der Bearbeitungszeitpunkt gespeichert.</li>
-                    <li><strong>Bilder:</strong> Fotos zu einzelnen Spots (JPEG/PNG, max. 5&nbsp;MB). Hochgeladene Bilder werden unter einem zufällig generierten Dateinamen gespeichert; der ursprüngliche Dateiname wird nicht übernommen oder gespeichert.</li>
+                    <li><strong>Bilder:</strong> Fotos zu einzelnen Spots (JPEG/PNG, max. 5&nbsp;MB). Hochgeladene Bilder werden unter einem zufällig generierten Dateinamen gespeichert; der ursprüngliche Dateiname wird nicht übernommen oder gespeichert. Beim Upload werden EXIF-Metadaten (insbesondere GPS-Koordinaten, Aufnahmezeit und Gerätemodell) serverseitig entfernt, bevor das Bild gespeichert wird.</li>
                     <li><strong>Bewertungen:</strong> Sternbewertungen (1–5) je Spot; pro Nutzer und Spot ist eine Bewertung möglich.</li>
                     <li><strong>Kommentare:</strong> Textbeiträge zu einzelnen Spots (max. 1.000 Zeichen).</li>
                     <li><strong>Favoriten:</strong> Eingeloggte Nutzer können Spots als persönliche Favoriten speichern. Diese sind ausschließlich für den jeweiligen Nutzer sichtbar.</li>
@@ -162,6 +162,43 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Admin-Kommentare und Benachrichtigungen:</strong> Administratoren können Kommentare zu Verbesserungsvorschlägen hinzufügen. Wenn ein Administrator kommentiert, erhält der Einreicher des Vorschlags eine interne Plattform-Benachrichtigung und eine E-Mail-Benachrichtigung, die den Kommentartext (max. 200 Zeichen) und einen Link zum Vorschlag enthält.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Weiterentwicklung und Verbesserung des Plattformangebots.</p>
                 <p><strong>Speicherdauer:</strong> Bis zur Löschung durch einen Administrator oder bei Kontoauflösung.</p>
+            </section>
+
+            <!-- 9b. Community-Aktivitätsfeed (Neuigkeiten) -->
+            <section aria-labelledby="neuigkeiten">
+                <h2 id="neuigkeiten" class="h5 mt-4">9b. Community-Aktivitätsfeed („Neuigkeiten")</h2>
+                <p>Auf der Seite „Neuigkeiten" werden die letzten 50 öffentlichen Aktivitäten der Community in chronologischer Reihenfolge angezeigt: neu erstellte Spots, neue Kommentare und neue Bewertungen.</p>
+                <p><strong>Verarbeitete und angezeigte Daten:</strong></p>
+                <ul>
+                    <li>Benutzername des Erstellers (verlinkt auf das öffentliche Profil)</li>
+                    <li>Spot-Name, Spot-Kategorie und Spot-ID</li>
+                    <li>Bei Kommentaren: Auszug aus dem Kommentartext</li>
+                    <li>Bei Bewertungen: vergebene Sterneanzahl (1–5)</li>
+                    <li>Erstellungszeitpunkt</li>
+                </ul>
+                <p><strong>Sichtbarkeit:</strong> Die Seite ist öffentlich einsehbar – auch für nicht registrierte Nutzer. Aktivitäten zu privat markierten Spots werden <strong>nicht</strong> angezeigt.</p>
+                <p><strong>Hinweismarker:</strong> Damit Nutzer erkennen, ob seit ihrem letzten Besuch neue Aktivitäten hinzugekommen sind, wird beim Aufruf der Seite ein Cookie (<code>last_seen_neuigkeiten</code>) mit dem Zeitstempel der jüngsten Aktivität gesetzt (HttpOnly, Secure, SameSite=Lax, Gültigkeitsdauer 365&nbsp;Tage). Es werden keine personenbezogenen Daten in diesem Cookie gespeichert.</p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Förderung des Community-Austauschs und Sichtbarmachung von Aktivitäten.</p>
+                <p><strong>Speicherdauer:</strong> Bis zur Löschung der zugrundeliegenden Inhalte (Spot, Kommentar, Bewertung) durch den Nutzer, einen Administrator oder bei Kontoauflösung.</p>
+            </section>
+
+            <!-- 9c. Forum -->
+            <section aria-labelledby="forum">
+                <h2 id="forum" class="h5 mt-4">9c. Forum</h2>
+                <p>Registrierte Nutzer können im Forum Beiträge erstellen, kommentieren und auf Kommentare antworten (eine Antwort-Ebene).</p>
+                <p><strong>Verarbeitete Daten:</strong></p>
+                <ul>
+                    <li>Benutzer-ID des Erstellers</li>
+                    <li>Beitragstitel (3–150 Zeichen) und Beitragstext (10–5.000 Zeichen)</li>
+                    <li>Bis zu 4 Bilder je Beitrag (JPEG/PNG, max. 5&nbsp;MB pro Bild). Bilder werden unter einem zufällig generierten Dateinamen gespeichert; EXIF-Metadaten werden vor der Speicherung serverseitig entfernt.</li>
+                    <li>Kommentare und Antworten (2–2.000 Zeichen)</li>
+                    <li>Erstellungszeitpunkt</li>
+                </ul>
+                <p><strong>Sichtbarkeit:</strong> Forenbeiträge, Kommentare und Bilder sind öffentlich einsehbar – auch für nicht registrierte Nutzer. Der Benutzername ist mit dem öffentlichen Profil verlinkt.</p>
+                <p><strong>Bearbeitung und Löschung:</strong> Der Autor kann eigene Beiträge (Titel, Text und Bilder) jederzeit bearbeiten. Administratoren können Beiträge und Kommentare entfernen; bei Löschung eines Beitrags werden alle zugehörigen Bilder, Kommentare und Antworten automatisch mitgelöscht.</p>
+                <p><strong>Rate-Limit:</strong> Maximal 10 Beiträge sowie 30 Kommentare pro Nutzer und Stunde.</p>
+                <p><strong>Rechtsgrundlage:</strong> Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) für die Foren-Funktion; berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) hinsichtlich Rate-Limit-Protokollierung und Spam-Prävention.</p>
+                <p><strong>Speicherdauer:</strong> Bis zur Löschung durch den Autor, einen Administrator oder bei Kontoauflösung.</p>
             </section>
 
             <!-- 10. Spot-Meldungen -->
@@ -237,7 +274,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                     <li>IP-Adresse</li>
                     <li>Zeitstempel</li>
                 </ul>
-                <p><strong>Protokollierte Ereignisse:</strong> Registrierung, An- und Abmeldung, fehlgeschlagene Anmeldeversuche, Passwort-Reset (Anforderung und Abschluss), E-Mail-Änderung, Benutzernamen-Änderung, Passwort-Änderung, Spot-Erstellung und -Bearbeitung, Bild-Upload.</p>
+                <p><strong>Protokollierte Ereignisse:</strong> Registrierung, An- und Abmeldung, fehlgeschlagene Anmeldeversuche, Passwort-Reset (Anforderung und Abschluss), E-Mail-Änderung, Benutzernamen-Änderung, Passwort-Änderung, Spot-Erstellung und -Bearbeitung, Bild-Upload, Bild-Löschung sowie Forenaktionen (Beitrag erstellt, bearbeitet, gelöscht; Kommentar erstellt, gelöscht).</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Sicherheit und Integrität unserer Systeme.</p>
                 <p><strong>Speicherdauer:</strong> Audit-Logs werden nach 90 Tagen gelöscht, sofern kein berechtigtes Interesse an einer längeren Aufbewahrung besteht (z.&nbsp;B. bei laufenden Untersuchungen).</p>
             </section>
@@ -267,7 +304,7 @@ $csrfToken  = $_SESSION['csrf_token'];
 
                 <h3 class="h6 mt-3">Benachrichtigungs-Cookies</h3>
                 <ul>
-                    <li><strong><code>last_seen_update</code></strong> und <strong><code>last_seen_suggestion</code>:</strong> Speichern Zeitstempel der letzten Ansicht von Plattform-Updates und Verbesserungsvorschlägen, um Hinweissymbole korrekt darzustellen. Gültig für 365&nbsp;Tage.</li>
+                    <li><strong><code>last_seen_update</code></strong>, <strong><code>last_seen_suggestion</code></strong> und <strong><code>last_seen_neuigkeiten</code>:</strong> Speichern Zeitstempel der letzten Ansicht von Plattform-Updates, Verbesserungsvorschlägen und des Community-Aktivitätsfeeds, um Hinweissymbole im Menü korrekt darzustellen. Gültig für 365&nbsp;Tage. HttpOnly, Secure, SameSite=Lax.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Lokaler Browser-Speicher</h3>
@@ -374,10 +411,19 @@ $csrfToken  = $_SESSION['csrf_token'];
                 </ul>
             </section>
 
+            <!-- 21b. Open Source / GitHub -->
+            <section aria-labelledby="open-source">
+                <h2 id="open-source" class="h5 mt-4">21b. Open-Source-Veröffentlichung des Quellcodes</h2>
+                <p>Der vollständige Quellcode dieser Plattform ist als Open Source auf GitHub veröffentlicht und unter <a href="https://github.com/philc1357/FPV-SPOTS-GERMANY" target="_blank" rel="noopener noreferrer" class="text-white">github.com/philc1357/FPV-SPOTS-GERMANY</a> einsehbar. Unsere Seite „GitHub" verlinkt lediglich auf dieses externe Repository.</p>
+                <p>Bei Aufruf des externen GitHub-Links werden Daten an GitHub Inc. (88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA) übermittelt. Die Datenschutzbestimmungen von GitHub finden Sie unter <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer" class="text-white">docs.github.com/site-policy/privacy-policies/github-general-privacy-statement</a>.</p>
+                <p>Im veröffentlichten Quellcode sind <strong>keine</strong> personenbezogenen Daten von Nutzern oder Zugangsdaten enthalten – Datenbank- und SMTP-Zugangsdaten werden über eine lokale, nicht im Repository enthaltene <code>.env</code>-Datei geladen.</p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Transparenz über die Funktionsweise der Plattform und Nachvollziehbarkeit der Datenverarbeitung.</p>
+            </section>
+
             <!-- 22. Aktualität -->
             <section aria-labelledby="aktualitaet">
                 <h2 id="aktualitaet" class="h5 mt-4">22. Aktualität und Änderung dieser Datenschutzerklärung</h2>
-                <p>Diese Datenschutzerklärung ist aktuell gültig und hat den Stand April 2026.</p>
+                <p>Diese Datenschutzerklärung ist aktuell gültig und hat den Stand Mai 2026.</p>
                 <p>Durch die Weiterentwicklung unserer Website oder aufgrund geänderter gesetzlicher Vorgaben kann es notwendig werden, diese Datenschutzerklärung zu ändern. Die jeweils aktuelle Fassung kann jederzeit auf dieser Seite abgerufen werden.</p>
             </section>
 

@@ -62,8 +62,10 @@ map.on('moveend zoomend', () => {
 });
 
 // ---------------------------------------------------------------
-// Tile-Layer: Straße (OSM) und Satellit (Esri World Imagery)
+// Tile-Layer: Straße (OSM), Satellit (Esri World Imagery) und Hybrid (Satellit + Beschriftungen)
 // ---------------------------------------------------------------
+const ESRI_IMAGERY_ATTR = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+
 const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: MAP_MAX_ZOOM,
@@ -71,14 +73,33 @@ const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.
 
 const satelliteLayer = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    attribution: ESRI_IMAGERY_ATTR,
     maxZoom: MAP_MAX_ZOOM,
 });
 
-const savedLayerName = (() => { try { return sessionStorage.getItem('fpv_map_layer'); } catch (_) { return null; } })();
-(savedLayerName === 'Satellit' ? satelliteLayer : streetLayer).addTo(map);
+const hybridLayer = L.layerGroup([
+    L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: ESRI_IMAGERY_ATTR,
+        maxZoom: MAP_MAX_ZOOM,
+    }),
+    L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '',
+        maxZoom: MAP_MAX_ZOOM,
+    }),
+    L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '',
+        maxZoom: MAP_MAX_ZOOM,
+    }),
+]);
 
-L.control.layers({ 'Straße': streetLayer, 'Satellit': satelliteLayer }, null, { position: 'bottomleft' }).addTo(map);
+const baseLayers = { 'Straße': streetLayer, 'Satellit': satelliteLayer, 'Hybrid': hybridLayer };
+const savedLayerName = (() => { try { return sessionStorage.getItem('fpv_map_layer'); } catch (_) { return null; } })();
+(baseLayers[savedLayerName] || streetLayer).addTo(map);
+
+L.control.layers(baseLayers, null, { position: 'bottomleft' }).addTo(map);
 
 map.on('baselayerchange', (e) => {
     try { sessionStorage.setItem('fpv_map_layer', e.name); } catch (_) {}

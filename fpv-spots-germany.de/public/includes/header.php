@@ -54,8 +54,33 @@ if ($isLoggedIn && isset($pdo)) {
 }
 $hasUnreadMessages = $unreadMessageCount > 0;
 
+$hasUnseenNeuigkeiten = false;
+if (isset($pdo)) {
+    $lastSeenNeuigkeiten = $_COOKIE['last_seen_neuigkeiten'] ?? '';
+    $latestSpot = $pdo->query("SELECT created_at FROM spots WHERE is_private = 0 ORDER BY created_at DESC LIMIT 1")->fetch();
+    $latestComment = $pdo->query(
+        "SELECT c.created_at FROM comments c
+         JOIN spots s ON c.spot_id = s.id
+         WHERE s.is_private = 0
+         ORDER BY c.created_at DESC LIMIT 1"
+    )->fetch();
+    $latestRating = $pdo->query(
+        "SELECT r.created_at FROM ratings r
+         JOIN spots s ON r.spot_id = s.id
+         WHERE s.is_private = 0
+         ORDER BY r.created_at DESC LIMIT 1"
+    )->fetch();
+    $latestSpotTs    = $latestSpot    ? $latestSpot['created_at']    : '';
+    $latestCommentTs = $latestComment ? $latestComment['created_at'] : '';
+    $latestRatingTs  = $latestRating  ? $latestRating['created_at']  : '';
+    $latestTs        = max($latestSpotTs, $latestCommentTs, $latestRatingTs);
+    if ($latestTs !== '') {
+        $hasUnseenNeuigkeiten = ($lastSeenNeuigkeiten === '' || $latestTs > $lastSeenNeuigkeiten);
+    }
+}
+
 $hasKritikNotification = $hasUnseenSuggestions || $hasUnreadComments;
-$hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnreadMessages;
+$hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnreadMessages || $hasUnseenNeuigkeiten;
 ?>
 
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -105,8 +130,11 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Registrieren</a></li>
                 <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="/updates.php">Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/forum.php">Forum</a></li>
                 <li><a class="dropdown-item" href="/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/neuigkeiten.php">Community Updates<?php if ($hasUnseenNeuigkeiten): ?> <span class="text-warning fw-bold" aria-label="Neue Spots vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/updates.php">Website Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/kontakt.php">Kontakt</a></li>
                 <li><a class="dropdown-item" href="/nutzungsbedingungen.php">Nutzungsbedingungen</a></li>
                 <li><a class="dropdown-item" href="/impressum.php">Impressum</a></li>

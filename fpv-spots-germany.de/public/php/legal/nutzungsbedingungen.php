@@ -32,7 +32,7 @@ $csrfToken  = $_SESSION['csrf_token'];
 <main class="container mt-5 mb-5">
     <div class="card bg-secondary text-white p-4" style="max-width: 700px; margin: auto;">
         <h1 class="h3 mb-4">Nutzungsbedingungen &amp; Haftungsausschluss</h1>
-        <p class="text-white-50 small">Stand: April 2026</p>
+        <p class="text-white-50 small">Stand: Mai 2026</p>
 
         <section aria-labelledby="zweck" class="mb-4">
             <h2 id="zweck" class="h5">1. Zweck der Plattform</h2>
@@ -116,8 +116,58 @@ $csrfToken  = $_SESSION['csrf_token'];
             </p>
         </section>
 
+        <section aria-labelledby="forum-regeln" class="mb-4">
+            <h2 id="forum-regeln" class="h5">4b. Verhaltensregeln im Forum</h2>
+            <p>Im Community-Forum gelten zusätzlich folgende Regeln:</p>
+            <ul>
+                <li>Beiträge und Kommentare sind sachlich und respektvoll zu verfassen.</li>
+                <li>Keine illegalen Inhalte, keine Beleidigungen, kein Spam und kein Verstoß gegen Urheberrechte Dritter.</li>
+                <li>Hochgeladene Bilder dürfen keine Personen ohne deren Einverständnis zeigen und keine geschützten Werke ohne entsprechende Rechte enthalten.</li>
+                <li>Zur Spam-Prävention gelten technische Limits: maximal 10 Beiträge und 30 Kommentare pro Nutzer und Stunde.</li>
+            </ul>
+            <p>
+                Der Betreiber behält sich vor, Forenbeiträge und Kommentare jederzeit ohne Vorankündigung zu
+                entfernen, sofern sie gegen diese Regeln, geltendes Recht oder die Interessen der Community
+                verstoßen.
+            </p>
+        </section>
+
+        <section aria-labelledby="oeffentliche-inhalte" class="mb-4">
+            <h2 id="oeffentliche-inhalte" class="h5">5. Öffentliche Sichtbarkeit von Beiträgen</h2>
+            <p>
+                Spots, Kommentare, Bewertungen, Verbesserungsvorschläge sowie Forenbeiträge und Forenkommentare,
+                die du auf der Plattform einreichst, sind grundsätzlich öffentlich einsehbar – auch ohne
+                Anmeldung. Spot-Aktivitäten erscheinen zusätzlich in chronologischer Reihenfolge im
+                Community-Aktivitätsfeed („Neuigkeiten") zusammen mit deinem Benutzernamen.
+            </p>
+            <p>
+                Lade keine Inhalte hoch, die du nicht öffentlich sichtbar machen möchtest. Persönliche
+                Daten Dritter, vertrauliche Informationen oder urheberrechtlich geschützte Werke ohne
+                entsprechende Rechte gehören nicht in die Plattform.
+            </p>
+            <p>
+                Spots, die als „privat" markiert sind, werden weder im Aktivitätsfeed noch auf der
+                öffentlichen Karte angezeigt.
+            </p>
+        </section>
+
+        <section aria-labelledby="open-source" class="mb-4">
+            <h2 id="open-source" class="h5">6. Open Source</h2>
+            <p>
+                Der Quellcode dieser Plattform ist unter
+                <a href="https://github.com/philc1357/FPV-SPOTS-GERMANY"
+                   target="_blank" rel="noopener noreferrer" class="text-white">
+                    github.com/philc1357/FPV-SPOTS-GERMANY
+                </a>
+                öffentlich einsehbar. Die Veröffentlichung des Codes stellt keine Lizenz zur
+                Nutzung der Marke „FPV Spots Germany", der Inhalte oder der Datenbank dar.
+                Nutzergenerierte Inhalte (Spots, Kommentare, Fotos, Bewertungen) sind nicht
+                Bestandteil des Repositories.
+            </p>
+        </section>
+
         <section aria-labelledby="haftung-links" class="mb-4">
-            <h2 id="haftung-links" class="h5">5. Haftung für externe Links</h2>
+            <h2 id="haftung-links" class="h5">7. Haftung für externe Links</h2>
             <p>
                 Diese Website enthält Links zu externen Webseiten Dritter. Für deren Inhalte
                 übernimmt der Betreiber keine Haftung. Die Inhalte verlinkter Seiten liegen
@@ -126,7 +176,7 @@ $csrfToken  = $_SESSION['csrf_token'];
         </section>
 
         <section aria-labelledby="aenderungen" class="mb-4">
-            <h2 id="aenderungen" class="h5">6. Änderungsvorbehalt</h2>
+            <h2 id="aenderungen" class="h5">8. Änderungsvorbehalt</h2>
             <p>
                 Der Betreiber behält sich vor, diese Nutzungsbedingungen jederzeit anzupassen.
                 Die Weiternutzung der Plattform nach einer Änderung gilt als Zustimmung zu den

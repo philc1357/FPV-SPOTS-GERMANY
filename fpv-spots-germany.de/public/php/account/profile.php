@@ -91,7 +91,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
         <!-- ====================================================
              Karte: Öffentliche Profil-Infos
         ==================================================== -->
-        <div class="col-12 col-md-5">
+        <div class="col-12">
             <article class="card card-dark text-light p-4 h-100">
                 <h1 class="h4 mb-3">
                     <i class="bi bi-person-fill me-1"></i><?= $profileUsername ?>
@@ -155,7 +155,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
         <!-- ====================================================
              Liste: Spots dieses Benutzers
         ==================================================== -->
-        <div class="col-12 col-md-7">
+        <div class="col-12">
             <section class="card card-dark text-light p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2 class="h5 mb-0">

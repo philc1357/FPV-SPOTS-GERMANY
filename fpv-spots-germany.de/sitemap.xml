@@ -52,9 +52,40 @@
     <!-- Datenschutz -->
     <url>
         <loc>https://fpv-spots-germany.de/datenschutz.php</loc>
+        <lastmod>2026-05-07</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+
+    <!-- Neuigkeiten / Community-Aktivitätsfeed -->
+    <url>
+        <loc>https://fpv-spots-germany.de/neuigkeiten.php</loc>
+        <lastmod>2026-05-03</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- Forum -->
+    <url>
+        <loc>https://fpv-spots-germany.de/forum.php</loc>
+        <lastmod>2026-05-07</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- GitHub -->
+    <url>
+        <loc>https://fpv-spots-germany.de/github.php</loc>
         <lastmod>2026-04-17</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.3</priority>
     </url>
 
+    <!-- Nutzungsbedingungen-->
+    <url>
+        <loc>https://fpv-spots-germany.de/nutzungsbedingungen.php</loc>
+        <lastmod>2026-05-07</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
 </urlset>

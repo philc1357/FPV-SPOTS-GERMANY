@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/../core/image_utils.php';
 
 // Nur POST akzeptieren
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -119,7 +120,7 @@ if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
-if (!move_uploaded_file($file['tmp_name'], $destination)) {
+if (!strip_exif_and_save($file['tmp_name'], $destination, $mimeType)) {
     $_SESSION['upload_error'] = 'Fehler beim Speichern der Datei.';
     header("Location: /spot_detail.php?id=$spotId");
     exit;

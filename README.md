@@ -84,7 +84,8 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Spot-Detailansicht mit Fotos, Bewertungen und Kommentaren
 - Spot-Bearbeitung und -Löschung durch Eigentümer oder Admin
 - Sternebewertungen (1–5) und Kommentarsystem (bearbeiten/löschen)
-- Foto-Upload (JPG/PNG, max. 5 MB, bis zu 30 Bilder pro Spot) pro Spot
+- Foto-Upload (JPG/PNG, max. 5 MB, bis zu 30 Bilder pro Spot) pro Spot — EXIF-Metadaten werden serverseitig entfernt
+- Einzel-Foto-Löschung durch Uploader, Spot-Eigentümer oder Admin
 - Community-pflegbare Parkinformationen je Spot (jeder angemeldete Nutzer kann bearbeiten)
 - Spot-Meldungen (Inhaltsverstöße an Admins melden: Kommentar, Foto, Spot-Info, Spot-Allgemein)
 
@@ -99,10 +100,13 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Direktnachrichten zwischen registrierten Nutzern (inkl. Benachrichtigungen)
 
 ### Community & Sonstiges
+- Forum mit Beiträgen (Titel, Text, bis zu 4 Bilder), Kommentaren und einer Antwort-Ebene; Admin-Moderation
 - Verbesserungsvorschläge mit Community-Voting (1 Vote pro Nutzer)
 - Admin kann Vorschläge kommentieren – Autor erhält E-Mail- und In-App-Benachrichtigung
 - Benachrichtigungs-System (neue Direktnachrichten, Vorschlag-Kommentare)
 - Öffentlicher Changelog / Update-Feed (nur Admin kann Einträge erstellen)
+- Community-Aktivitätsfeed („Neuigkeiten") – chronologische Übersicht der letzten 50 Ereignisse (neue Spots, Kommentare, Bewertungen) mit Tagesgruppierung (Heute/Gestern/Datum) und „Neu"-Hinweis im Header
+- Open-Source-Hinweisseite mit Link zum GitHub-Repository
 - Kontaktformular
 - Nutzungsbedingungen mit Acceptance-Wall (neue Nutzer müssen aktiv zustimmen)
 - Impressum und Datenschutzerklärung
@@ -129,7 +133,9 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │   │   ├── messages.css
 │   │   ├── spot_detail.css
 │   │   ├── updates.css
-│   │   └── kritik.css
+│   │   ├── kritik.css
+│   │   ├── neuigkeiten.css
+│   │   └── forum.css
 │   ├── js/
 │   │   ├── map.js              ← Karten- und AJAX-Logik
 │   │   └── pwa.js              ← PWA Install-Banner, Update-Trigger
@@ -137,7 +143,8 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │   │   ├── icons/              ← PWA-Icons (72px–512px)
 │   │   └── logo.png
 │   ├── html/errors/            ← Statische Fehlerseiten (login_empty, login_failed)
-│   ├── uploads/imgs/           ← Nutzer-Uploads (randomisierte Dateinamen)
+│   ├── uploads/imgs/           ← Spot-Uploads (randomisierte Dateinamen, EXIF entfernt)
+│   ├── uploads/forum/          ← Forum-Uploads (randomisierte Dateinamen, EXIF entfernt)
 │   ├── includes/
 │   │   ├── header.php
 │   │   ├── login_modal.php
@@ -168,7 +175,11 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │       │   └── edit_spot.php
 │       ├── community/
 │       │   ├── kritik.php      ← Verbesserungsvorschläge mit Voting
-│       │   └── updates.php     ← Changelog
+│       │   ├── updates.php     ← Changelog
+│       │   ├── neuigkeiten.php ← Community-Aktivitätsfeed (Spots, Kommentare, Bewertungen)
+│       │   ├── forum.php       ← Forum-Übersicht und Beitragsdetail
+│       │   ├── forum_edit.php  ← Forum-Beitrag bearbeiten
+│       │   └── github.php      ← Open-Source-Hinweisseite (Link zum GitHub-Repo)
 │       ├── contact/
 │       │   ├── kontakt.php
 │       │   ├── kontakt_erfolg.php
@@ -192,7 +203,8 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
         │   ├── client_ip.php   ← Trusted-Proxy-fähige IP-Erkennung
         │   ├── password_blacklist.php ← Blacklist-Prüfung
         │   ├── mailer.php      ← Kontaktformular-Mailer
-        │   └── mailer_info.php ← Transaktionale Mailer (Passwort-Reset)
+        │   ├── mailer_info.php ← Transaktionale Mailer (Passwort-Reset)
+        │   └── image_utils.php ← EXIF-Stripping beim Bild-Upload (GD)
         ├── auth/
         │   ├── login_submit.php
         │   ├── logout_submit.php
@@ -210,6 +222,7 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
         │   ├── parking_info_submit.php
         │   ├── rate_submit.php
         │   ├── upload_submit.php
+        │   ├── photo_delete_submit.php
         │   └── favorite_submit.php
         ├── comments/
         │   ├── comment_submit.php
@@ -224,6 +237,12 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
         │   ├── suggestion_delete_submit.php
         │   ├── suggestion_comment_submit.php
         │   └── suggestion_comment_delete_submit.php
+        ├── forum/
+        │   ├── forum_post_submit.php
+        │   ├── forum_post_update_submit.php
+        │   ├── forum_post_delete_submit.php
+        │   ├── forum_comment_submit.php
+        │   └── forum_comment_delete_submit.php
         ├── legal/
         │   └── terms_accept_submit.php
         ├── maintenance/
@@ -255,6 +274,10 @@ Apache mod_rewrite mappt saubere URLs intern auf `public/php/` – Unterordner n
 | `/edit_spot.php` | `public/php/spots/edit_spot.php` |
 | `/kritik.php` | `public/php/community/kritik.php` |
 | `/updates.php` | `public/php/community/updates.php` |
+| `/neuigkeiten.php` | `public/php/community/neuigkeiten.php` |
+| `/forum.php` | `public/php/community/forum.php` |
+| `/forum_edit.php` | `public/php/community/forum_edit.php` |
+| `/github.php` | `public/php/community/github.php` |
 | `/kontakt.php` | `public/php/contact/kontakt.php` |
 | `/impressum.php` | `public/php/legal/impressum.php` |
 | `/datenschutz.php` | `public/php/legal/datenschutz.php` |
@@ -289,6 +312,9 @@ Das Schema (`database.sql`) enthält folgende Tabellen:
 | `password_reset_tokens` | Zeitlich begrenzte Tokens für Passwort-Reset per E-Mail (1 Stunde) |
 | `suggestions` | Verbesserungsvorschläge der Community |
 | `suggestion_votes` | Votes auf Vorschläge (1 Vote pro Nutzer pro Vorschlag, Composite PK) |
+| `forum_posts` | Forenbeiträge (Titel, Text, Autor, Erstellungszeitpunkt) |
+| `forum_post_images` | Bilder zu Forenbeiträgen (max. 4 pro Beitrag) |
+| `forum_comments` | Forenkommentare und -antworten (parent_id für Reply-Ebene) |
 | `contact_requests` | Eingehende Kontaktformular-Nachrichten |
 | `audit_logs` | Sicherheitsrelevante Aktionen mit User-ID und IP |
 | `updates` | Changelog-Einträge (nur Admin kann erstellen) |
@@ -449,8 +475,10 @@ Beim Registrieren, beim Passwort-Reset und beim Passwort-Ändern wird das gewäh
 | Bildvalidierung | `getimagesize()` |
 | Dateigröße | Max. 5 MB |
 | Dateiname | Randomisiert: `bin2hex(random_bytes(16))` |
+| EXIF-Metadaten | Werden via GD beim Upload entfernt (`image_utils.php`) |
 | Upload-Rate | Max. 20 Uploads pro Nutzer pro Stunde |
 | Bilder pro Spot | Hard-Cap: 30 Bilder |
+| Bilder pro Forenbeitrag | Hard-Cap: 4 Bilder |
 
 ### Eingabevalidierung
 
@@ -484,6 +512,8 @@ Alle Rate-Limits werden über Abfragen in der `audit_logs`- bzw. Aktions-Tabelle
 | Nachrichten senden | 30 Nachrichten | 1 Minute | Nutzer |
 | Spot-Meldungen | 10 Meldungen | 1 Stunde | Nutzer |
 | Spot-Meldungen (Duplikat) | 1 Meldung | 1 Tag | Nutzer + Spot + Typ |
+| Forenbeiträge | 10 Beiträge | 1 Stunde | Nutzer |
+| Forenkommentare | 30 Kommentare | 1 Stunde | Nutzer |
 
 ### User-Enumerierungs-Schutz
 
@@ -514,7 +544,13 @@ Sicherheitsrelevante Aktionen werden mit User-ID, IP-Adresse und Zeitstempel pro
 | `SPOT_CREATED` | Neuer Spot erstellt |
 | `SPOT_EDITED` | Spot bearbeitet |
 | `IMAGE_UPLOADED` | Bild hochgeladen |
+| `IMAGE_DELETED` | Spot-Bild durch Uploader, Spot-Eigentümer oder Admin gelöscht |
 | `IMAGE_ORPHAN_CLEANED` | Verwaiste Bilddatei durch Wartungsskript gelöscht |
+| `FORUM_POST_CREATED` | Forenbeitrag erstellt |
+| `FORUM_POST_UPDATED` | Forenbeitrag bearbeitet |
+| `FORUM_POST_DELETED` | Forenbeitrag durch Admin gelöscht |
+| `FORUM_COMMENT_CREATED` | Forenkommentar oder -antwort erstellt |
+| `FORUM_COMMENT_DELETED` | Forenkommentar durch Admin gelöscht |
 | `TERMS_ACCEPTED` | Nutzungsbedingungen akzeptiert |
 
 ### API-Sicherheit

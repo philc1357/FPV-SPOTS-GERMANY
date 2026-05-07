@@ -38,7 +38,22 @@ if (!$spot || ((int)$spot['user_id'] !== $userId && !$isAdmin)) {
     exit;
 }
 
-$success = isset($_GET['success']);
+$success      = isset($_GET['success']);
+$photoDeleted = isset($_GET['photo_deleted']);
+
+// Fotos des Spots laden
+$stmt = $pdo->prepare(
+    "SELECT id, filename, created_at FROM spot_images
+     WHERE spot_id = ? ORDER BY created_at DESC"
+);
+$stmt->execute([$spotId]);
+$images = $stmt->fetchAll();
+
+$uploadDir = __DIR__ . '/../../uploads/imgs/';
+$images = array_values(array_filter(
+    $images,
+    fn($img) => is_file($uploadDir . $img['filename'])
+));
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -158,6 +173,52 @@ $success = isset($_GET['success']);
                         Änderungen speichern
                     </button>
                 </form>
+
+                <!-- ====================================================
+                     Fotos verwalten
+                ==================================================== -->
+                <section id="photos" class="card card-dark text-light p-3 mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h5 mb-0">Fotos</h2>
+                        <span class="badge bg-primary"><?= count($images) ?></span>
+                    </div>
+
+                    <?php if ($photoDeleted): ?>
+                        <div class="alert alert-success py-2" role="alert">Foto erfolgreich gelöscht.</div>
+                    <?php endif; ?>
+
+                    <?php if (empty($images)): ?>
+                        <p class="text-secondary mb-0">Noch keine Fotos vorhanden.</p>
+                    <?php else: ?>
+                        <div class="row g-2">
+                            <?php foreach ($images as $img):
+                                $imgSrc = '/public/uploads/imgs/' . htmlspecialchars($img['filename'], ENT_QUOTES, 'UTF-8');
+                                $imgAlt = 'Foto von ' . htmlspecialchars($spot['name'], ENT_QUOTES, 'UTF-8');
+                            ?>
+                                <div class="col-6 col-md-4">
+                                    <img src="<?= $imgSrc ?>"
+                                         alt="<?= $imgAlt ?>"
+                                         class="img-fluid rounded"
+                                         loading="lazy"
+                                         style="width:100%; height:140px; object-fit:cover;"
+                                         onerror="this.closest('.col-6').style.display='none'">
+                                    <small class="text-secondary d-block mt-1">
+                                        <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
+                                    </small>
+                                    <form method="POST" action="/private/php/spots/photo_delete_submit.php"
+                                          onsubmit="return confirm('Foto wirklich löschen?')">
+                                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                        <input type="hidden" name="spot_id" value="<?= (int)$spot['id'] ?>">
+                                        <input type="hidden" name="image_id" value="<?= (int)$img['id'] ?>">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 mt-1">
+                                            <i class="bi bi-trash3"></i> Löschen
+                                        </button>
+                                    </form>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </section>
 
                 <a href="/public/php/spot_detail.php?id=<?= $spot['id'] ?>" class="btn btn-outline-light w-100 mt-3">Zur Spot-Detailseite</a>
                 <a href="/public/php/dashboard.php" class="btn btn-outline-secondary w-100 mt-2">Zum Dashboard</a>

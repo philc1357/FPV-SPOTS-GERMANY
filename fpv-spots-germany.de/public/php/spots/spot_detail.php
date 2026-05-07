@@ -72,7 +72,7 @@ if ($isLoggedIn) {
 
 // Bilder laden
 $stmt = $pdo->prepare(
-    "SELECT si.filename, si.created_at, u.username
+    "SELECT si.id, si.user_id, si.filename, si.created_at, u.username
      FROM spot_images si
      JOIN users u ON si.user_id = u.id
      WHERE si.spot_id = ?
@@ -314,6 +314,10 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                     <div class="alert alert-danger py-2"><?= htmlspecialchars($uploadError) ?></div>
                 <?php endif; ?>
 
+                <?php if (!empty($_GET['photo_deleted'])): ?>
+                    <div class="alert alert-success py-2" role="alert">Foto erfolgreich gelöscht.</div>
+                <?php endif; ?>
+
                 <?php if ($isLoggedIn): ?>
                     <form method="POST" action="/private/php/spots/upload_submit.php" enctype="multipart/form-data" class="mb-4">
                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
@@ -338,6 +342,11 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                         <?php foreach ($images as $img):
                             $imgSrc = '/public/uploads/imgs/' . htmlspecialchars($img['filename'], ENT_QUOTES, 'UTF-8');
                             $imgAlt = 'Foto von ' . htmlspecialchars($spot['name'], ENT_QUOTES, 'UTF-8') . ', hochgeladen von ' . htmlspecialchars($img['username'], ENT_QUOTES, 'UTF-8');
+                            $canDeleteImg = $isLoggedIn && (
+                                $userId === (int)($img['user_id'] ?? 0)
+                                || $userId === (int)$spot['user_id']
+                                || !empty($_SESSION['is_admin'])
+                            );
                         ?>
                             <div class="col-6 col-md-4">
                                 <button type="button"
@@ -357,6 +366,19 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                 <small class="text-secondary d-block mt-1">
                                     <?= htmlspecialchars($img['username']) ?> &bull; <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
                                 </small>
+                                <?php if ($canDeleteImg): ?>
+                                    <form method="POST" action="/private/php/spots/photo_delete_submit.php"
+                                          onsubmit="return confirm('Foto wirklich löschen?')">
+                                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                        <input type="hidden" name="spot_id" value="<?= (int)$spotId ?>">
+                                        <input type="hidden" name="image_id" value="<?= (int)$img['id'] ?>">
+                                        <input type="hidden" name="redirect" value="detail">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 mt-1"
+                                                title="Foto löschen">
+                                            <i class="bi bi-trash3"></i> Löschen
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>

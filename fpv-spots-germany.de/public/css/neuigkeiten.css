@@ -1,0 +1,18 @@
+body { background-color: #1a1a2e; }
+.card-dark { background: #16213e; border: 1px solid #0f3460; }
+.news-card:hover { background: rgba(255,255,255,.03); }
+
+/* Flex-Item darf bei langen Inhalten schrumpfen, sonst sprengt der Text die Karte */
+.min-w-0 { min-width: 0; }
+
+/* Lange Kommentare auf max. 3 Zeilen begrenzen, mit weichem "…"-Abschluss
+   und korrektem Umbruch auch bei sehr langen Wörtern/URLs. */
+.news-comment {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
