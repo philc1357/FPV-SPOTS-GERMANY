@@ -4,15 +4,7 @@ $isLoggedIn = $isLoggedIn ?? false;
 $username = $username ?? '';
 $csrfToken = $csrfToken ?? '';
 
-$hasUnseenUpdates = false;
-if ($isLoggedIn && isset($pdo)) {
-    $latestUpdate = $pdo->query("SELECT created_at FROM updates ORDER BY created_at DESC LIMIT 1")->fetch();
-    if ($latestUpdate) {
-        $lastSeen = $_COOKIE['last_seen_update'] ?? '';
-        $hasUnseenUpdates = ($lastSeen === '' || $latestUpdate['created_at'] > $lastSeen);
-    }
-}
-
+// Verbesserungsvorschläge bleiben separat (eigenes Cookie + Symbol)
 $hasUnseenSuggestions = false;
 if ($isLoggedIn && isset($pdo)) {
     $latestSuggestion = $pdo->query("SELECT created_at FROM suggestions ORDER BY created_at DESC LIMIT 1")->fetch();
@@ -22,14 +14,16 @@ if ($isLoggedIn && isset($pdo)) {
     }
 }
 
-$hasUnreadComments = false;
+// Persönliche In-App-Notifications für Verbesserungsvorschläge -> separates Symbol
+$hasUnreadSuggestionComments = false;
 if ($isLoggedIn && isset($pdo)) {
     try {
         $ncStmt = $pdo->prepare(
-            "SELECT COUNT(*) FROM user_notifications WHERE user_id = ? AND type != 'new_message' AND read_at IS NULL"
+            "SELECT COUNT(*) FROM user_notifications
+              WHERE user_id = ? AND type = 'suggestion_comment' AND read_at IS NULL"
         );
         $ncStmt->execute([(int)$_SESSION['user_id']]);
-        $hasUnreadComments = (bool)$ncStmt->fetchColumn();
+        $hasUnreadSuggestionComments = (bool)$ncStmt->fetchColumn();
     } catch (PDOException $e) {
         // Tabelle existiert noch nicht – kein Fehler anzeigen
     }
@@ -54,33 +48,41 @@ if ($isLoggedIn && isset($pdo)) {
 }
 $hasUnreadMessages = $unreadMessageCount > 0;
 
-$hasUnseenNeuigkeiten = false;
-if (isset($pdo)) {
-    $lastSeenNeuigkeiten = $_COOKIE['last_seen_neuigkeiten'] ?? '';
-    $latestSpot = $pdo->query("SELECT created_at FROM spots WHERE is_private = 0 ORDER BY created_at DESC LIMIT 1")->fetch();
-    $latestComment = $pdo->query(
-        "SELECT c.created_at FROM comments c
-         JOIN spots s ON c.spot_id = s.id
-         WHERE s.is_private = 0
-         ORDER BY c.created_at DESC LIMIT 1"
-    )->fetch();
-    $latestRating = $pdo->query(
-        "SELECT r.created_at FROM ratings r
-         JOIN spots s ON r.spot_id = s.id
-         WHERE s.is_private = 0
-         ORDER BY r.created_at DESC LIMIT 1"
-    )->fetch();
-    $latestSpotTs    = $latestSpot    ? $latestSpot['created_at']    : '';
-    $latestCommentTs = $latestComment ? $latestComment['created_at'] : '';
-    $latestRatingTs  = $latestRating  ? $latestRating['created_at']  : '';
-    $latestTs        = max($latestSpotTs, $latestCommentTs, $latestRatingTs);
-    if ($latestTs !== '') {
-        $hasUnseenNeuigkeiten = ($lastSeenNeuigkeiten === '' || $latestTs > $lastSeenNeuigkeiten);
+// Einheitlicher Benachrichtigungs-Indikator (alles außer Direktnachrichten + Kritik)
+// Quellen: spots, comments, ratings, updates, forum_posts + persönliche In-App-Events
+$hasUnseenNotifications = false;
+if ($isLoggedIn && isset($pdo)) {
+    try {
+        $lsnStmt = $pdo->prepare('SELECT last_seen_notifications FROM users WHERE id = ?');
+        $lsnStmt->execute([(int)$_SESSION['user_id']]);
+        $lastSeenNotif = $lsnStmt->fetchColumn() ?: '1970-01-01 00:00:00';
+    } catch (PDOException $e) {
+        $lastSeenNotif = '1970-01-01 00:00:00';
+    }
+    try {
+        $sql = "SELECT 1 FROM (
+                    SELECT MAX(s.created_at) AS c FROM spots s WHERE s.is_private = 0
+                    UNION ALL SELECT MAX(c.created_at) FROM comments c
+                              JOIN spots s ON c.spot_id = s.id WHERE s.is_private = 0
+                    UNION ALL SELECT MAX(r.created_at) FROM ratings r
+                              JOIN spots s ON r.spot_id = s.id WHERE s.is_private = 0
+                    UNION ALL SELECT MAX(created_at) FROM updates
+                    UNION ALL SELECT MAX(created_at) FROM forum_posts
+                    UNION ALL SELECT MAX(created_at) FROM user_notifications
+                              WHERE user_id = ?
+                                AND type IN ('new_spot_comment','new_spot_rating')
+                                AND read_at IS NULL
+                ) t WHERE t.c IS NOT NULL AND t.c > ? LIMIT 1";
+        $nStmt = $pdo->prepare($sql);
+        $nStmt->execute([(int)$_SESSION['user_id'], $lastSeenNotif]);
+        $hasUnseenNotifications = (bool)$nStmt->fetchColumn();
+    } catch (PDOException $e) {
+        error_log('header notifications error: ' . $e->getMessage());
     }
 }
 
-$hasKritikNotification = $hasUnseenSuggestions || $hasUnreadComments;
-$hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnreadMessages || $hasUnseenNeuigkeiten;
+$hasKritikNotification = $hasUnseenSuggestions || $hasUnreadSuggestionComments;
+$hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $hasUnreadMessages;
 ?>
 
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -118,6 +120,14 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
                             </span>
                         </a>
                     </li>
+                    <li>
+                        <a class="dropdown-item" href="/benachrichtigungen.php">
+                            <i class="bi bi-bell-fill me-1"></i> Benachrichtigungen
+                            <?php if ($hasUnseenNotifications): ?>
+                                <span id="notification-notify-link" class="text-warning fw-bold ms-1 d-none" aria-label="Neue Benachrichtigungen vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form method="POST" action="/private/php/auth/logout_submit.php" class="d-inline">
@@ -132,8 +142,8 @@ $hasAnyNotifications   = $hasUnseenUpdates || $hasKritikNotification || $hasUnre
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/forum.php">Forum</a></li>
                 <li><a class="dropdown-item" href="/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
-                <li><a class="dropdown-item" href="/neuigkeiten.php">Community Updates<?php if ($hasUnseenNeuigkeiten): ?> <span class="text-warning fw-bold" aria-label="Neue Spots vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
-                <li><a class="dropdown-item" href="/updates.php">Website Updates<?php if ($hasUnseenUpdates): ?> <span id="update-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Updates vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <li><a class="dropdown-item" href="/neuigkeiten.php">Community Updates</a></li>
+                <li><a class="dropdown-item" href="/updates.php">Website Updates</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/kontakt.php">Kontakt</a></li>
                 <li><a class="dropdown-item" href="/nutzungsbedingungen.php">Nutzungsbedingungen</a></li>

@@ -49,18 +49,18 @@
     // Notification Badge (Dropdown show/hide)
     var btnBadge = document.getElementById('update-notify-btn');
     if (btnBadge) {
-        var updateLink     = document.getElementById('update-notify-link');
-        var suggestionLink = document.getElementById('suggestion-notify-link');
+        var notificationLink = document.getElementById('notification-notify-link');
+        var suggestionLink   = document.getElementById('suggestion-notify-link');
         var dropdown = document.querySelector('.dropdown');
         if (dropdown) {
             dropdown.addEventListener('shown.bs.dropdown', function () {
                 btnBadge.classList.add('d-none');
-                if (updateLink)     updateLink.classList.remove('d-none');
-                if (suggestionLink) suggestionLink.classList.remove('d-none');
+                if (notificationLink) notificationLink.classList.remove('d-none');
+                if (suggestionLink)   suggestionLink.classList.remove('d-none');
             });
             dropdown.addEventListener('hidden.bs.dropdown', function () {
-                if (updateLink)     updateLink.classList.add('d-none');
-                if (suggestionLink) suggestionLink.classList.add('d-none');
+                if (notificationLink) notificationLink.classList.add('d-none');
+                if (suggestionLink)   suggestionLink.classList.add('d-none');
                 btnBadge.classList.remove('d-none');
             });
         }

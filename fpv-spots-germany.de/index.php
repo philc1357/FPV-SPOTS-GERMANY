@@ -305,6 +305,30 @@ if (!empty($_SESSION['spot_error'])) {
                 </div>
 
 
+                <!-- ============================================================
+                     YouTube-Video-Links (optional, max. 10)
+                     Titel wird automatisch beim Speichern von YouTube geholt
+                ============================================================ -->
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">
+                        YouTube-Videos <span class="text-secondary fw-normal">(optional, max. 10)</span>
+                    </label>
+                    <div id="videoLinksContainer">
+                        <div class="video-link-row d-flex gap-2 mb-2">
+                            <input type="url" name="video_url[]"
+                                   class="form-control bg-secondary text-light border-0"
+                                   placeholder="https://youtube.com/watch?v=...">
+                            <button type="button" class="btn btn-outline-danger btn-sm video-remove flex-shrink-0"
+                                    aria-label="Link entfernen">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="addVideoLinkBtn" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-plus-lg"></i> Weiterer Link
+                    </button>
+                </div>
+
                 <div class="col-12">
                     <p class="text-secondary small mb-0">
                         &#128205; Koordinaten:
@@ -375,6 +399,44 @@ if (!empty($_SESSION['spot_error'])) {
             btn.textContent = selected.length ? selected.join(', ') : 'Alle Größen wählen…';
         });
     });
+})();
+
+// =============================================================
+// Dynamisches Hinzufügen/Entfernen von YouTube-Video-Zeilen
+// =============================================================
+(function () {
+    var MAX_VIDEOS = 10;
+    var container = document.getElementById('videoLinksContainer');
+    var addBtn    = document.getElementById('addVideoLinkBtn');
+    if (!container || !addBtn) return;
+
+    function rowCount() {
+        return container.querySelectorAll('.video-link-row').length;
+    }
+    function updateAddBtn() {
+        addBtn.disabled = rowCount() >= MAX_VIDEOS;
+    }
+    addBtn.addEventListener('click', function () {
+        if (rowCount() >= MAX_VIDEOS) return;
+        var template = container.querySelector('.video-link-row');
+        var clone = template.cloneNode(true);
+        clone.querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
+        container.appendChild(clone);
+        updateAddBtn();
+    });
+    container.addEventListener('click', function (e) {
+        var btn = e.target.closest('.video-remove');
+        if (!btn) return;
+        var row = btn.closest('.video-link-row');
+        if (!row) return;
+        if (rowCount() > 1) {
+            row.remove();
+        } else {
+            row.querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
+        }
+        updateAddBtn();
+    });
+    updateAddBtn();
 })();
 </script>
 

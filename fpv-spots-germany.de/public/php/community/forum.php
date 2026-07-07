@@ -172,7 +172,7 @@ if (!empty($posts)) {
                                        class="btn btn-outline-secondary btn-sm py-0 px-1"
                                        title="Beitrag bearbeiten"><i class="bi bi-pencil"></i></a>
                                 <?php endif; ?>
-                                <?php if (!empty($_SESSION['is_admin'])): ?>
+                                <?php if ($isLoggedIn && ($userId === (int)$p['user_id'] || !empty($_SESSION['is_admin']))): ?>
                                     <form method="POST" action="/private/php/forum/forum_post_delete_submit.php"
                                           class="d-inline"
                                           onsubmit="return confirm('Beitrag wirklich löschen? Alle Kommentare und Bilder werden mitgelöscht.')">

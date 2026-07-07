@@ -109,6 +109,13 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <li>Es werden keine Spots eingetragen, die explizit zum illegalen Betreten von Privateigentum oder zum Fliegen in gesperrten Zonen auffordern.</li>
                 <li>Foto-Uploads zeigen keine Personen ohne deren Einverständnis.</li>
                 <li>Inhalte verstoßen nicht gegen geltendes Recht.</li>
+                <li>
+                    Verlinkte YouTube-Videos (max. 10 pro Spot) stehen inhaltlich in Bezug
+                    zum jeweiligen Spot und verletzen keine Urheber-, Persönlichkeits- oder
+                    sonstigen Rechte Dritter. Es dürfen ausschließlich Links zu YouTube
+                    (youtube.com, youtu.be) eingereicht werden; andere Video-Plattformen sind
+                    nicht zulässig.
+                </li>
             </ul>
             <p>
                 Der Betreiber behält sich vor, Spots und Inhalte zu entfernen, die gegen diese
@@ -169,9 +176,12 @@ $csrfToken  = $_SESSION['csrf_token'];
         <section aria-labelledby="haftung-links" class="mb-4">
             <h2 id="haftung-links" class="h5">7. Haftung für externe Links</h2>
             <p>
-                Diese Website enthält Links zu externen Webseiten Dritter. Für deren Inhalte
-                übernimmt der Betreiber keine Haftung. Die Inhalte verlinkter Seiten liegen
-                ausschließlich in der Verantwortung der jeweiligen Anbieter.
+                Diese Website enthält Links zu externen Webseiten Dritter, insbesondere zu
+                Videos auf YouTube, die von Nutzern den jeweiligen Spots zugeordnet werden.
+                Für deren Inhalte übernimmt der Betreiber keine Haftung. Die Inhalte
+                verlinkter Seiten liegen ausschließlich in der Verantwortung der jeweiligen
+                Anbieter. Bei Bekanntwerden von Rechtsverletzungen werden entsprechende
+                Links unverzüglich entfernt.
             </p>
         </section>
 

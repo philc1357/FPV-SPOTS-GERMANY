@@ -93,6 +93,13 @@ $images = array_values(array_filter($images, fn($img) => is_file($uploadDir . $i
 $uploadError = $_SESSION['upload_error'] ?? null;
 unset($_SESSION['upload_error']);
 
+// YouTube-Videos laden
+$stmt = $pdo->prepare(
+    "SELECT title, youtube_id FROM spot_videos WHERE spot_id = ? ORDER BY position ASC, id ASC"
+);
+$stmt->execute([$spotId]);
+$videos = $stmt->fetchAll();
+
 // Kommentare laden
 $stmt = $pdo->prepare(
     "SELECT c.id, c.user_id, c.body, c.created_at, u.username
@@ -185,6 +192,13 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                     <h1 class="h3 mb-0"><?= htmlspecialchars($spot['name']) ?></h1>
                     <div class="d-flex gap-2 align-items-center">
                         <a href="/?spot=<?= $spotId ?>" class="btn btn-outline-light btn-sm" title="Auf der Karte anzeigen"><i class="bi bi-map"></i></a>
+                        <?php if ($spot['latitude'] !== null && $spot['longitude'] !== null): ?>
+                            <a href="https://www.google.com/maps/search/?api=1&query=<?= urlencode(number_format((float)$spot['latitude'], 6, '.', '') . ',' . number_format((float)$spot['longitude'], 6, '.', '')) ?>"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-outline-light btn-sm"
+                               title="Auf Google Maps anzeigen"><i class="bi bi-google"></i></a>
+                        <?php endif; ?>
                         <?php if ($isLoggedIn): ?>
                             <form method="POST" action="/private/php/spots/favorite_submit.php" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
@@ -324,7 +338,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                    class="form-control form-control-sm bg-secondary text-light border-0" required>
                             <button type="submit" class="btn btn-success btn-sm text-nowrap">Foto hochladen</button>
                         </div>
-                        <small class="text-secondary">JPG/PNG, max. 5 MB</small>
+                        <small class="text-secondary">JPG/PNG, max. 10 MB</small>
                     </form>
                 <?php else: ?>
                     <p class="text-secondary small mb-3">
@@ -376,6 +390,40 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                         </button>
                                     </form>
                                 <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- ====================================================
+                 YouTube-Videos
+            ==================================================== -->
+            <div class="card card-dark text-light p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Videos</h2>
+                    <span class="badge bg-primary"><?= count($videos) ?></span>
+                </div>
+                <?php if (empty($videos)): ?>
+                    <p class="text-secondary mb-0">Noch keine Videos vorhanden.</p>
+                <?php else: ?>
+                    <div class="row g-3">
+                        <?php foreach ($videos as $v):
+                            $vid   = htmlspecialchars((string)$v['youtube_id'], ENT_QUOTES, 'UTF-8');
+                            $title = htmlspecialchars((string)$v['title'],      ENT_QUOTES, 'UTF-8');
+                        ?>
+                            <div class="col-6 col-md-4">
+                                <a href="https://www.youtube.com/watch?v=<?= $vid ?>"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="text-decoration-none">
+                                    <img src="https://img.youtube.com/vi/<?= $vid ?>/mqdefault.jpg"
+                                         alt="<?= $title ?>"
+                                         loading="lazy"
+                                         class="img-fluid rounded"
+                                         style="width:100%; aspect-ratio:16/9; object-fit:cover;"
+                                         onerror="this.style.display='none'">
+                                    <small class="text-light d-block mt-1 fw-semibold"><?= $title ?></small>
+                                </a>
                             </div>
                         <?php endforeach; ?>
                     </div>

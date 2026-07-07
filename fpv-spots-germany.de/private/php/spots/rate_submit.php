@@ -31,12 +31,31 @@ if ($spotId <= 0 || $stars < 1 || $stars > 5) {
 }
 
 try {
+    // Vorab prüfen ob bereits eine Bewertung existiert (nur dann benachrichtigen wenn neu)
+    $existsStmt = $pdo->prepare("SELECT id FROM ratings WHERE spot_id = ? AND user_id = ?");
+    $existsStmt->execute([$spotId, $userId]);
+    $isNewRating = $existsStmt->fetchColumn() === false;
+
     // INSERT oder UPDATE falls der User bereits bewertet hat
     $stmt = $pdo->prepare(
         "INSERT INTO ratings (spot_id, user_id, stars) VALUES (?, ?, ?)
          ON DUPLICATE KEY UPDATE stars = VALUES(stars)"
     );
     $stmt->execute([$spotId, $userId, $stars]);
+
+    if ($isNewRating) {
+        $ratingId = (int)$pdo->lastInsertId();
+        // In-App-Benachrichtigung an Spot-Owner (nicht an sich selbst)
+        $ownerStmt = $pdo->prepare("SELECT user_id FROM spots WHERE id = ?");
+        $ownerStmt->execute([$spotId]);
+        $ownerId = (int)$ownerStmt->fetchColumn();
+        if ($ownerId > 0 && $ownerId !== $userId && $ratingId > 0) {
+            $nStmt = $pdo->prepare(
+                "INSERT INTO user_notifications (user_id, type, reference_id) VALUES (?, 'new_spot_rating', ?)"
+            );
+            $nStmt->execute([$ownerId, $ratingId]);
+        }
+    }
 } catch (PDOException $e) {
     error_log('rate_submit.php error: ' . $e->getMessage());
 }

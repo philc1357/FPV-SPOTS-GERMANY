@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/youtube_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /public/php/dashboard.php');
@@ -76,12 +77,71 @@ if (!in_array($spotType, $allowedTypes, true) || !in_array($difficulty, $allowed
     exit;
 }
 
+// =============================================================
+// YouTube-Videos einsammeln und validieren (max. 10 URLs)
+// Bestehende Titel aus DB übernehmen, neue per oEmbed holen.
+// =============================================================
+$rawVideoUrls = is_array($_POST['video_url'] ?? null) ? $_POST['video_url'] : [];
+$videoCount   = min(count($rawVideoUrls), 10);
+
+// Bisherige Titel pro youtube_id laden (vermeidet redundante oEmbed-Calls)
+$existingTitles = [];
+$rs = $pdo->prepare("SELECT youtube_id, title FROM spot_videos WHERE spot_id = ?");
+$rs->execute([$spotId]);
+foreach ($rs->fetchAll() as $row) {
+    $existingTitles[$row['youtube_id']] = $row['title'];
+}
+
+$validVideos = [];
+$seenIds     = [];
+for ($i = 0; $i < $videoCount; $i++) {
+    $vUrl = trim((string)($rawVideoUrls[$i] ?? ''));
+    if ($vUrl === '') {
+        continue;
+    }
+    $youtubeId = extractYoutubeId($vUrl);
+    if ($youtubeId === null) {
+        header("Location: /public/php/edit_spot.php?id=$spotId&video_error=1");
+        exit;
+    }
+    if (isset($seenIds[$youtubeId])) {
+        continue;
+    }
+    $seenIds[$youtubeId] = true;
+
+    if (isset($existingTitles[$youtubeId])) {
+        $title = $existingTitles[$youtubeId];
+    } else {
+        $title = fetchYoutubeTitle($youtubeId) ?? 'YouTube-Video';
+    }
+    $validVideos[] = ['title' => $title, 'youtube_id' => $youtubeId];
+}
+
 try {
+    $pdo->beginTransaction();
+
     $stmt = $pdo->prepare(
         "UPDATE spots SET name = ?, description = ?, spot_type = ?, difficulty = ?, parking_info = ?, copter_size = ? WHERE id = ?"
     );
     $stmt->execute([$name, $description, $spotType, $difficulty, $parkingInfo, $copterSize, $spotId]);
+
+    // Videos: alte löschen, neue komplett einfügen (Edit-Form überträgt vollständige Liste)
+    $pdo->prepare("DELETE FROM spot_videos WHERE spot_id = ?")->execute([$spotId]);
+
+    if (!empty($validVideos)) {
+        $videoStmt = $pdo->prepare(
+            "INSERT INTO spot_videos (spot_id, title, youtube_id, position) VALUES (?, ?, ?, ?)"
+        );
+        foreach ($validVideos as $idx => $v) {
+            $videoStmt->execute([$spotId, $v['title'], $v['youtube_id'], $idx]);
+        }
+    }
+
+    $pdo->commit();
 } catch (PDOException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     error_log('edit_spot_submit.php error: ' . $e->getMessage());
 }
 

@@ -33,6 +33,18 @@ if ($spotId <= 0 || strlen($body) < 3 || strlen($body) > 1000) {
 try {
     $stmt = $pdo->prepare("INSERT INTO comments (spot_id, user_id, body) VALUES (?, ?, ?)");
     $stmt->execute([$spotId, $userId, $body]);
+    $commentId = (int)$pdo->lastInsertId();
+
+    // In-App-Benachrichtigung an Spot-Owner (nicht an sich selbst)
+    $ownerStmt = $pdo->prepare("SELECT user_id FROM spots WHERE id = ?");
+    $ownerStmt->execute([$spotId]);
+    $ownerId = (int)$ownerStmt->fetchColumn();
+    if ($ownerId > 0 && $ownerId !== $userId) {
+        $nStmt = $pdo->prepare(
+            "INSERT INTO user_notifications (user_id, type, reference_id) VALUES (?, 'new_spot_comment', ?)"
+        );
+        $nStmt->execute([$ownerId, $commentId]);
+    }
 } catch (PDOException $e) {
     error_log('comment_submit.php error: ' . $e->getMessage());
 }

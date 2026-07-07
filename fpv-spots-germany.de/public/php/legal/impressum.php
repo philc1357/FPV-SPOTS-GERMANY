@@ -60,9 +60,11 @@ $csrfToken  = $_SESSION['csrf_token'];
             </section>
 
             <section aria-labelledby="streitschlichtung">
-                <h2 id="streitschlichtung" class="h5">EU-Streitschlichtung</h2>
-                <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
-                    <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer" class="text-white">https://ec.europa.eu/consumers/odr/</a>.
+                <h2 id="streitschlichtung" class="h5">Verbraucherstreitbeilegung</h2>
+                <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer
+                    Verbraucherschlichtungsstelle teilzunehmen. Eine Übersicht der anerkannten
+                    Streitbeilegungsstellen findest du unter
+                    <a href="https://consumer-redress.ec.europa.eu/" target="_blank" rel="noopener noreferrer" class="text-white">https://consumer-redress.ec.europa.eu/</a>.
                 </p>
                 <p>Unsere E-Mail-Adresse findest du oben im Impressum.</p>
             </section>
@@ -71,7 +73,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p>
                     Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. Für die Richtigkeit,
                     Vollständigkeit und Aktualität der nutzergenerierten Spot-Informationen übernehmen
-                    wir keine Gewähr. Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene
+                    wir keine Gewähr. Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene
                     Inhalte verantwortlich, aber nicht verpflichtet, übermittelte oder gespeicherte
                     fremde Informationen zu überwachen.
                 </p>

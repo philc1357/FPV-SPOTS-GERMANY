@@ -72,8 +72,8 @@ if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
 
 $file = $_FILES['photo'];
 
-// Max. 5 MB
-$maxSize = 5 * 1024 * 1024;
+// Max. 10 MB
+$maxSize = 10 * 1024 * 1024;
 if ($file['size'] > $maxSize) {
     $_SESSION['upload_error'] = 'Die Datei ist zu gross (max. 5 MB).';
     header("Location: /spot_detail.php?id=$spotId");

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 // =============================================================
-// Forum – Beitrag löschen (nur Admin)
+// Forum – Beitrag löschen (Admin oder Beitragsautor)
 // =============================================================
 require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!isset($_SESSION['user_id']) || empty($_SESSION['is_admin'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /forum.php');
     exit;
 }
@@ -22,6 +22,19 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
 
 $postId = (int)($_POST['post_id'] ?? 0);
 if ($postId <= 0) {
+    header('Location: /forum.php');
+    exit;
+}
+
+$userId  = (int)$_SESSION['user_id'];
+$isAdmin = !empty($_SESSION['is_admin']);
+
+// Nur Admin oder Autor darf löschen
+$ownerStmt = $pdo->prepare("SELECT user_id FROM forum_posts WHERE id = ?");
+$ownerStmt->execute([$postId]);
+$post = $ownerStmt->fetch();
+
+if (!$post || (!$isAdmin && (int)$post['user_id'] !== $userId)) {
     header('Location: /forum.php');
     exit;
 }

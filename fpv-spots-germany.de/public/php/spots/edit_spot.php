@@ -54,6 +54,15 @@ $images = array_values(array_filter(
     $images,
     fn($img) => is_file($uploadDir . $img['filename'])
 ));
+
+// Bestehende YouTube-Videos laden
+$stmt = $pdo->prepare(
+    "SELECT title, youtube_id FROM spot_videos WHERE spot_id = ? ORDER BY position ASC, id ASC"
+);
+$stmt->execute([$spotId]);
+$videos = $stmt->fetchAll();
+
+$videoError = isset($_GET['video_error']);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -166,6 +175,53 @@ $images = array_values(array_filter(
                     </div>
 
 
+                    <!-- ============================================================
+                         YouTube-Video-Links (optional, max. 10)
+                    ============================================================ -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">
+                            YouTube-Videos <span class="text-secondary fw-normal">(optional, max. 10)</span>
+                        </label>
+                        <?php if ($videoError): ?>
+                            <div class="alert alert-danger py-2 small mb-2" role="alert">
+                                Mindestens ein Video war ungültig. Jeder Eintrag braucht Titel und eine gültige YouTube-URL.
+                            </div>
+                        <?php endif; ?>
+                        <div id="videoLinksContainer">
+                            <?php
+                            // Mindestens eine leere Zeile rendern
+                            $rowsToRender = !empty($videos) ? $videos : [['title' => '', 'youtube_id' => '']];
+                            foreach ($rowsToRender as $vIdx => $v):
+                                $vTitle = htmlspecialchars((string)($v['title'] ?? ''), ENT_QUOTES, 'UTF-8');
+                                $vUrl   = !empty($v['youtube_id'])
+                                    ? 'https://www.youtube.com/watch?v=' . htmlspecialchars($v['youtube_id'], ENT_QUOTES, 'UTF-8')
+                                    : '';
+                            ?>
+                                <div class="video-link-row mb-2">
+                                    <div class="d-flex gap-2">
+                                        <input type="url" name="video_url[]"
+                                               value="<?= $vUrl ?>"
+                                               class="form-control bg-secondary text-light border-0"
+                                               placeholder="https://youtube.com/watch?v=...">
+                                        <button type="button" class="btn btn-outline-danger btn-sm video-remove flex-shrink-0"
+                                                aria-label="Link entfernen">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                    <?php if ($vTitle !== ''): ?>
+                                        <small class="text-secondary d-block mt-1 ms-1">
+                                            <i class="bi bi-youtube"></i> <?= $vTitle ?>
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <small class="text-secondary d-block mb-2">Titel wird automatisch beim Speichern geholt.</small>
+                        <button type="button" id="addVideoLinkBtn" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-plus-lg"></i> Weiterer Link
+                        </button>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
                         Änderungen speichern
                     </button>
@@ -237,6 +293,44 @@ $images = array_values(array_filter(
         });
     });
 })();
+// =============================================================
+// Dynamisches Hinzufügen/Entfernen von YouTube-Video-Zeilen
+// =============================================================
+(function () {
+    var MAX_VIDEOS = 10;
+    var container = document.getElementById('videoLinksContainer');
+    var addBtn    = document.getElementById('addVideoLinkBtn');
+    if (!container || !addBtn) return;
+
+    function rowCount() {
+        return container.querySelectorAll('.video-link-row').length;
+    }
+    function updateAddBtn() {
+        addBtn.disabled = rowCount() >= MAX_VIDEOS;
+    }
+    addBtn.addEventListener('click', function () {
+        if (rowCount() >= MAX_VIDEOS) return;
+        var template = container.querySelector('.video-link-row');
+        var clone = template.cloneNode(true);
+        clone.querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
+        container.appendChild(clone);
+        updateAddBtn();
+    });
+    container.addEventListener('click', function (e) {
+        var btn = e.target.closest('.video-remove');
+        if (!btn) return;
+        var row = btn.closest('.video-link-row');
+        if (!row) return;
+        if (rowCount() > 1) {
+            row.remove();
+        } else {
+            row.querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
+        }
+        updateAddBtn();
+    });
+    updateAddBtn();
+})();
+
 document.getElementById('editParkingUnknown').addEventListener('change', function () {
     var ta = document.getElementById('editParkingInfo');
     if (this.checked) {

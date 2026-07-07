@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/youtube_helper.php';
 
 // Nur POST akzeptieren
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -43,6 +44,38 @@ $allowedSizes  = ['Tinywhoop', '2-3 Zoll', '3-5 Zoll', '5+ Zoll'];
 $rawSizes      = is_array($_POST['copter_size'] ?? null) ? $_POST['copter_size'] : [];
 $copterSize    = implode(',', array_values(array_intersect($rawSizes, $allowedSizes)));
 
+// =============================================================
+// YouTube-Videos einsammeln und validieren (max. 10 URLs)
+// Titel wird automatisch über YouTubes oEmbed-API geholt.
+// =============================================================
+$rawVideoUrls = is_array($_POST['video_url'] ?? null) ? $_POST['video_url'] : [];
+$videoCount   = min(count($rawVideoUrls), 10);
+
+$validVideos = [];
+$videoError  = null;
+$seenIds     = [];
+for ($i = 0; $i < $videoCount; $i++) {
+    $vUrl = trim((string)($rawVideoUrls[$i] ?? ''));
+    if ($vUrl === '') {
+        continue;
+    }
+    $youtubeId = extractYoutubeId($vUrl);
+    if ($youtubeId === null) {
+        $videoError = 'Ungültige YouTube-URL: ' . htmlspecialchars($vUrl, ENT_QUOTES, 'UTF-8');
+        break;
+    }
+    if (isset($seenIds[$youtubeId])) {
+        continue;
+    }
+    $seenIds[$youtubeId] = true;
+
+    $title = fetchYoutubeTitle($youtubeId);
+    if ($title === null) {
+        $title = 'YouTube-Video';
+    }
+    $validVideos[] = ['title' => $title, 'youtube_id' => $youtubeId];
+}
+
 // Erlaubte Enum-Werte (muessen mit Formular UND DB-Schema uebereinstimmen)
 $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allowedDiff  = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
@@ -69,6 +102,9 @@ elseif (strlen($parkingInfo) > 500) {
 elseif (!is_numeric($latitude) || !is_numeric($longitude)) {
     $error = 'Ungültige Koordinaten.';
 }
+elseif ($videoError !== null) {
+    $error = $videoError;
+}
 else {
     $lat = (float)$latitude;
     $lng = (float)$longitude;
@@ -94,6 +130,17 @@ try {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     $stmt->execute([$userId, $name, $description, $lat, $lng, $spotType, $difficulty, $parkingInfo, $copterSize]);
+    $newSpotId = (int)$pdo->lastInsertId();
+
+    // YouTube-Videos einfügen (Reihenfolge per position)
+    if ($newSpotId > 0 && !empty($validVideos)) {
+        $videoStmt = $pdo->prepare(
+            "INSERT INTO spot_videos (spot_id, title, youtube_id, position) VALUES (?, ?, ?, ?)"
+        );
+        foreach ($validVideos as $idx => $v) {
+            $videoStmt->execute([$newSpotId, $v['title'], $v['youtube_id'], $idx]);
+        }
+    }
 
     // Audit-Log
     $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'SPOT_CREATED', ?)";

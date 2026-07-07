@@ -25,16 +25,6 @@ $stmt = $pdo->query(
 );
 $updates = $stmt->fetchAll();
 
-if ($isLoggedIn && !empty($updates)) {
-    setcookie('last_seen_update', $updates[0]['created_at'], [
-        'expires'  => time() + 365 * 86400,
-        'path'     => '/',
-        'httponly'  => true,
-        'secure'   => true,
-        'samesite' => 'Lax',
-    ]);
-}
-
 $success = isset($_GET['success']);
 $error   = isset($_GET['error']);
 ?>

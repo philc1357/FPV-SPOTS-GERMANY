@@ -120,6 +120,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <ul>
                     <li><strong>FPV-Spots:</strong> Name, Beschreibung (max. 2.000 Zeichen), GPS-Koordinaten, Kategorie (z.&nbsp;B. Bando, Feld, Park), Schwierigkeitsgrad sowie Parkinformationen. Die Parkinformationen können von jedem eingeloggten Nutzer bearbeitet werden; in diesem Fall wird die Benutzer-ID des letzten Bearbeiters und der Bearbeitungszeitpunkt gespeichert.</li>
                     <li><strong>Bilder:</strong> Fotos zu einzelnen Spots (JPEG/PNG, max. 5&nbsp;MB). Hochgeladene Bilder werden unter einem zufällig generierten Dateinamen gespeichert; der ursprüngliche Dateiname wird nicht übernommen oder gespeichert. Beim Upload werden EXIF-Metadaten (insbesondere GPS-Koordinaten, Aufnahmezeit und Gerätemodell) serverseitig entfernt, bevor das Bild gespeichert wird.</li>
+                    <li><strong>YouTube-Videolinks:</strong> Pro Spot können bis zu 10 Links zu YouTube-Videos hinzugefügt werden. Gespeichert werden ausschließlich die 11-stellige YouTube-Video-ID sowie ein zugehöriger Titel (max. 150 Zeichen). Der Titel wird beim Speichern serverseitig einmalig über die öffentliche YouTube-oEmbed-Schnittstelle (<code>youtube.com/oembed</code>) abgerufen – dabei wird ausschließlich die Video-ID an YouTube übertragen, keine Nutzer- oder IP-Daten der Plattform-Besucher. Näheres zur Anzeige der Vorschaubilder siehe Abschnitt 16b.</li>
                     <li><strong>Bewertungen:</strong> Sternbewertungen (1–5) je Spot; pro Nutzer und Spot ist eine Bewertung möglich.</li>
                     <li><strong>Kommentare:</strong> Textbeiträge zu einzelnen Spots (max. 1.000 Zeichen).</li>
                     <li><strong>Favoriten:</strong> Eingeloggte Nutzer können Spots als persönliche Favoriten speichern. Diese sind ausschließlich für den jeweiligen Nutzer sichtbar.</li>
@@ -177,7 +178,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                     <li>Erstellungszeitpunkt</li>
                 </ul>
                 <p><strong>Sichtbarkeit:</strong> Die Seite ist öffentlich einsehbar – auch für nicht registrierte Nutzer. Aktivitäten zu privat markierten Spots werden <strong>nicht</strong> angezeigt.</p>
-                <p><strong>Hinweismarker:</strong> Damit Nutzer erkennen, ob seit ihrem letzten Besuch neue Aktivitäten hinzugekommen sind, wird beim Aufruf der Seite ein Cookie (<code>last_seen_neuigkeiten</code>) mit dem Zeitstempel der jüngsten Aktivität gesetzt (HttpOnly, Secure, SameSite=Lax, Gültigkeitsdauer 365&nbsp;Tage). Es werden keine personenbezogenen Daten in diesem Cookie gespeichert.</p>
+                <p><strong>Hinweismarker:</strong> Damit Nutzer erkennen, ob seit ihrem letzten Besuch neue Aktivitäten hinzugekommen sind, wird beim Aufruf der Seite „Benachrichtigungen" ein Cookie (<code>last_seen_notifications</code>) mit dem aktuellen Zeitstempel gesetzt (HttpOnly, Secure, SameSite=Lax, Gültigkeitsdauer 365&nbsp;Tage). Es werden keine personenbezogenen Daten in diesem Cookie gespeichert.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Förderung des Community-Austauschs und Sichtbarmachung von Aktivitäten.</p>
                 <p><strong>Speicherdauer:</strong> Bis zur Löschung der zugrundeliegenden Inhalte (Spot, Kommentar, Bewertung) durch den Nutzer, einen Administrator oder bei Kontoauflösung.</p>
             </section>
@@ -304,7 +305,8 @@ $csrfToken  = $_SESSION['csrf_token'];
 
                 <h3 class="h6 mt-3">Benachrichtigungs-Cookies</h3>
                 <ul>
-                    <li><strong><code>last_seen_update</code></strong>, <strong><code>last_seen_suggestion</code></strong> und <strong><code>last_seen_neuigkeiten</code>:</strong> Speichern Zeitstempel der letzten Ansicht von Plattform-Updates, Verbesserungsvorschlägen und des Community-Aktivitätsfeeds, um Hinweissymbole im Menü korrekt darzustellen. Gültig für 365&nbsp;Tage. HttpOnly, Secure, SameSite=Lax.</li>
+                    <li><strong><code>last_seen_notifications</code>:</strong> Speichert den Zeitstempel des letzten Besuchs der Seite „Benachrichtigungen", um das Hinweissymbol im Menü korrekt darzustellen. Gültig für 365&nbsp;Tage. HttpOnly, Secure, SameSite=Lax.</li>
+                    <li><strong><code>last_seen_suggestion</code>:</strong> Speichert den Zeitstempel der letzten Ansicht der Verbesserungsvorschläge, um neue Vorschläge im Menü zu kennzeichnen. Gültig für 365&nbsp;Tage. HttpOnly, Secure, SameSite=Lax.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Lokaler Browser-Speicher</h3>
@@ -336,6 +338,18 @@ $csrfToken  = $_SESSION['csrf_token'];
 
                 <p class="mt-2"><strong>Rechtsgrundlage (beide Dienste):</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Darstellung der Karteninhalte als Kernfunktionalität unseres Dienstes.</p>
                 <p>Wir selbst speichern keine Daten über Ihren Kartenzugriff oder die geladenen Kartenkacheln. Kartenkacheln können vom Browser oder Service Worker lokal zwischengespeichert werden (siehe Abschnitt 18).</p>
+            </section>
+
+            <!-- 16b. YouTube-Videoeinbindung -->
+            <section aria-labelledby="youtube">
+                <h2 id="youtube" class="h5 mt-4">16b. YouTube-Videovorschau (Thumbnails)</h2>
+                <p>Auf Spot-Detailseiten werden zu den von Nutzern eingereichten YouTube-Videos jeweils ein Vorschaubild (Thumbnail) sowie der Videotitel angezeigt. Die Thumbnails werden direkt von den Servern von YouTube/Google geladen (<code>img.youtube.com</code>, <code>i.ytimg.com</code>). Beim Aufruf einer Spot-Detailseite mit verlinkten Videos wird daher Ihre IP-Adresse an Google übermittelt.</p>
+                <p><strong>Bewusste Datenschutzentscheidung:</strong> Wir verwenden <strong>keine</strong> eingebetteten YouTube-Player (kein iframe-Embed) und auch nicht die „erweiterte Datenschutzdomain" <code>youtube-nocookie.com</code> als Player. Stattdessen werden ausschließlich statische Vorschaubilder eingebunden; YouTube setzt dabei <strong>keine Tracking-Cookies</strong> in Ihrem Browser. Erst beim Klick auf eine Vorschau verlassen Sie unsere Seite und werden zu YouTube weitergeleitet – dort gelten die Datenschutzbestimmungen von Google.</p>
+                <p><strong>Anbieter:</strong> Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland (Niederlassung des US-Anbieters Google LLC).</p>
+                <p><strong>Hinweis zur Drittlandübermittlung:</strong> Die Bildauslieferung kann über Server in den USA erfolgen. Die Übermittlung erfolgt auf Grundlage von Art. 49 Abs. 1 lit. b DSGVO im Zusammenhang mit der Darstellung der von Nutzern verlinkten Inhalte sowie auf Basis der EU-Standardvertragsklauseln und des EU-US Data Privacy Frameworks, dem Google sich unterworfen hat.</p>
+                <p><strong>Titelabruf beim Speichern:</strong> Beim Anlegen oder Bearbeiten eines Spots ruft unser Server (nicht Ihr Browser) einmalig die öffentliche oEmbed-Schnittstelle von YouTube auf, um den Videotitel zu ermitteln. Hierbei wird ausschließlich die Video-ID an YouTube übertragen – Ihre IP-Adresse oder weitere personenbezogene Daten werden dabei nicht an YouTube übermittelt.</p>
+                <p><strong>Datenschutzrichtlinie Google/YouTube:</strong> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-white">https://policies.google.com/privacy</a></p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Darstellung der von Nutzern eingereichten Videos als Bestandteil der Spot-Informationen, unter Auswahl der datenschutzfreundlichsten technischen Variante (Thumbnail statt Embed).</p>
             </section>
 
             <!-- 17. Standortfreigabe -->

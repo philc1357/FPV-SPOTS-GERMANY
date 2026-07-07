@@ -56,17 +56,6 @@ $stmt = $pdo->query(
 );
 $events = $stmt->fetchAll();
 
-if (!empty($events)) {
-    $newTs = $events[0]['created_at'];
-    setcookie('last_seen_neuigkeiten', $newTs, [
-        'expires'  => time() + 365 * 86400,
-        'path'     => '/',
-        'httponly' => true,
-        'secure'   => true,
-        'samesite' => 'Lax',
-    ]);
-    $_COOKIE['last_seen_neuigkeiten'] = $newTs;
-}
 ?>
 <!DOCTYPE html>
 <html lang="de">
