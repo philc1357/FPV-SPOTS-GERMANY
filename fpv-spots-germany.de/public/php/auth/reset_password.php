@@ -39,8 +39,8 @@ if ($selector !== '' && $validator !== '') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Passwort zurücksetzen – FPV Spots Germany</title>
     <meta name="robots" content="noindex, nofollow">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
+    
     <link rel="stylesheet" href="/public/css/dashboard.css">
 </head>
 <body class="text-light">
@@ -78,9 +78,7 @@ if ($selector !== '' && $validator !== '') {
         </div>
     </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 <script src="/private/js/password_confirm.js"></script>
 </body>
 </html>

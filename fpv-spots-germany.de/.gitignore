@@ -9,8 +9,8 @@ database.sql
 # Composer-Binary
 composer.phar
 
-# PHP-Abhängigkeiten
-vendor/
+# PHP-Abhängigkeiten (Composer, Projekt-Root)
+/vendor/
 
 # Dev-Subdomain
 x.fpv-spots-germany.de/

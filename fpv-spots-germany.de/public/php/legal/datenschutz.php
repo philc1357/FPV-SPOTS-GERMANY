@@ -20,8 +20,8 @@ $csrfToken  = $_SESSION['csrf_token'];
     <meta name="description" content="Datenschutzerklärung von FPV Spots Germany – Informationen zur Verarbeitung personenbezogener Daten.">
     <meta name="robots" content="noindex, follow">
     <link rel="canonical" href="https://fpv-spots-germany.de/datenschutz.php">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
+    
     <link rel="stylesheet" href="/public/css/dashboard.css">
 </head>
 <body class="text-light">
@@ -431,8 +431,6 @@ $csrfToken  = $_SESSION['csrf_token'];
         </article>
     </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 </body>
 </html>
