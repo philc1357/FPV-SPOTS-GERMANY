@@ -191,35 +191,53 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h1 class="h3 mb-0"><?= htmlspecialchars($spot['name']) ?></h1>
                     <div class="d-flex gap-2 align-items-center">
-                        <a href="/?spot=<?= $spotId ?>" class="btn btn-outline-light btn-sm" title="Auf der Karte anzeigen"><i class="bi bi-map"></i></a>
-                        <?php if ($spot['latitude'] !== null && $spot['longitude'] !== null): ?>
-                            <a href="https://www.google.com/maps/search/?api=1&query=<?= urlencode(number_format((float)$spot['latitude'], 6, '.', '') . ',' . number_format((float)$spot['longitude'], 6, '.', '')) ?>"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="btn btn-outline-light btn-sm"
-                               title="Auf Google Maps anzeigen"><i class="bi bi-google"></i></a>
-                        <?php endif; ?>
-                        <?php if ($isLoggedIn): ?>
-                            <form method="POST" action="/private/php/spots/favorite_submit.php" class="d-inline">
-                                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                                <input type="hidden" name="spot_id" value="<?= $spotId ?>">
-                                <input type="hidden" name="redirect" value="/public/php/spot_detail.php?id=<?= $spotId ?>">
-                                <button type="submit" class="btn btn-sm <?= $isFavorite ? 'btn-warning' : 'btn-outline-warning' ?>"
-                                        title="<?= $isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit speichern' ?>">
-                                    <i class="bi bi-heart<?= $isFavorite ? '-fill' : '' ?>"></i>
-                                </button>
-                            </form>
-                        <?php endif; ?>
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-three-dots"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                                 <li>
+                                    <a class="dropdown-item" href="/?spot=<?= $spotId ?>">
+                                        <i class="bi bi-map me-2"></i>Auf der Karte anzeigen
+                                    </a>
+                                </li>
+                                <?php if ($spot['latitude'] !== null && $spot['longitude'] !== null): ?>
+                                    <li>
+                                        <a class="dropdown-item"
+                                           href="https://www.google.com/maps/search/?api=1&query=<?= urlencode(number_format((float)$spot['latitude'], 6, '.', '') . ',' . number_format((float)$spot['longitude'], 6, '.', '')) ?>"
+                                           target="_blank"
+                                           rel="noopener noreferrer">
+                                            <i class="bi bi-google me-2"></i>Auf Google Maps anzeigen
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+                                <?php if ($isLoggedIn): ?>
+                                    <li>
+                                        <form method="POST" action="/private/php/spots/favorite_submit.php">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                            <input type="hidden" name="spot_id" value="<?= $spotId ?>">
+                                            <input type="hidden" name="redirect" value="/public/php/spot_detail.php?id=<?= $spotId ?>">
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="bi bi-heart<?= $isFavorite ? '-fill' : '' ?> me-2"></i><?= $isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit speichern' ?>
+                                            </button>
+                                        </form>
+                                    </li>
+                                <?php endif; ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
                                     <button class="dropdown-item" onclick="copySpotLink(this)">
-                                        <i class="bi bi-share me-2"></i>Link kopieren
+                                        <i class="bi bi-share me-2"></i>Spot teilen
                                     </button>
                                 </li>
+                                <?php if ($spot['latitude'] !== null && $spot['longitude'] !== null): ?>
+                                    <li>
+                                        <button class="dropdown-item" onclick="copySpotCoords(this)"
+                                                data-lat="<?= htmlspecialchars(number_format((float)$spot['latitude'], 6, '.', ''), ENT_QUOTES, 'UTF-8') ?>"
+                                                data-lng="<?= htmlspecialchars(number_format((float)$spot['longitude'], 6, '.', ''), ENT_QUOTES, 'UTF-8') ?>">
+                                            <i class="bi bi-crosshair me-2"></i>Koordinaten kopieren
+                                        </button>
+                                    </li>
+                                <?php endif; ?>
                                 <?php if ($isLoggedIn): ?>
                                     <li>
                                         <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#reportModal">
@@ -573,6 +591,21 @@ function copySpotLink(btn) {
         navigator.clipboard.writeText(url).then(done).catch(() => { fallbackCopy(url); done(); });
     } else {
         fallbackCopy(url); done();
+    }
+}
+// Spot-Koordinaten in Zwischenablage kopieren
+function copySpotCoords(btn) {
+    const text = btn.dataset.lat + ', ' + btn.dataset.lng;
+    const original = btn.innerHTML;
+    const done = () => {
+        btn.innerHTML = '<i class="bi bi-check2"></i> Kopiert!';
+        btn.disabled = true;
+        setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
+    };
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(text); done(); });
+    } else {
+        fallbackCopy(text); done();
     }
 }
 function fallbackCopy(text) {

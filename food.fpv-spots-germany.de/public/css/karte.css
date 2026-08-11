@@ -1,0 +1,18 @@
+/* ============================================================
+   Vollbild-Layout: Karte füllt den Viewport unter dem Header
+   ============================================================ */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#map {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+}

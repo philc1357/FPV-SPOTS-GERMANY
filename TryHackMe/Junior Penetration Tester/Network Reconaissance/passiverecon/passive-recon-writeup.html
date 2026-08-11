@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passive Reconnaissance — Writeup (TryHackMe)</title>
+<style>
+  :root {
+    --bg: #fafbfc;
+    --fg: #1f2328;
+    --muted: #57606a;
+    --border: #d0d7de;
+    --card: #ffffff;
+    --code-bg: #f3f5f7;
+    --code-fg: #1f2328;
+    --link: #0969da;
+    --info-bg: #ddf4ff;
+    --info-bd: #54aeff;
+    --warn-bg: #fff8c5;
+    --warn-bd: #d4a72c;
+    --new-bg: #dafbe1;
+    --new-bd: #2da44e;
+    --ans-bg: #f0e7ff;
+    --ans-bd: #8250df;
+    --danger-bg: #ffebe9;
+    --danger-bd: #cf222e;
+    --table-stripe: #f6f8fa;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  header.hero h1 {
+    margin: 0 0 6px;
+    font-size: 2.1em;
+    letter-spacing: -0.02em;
+  }
+  header.hero .sub {
+    color: var(--muted);
+    font-size: 1.05em;
+  }
+  header.hero .meta {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: var(--muted);
+  }
+  h2 {
+    margin: 48px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    font-size: 1.55em;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    margin: 28px 0 10px;
+    font-size: 1.2em;
+  }
+  h4 { margin: 20px 0 8px; font-size: 1.02em; }
+  p { margin: 0.6em 0; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 0.88em;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; font-size: inherit; }
+  .prompt { color: #6f42c1; }
+  .comment { color: #6a737d; font-style: italic; }
+  ul, ol { margin: 0.4em 0 0.8em 1.4em; padding: 0; }
+  li { margin: 0.25em 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    font-size: 0.95em;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--table-stripe); }
+  tr:nth-child(even) td { background: var(--table-stripe); }
+
+  /* Callout boxes */
+  .box {
+    border-left: 4px solid var(--border);
+    background: var(--card);
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 4px;
+  }
+  .box .label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.95em;
+  }
+  .info   { background: var(--info-bg);   border-left-color: var(--info-bd); }
+  .warn   { background: var(--warn-bg);   border-left-color: var(--warn-bd); }
+  .new    { background: var(--new-bg);    border-left-color: var(--new-bd); }
+  .ans    { background: var(--ans-bg);    border-left-color: var(--ans-bd); }
+  .danger { background: var(--danger-bg); border-left-color: var(--danger-bd); }
+
+  /* TOC */
+  nav.toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 24px 0 36px;
+  }
+  nav.toc h2 {
+    border: none;
+    margin: 0 0 8px;
+    font-size: 1.15em;
+    padding: 0;
+  }
+  nav.toc ol { margin: 0; padding-left: 20px; }
+  nav.toc li { margin: 2px 0; }
+
+  /* Task card */
+  .task-num {
+    display: inline-block;
+    background: #1f2328;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.7em;
+    padding: 2px 8px;
+    margin-right: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  hr {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 36px 0;
+  }
+  kbd {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.85em;
+  }
+  details {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    margin: 10px 0;
+  }
+  details summary { cursor: pointer; font-weight: 600; }
+  .small { font-size: 0.88em; color: var(--muted); }
+
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .wrap { max-width: none; padding: 0; }
+    pre, .box, nav.toc { page-break-inside: avoid; }
+    a { color: #000; text-decoration: underline; }
+    nav.toc { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Passive Reconnaissance</h1>
+  <div class="sub">Writeup zum TryHackMe-Room aus dem <em>Junior Penetration Tester</em> / Network Security Module</div>
+  <div class="meta">Erstellt: 2026-05-26 · Quelle: <code>kurs.odt</code> (TryHackMe-Originalinhalt) · Ergänzt um moderne Tools &amp; Antworten</div>
+</header>
+
+<p>
+Dieser Writeup gibt den kompletten Kurs wieder, erklärt die wichtigsten Begriffe in einfacher Sprache und ergänzt die Abschnitte um <strong>aktuelle Tools und Best-Practice 2026</strong>, falls die im Kurs gezeigten Werkzeuge heute kaum noch verwendet werden. Am Ende jeder Task findest du die <strong>Lösungen zu den Aufgaben</strong> mit kurzer Herleitung.
+</p>
+
+<nav class="toc">
+  <h2>Inhaltsverzeichnis</h2>
+  <ol>
+    <li><a href="#task-1">Task 1 — Einleitung &amp; Ziele</a></li>
+    <li><a href="#task-2">Task 2 — Passive vs. Active Reconnaissance</a></li>
+    <li><a href="#task-3">Task 3 — WHOIS und RDAP</a></li>
+    <li><a href="#task-4">Task 4 — DNS mit <code>nslookup</code> und <code>dig</code></a></li>
+    <li><a href="#task-5">Task 5 — Subdomain-Enumeration (DNSDumpster, crt.sh)</a></li>
+    <li><a href="#task-6">Task 6 — Shodan.io</a></li>
+    <li><a href="#task-7">Task 7 — Zusammenfassung &amp; Command-Cheatsheet</a></li>
+    <li><a href="#antworten">Anhang A — Alle Antworten kompakt</a></li>
+    <li><a href="#alternativen">Anhang B — Moderne Alternativen 2026</a></li>
+    <li><a href="#glossar">Anhang C — Glossar</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ TASK 1 -->
+<section id="task-1">
+<h2><span class="task-num">Task 1</span>Welcome / Einleitung &amp; Ziele</h2>
+
+<p>
+Passive Reconnaissance bedeutet: <strong>Informationen über ein Ziel sammeln, ohne dabei jemals direkt mit dem Ziel zu kommunizieren.</strong> Du nutzt nur öffentliche Quellen — WHOIS-Datenbanken, DNS-Resolver, Certificate-Transparency-Logs, Suchmaschinen, Geräte-Suchmaschinen wie Shodan.
+</p>
+
+<p>
+Der Gegenpart ist <em>Active Reconnaissance</em>: dort sendest du selbst Pakete an das Ziel (z. B. Portscan) und kannst dabei erkannt oder geloggt werden. Passive Recon ist die <strong>leiseste und risikoärmste Phase</strong> im Pentest, Bug Bounty oder Threat Hunting. Trotz Datenschutzgesetzen wie GDPR/CCPA bleibt erstaunlich viel öffentlich sichtbar.
+</p>
+
+<h3>Lernziele des Rooms</h3>
+<ul>
+  <li><code>whois</code> für Domain-Registrierungsdaten benutzen.</li>
+  <li><code>dig</code> (und <code>nslookup</code> für Abwärtskompatibilität) für DNS-Abfragen einsetzen.</li>
+  <li>Verstehen, <em>warum</em> Abfragen an öffentliche WHOIS- und DNS-Server als <strong>passiv</strong> gelten.</li>
+  <li>Subdomains entdecken über <strong>DNSDumpster</strong> und <strong>Certificate-Transparency-Logs</strong> (<code>crt.sh</code>).</li>
+  <li>Exponierte Dienste über <strong>Shodan.io</strong> recherchieren.</li>
+</ul>
+
+<div class="box info">
+  <span class="label">ℹ️ Warum gelten WHOIS- und DNS-Abfragen als passiv?</span>
+  Weil du nicht den Server des Ziels selbst kontaktierst, sondern <strong>öffentliche Datenbanken</strong> bzw. <strong>offene Resolver</strong> Dritter (z. B. den von Cloudflare unter <code>1.1.1.1</code>). Aus Sicht des Ziels gibt es keinen einzigen eingehenden Request — also nichts, was geloggt oder erkannt werden könnte.
+</div>
+
+<h3>Voraussetzungen</h3>
+<ul>
+  <li>Grundlagen Networking (Ports, IP, Protokolle).</li>
+  <li>Grundlagen Linux-Terminal.</li>
+  <li><strong>Wichtig:</strong> Die TryHackMe-AttackBox hat ohne aktives Abo <strong>keinen Internetzugang</strong>. Für Lookups, die das offene Internet brauchen (DNSDumpster, Shodan, crt.sh), entweder per <strong>OpenVPN</strong> zum THM-Netz verbinden und vom eigenen Host arbeiten — oder mit Premium-AttackBox direkt loslegen.</li>
+  <li>Für diesen Room muss keine Maschine deployed werden — alles läuft gegen öffentliche Internet-Daten.</li>
+</ul>
+</section>
+
+<!-- ============================================================ TASK 2 -->
+<section id="task-2">
+<h2><span class="task-num">Task 2</span>Passive vs. Active Reconnaissance</h2>
+
+<blockquote style="color: var(--muted); border-left: 3px solid var(--border); padding-left: 14px; margin: 14px 0;">
+„Wenn du den Feind kennst und dich selbst, brauchst du den Ausgang von hundert Schlachten nicht zu fürchten." — Sun Tzu, <em>Die Kunst des Krieges</em>
+</blockquote>
+
+<p>
+Diese Logik passt 1:1 zur IT-Security: Als Angreifer (oder ethischer Hacker) sammelst du Wissen über das Ziel, um Schwachstellen zu finden. Als Verteidiger musst du wissen, <em>was ein Angreifer öffentlich über dich erfährt</em>, und diese Angriffsfläche minimieren.
+</p>
+
+<p>
+<strong>Recon</strong> (Reconnaissance) ist die Aufklärungsphase und damit der erste Schritt in allen modernen Angriffsmodellen — der <em>Cyber Kill Chain</em> (Lockheed Martin) und der <em>Unified Kill Chain</em>. Sie zerfällt in zwei Typen:
+</p>
+
+<h3>Passive Reconnaissance</h3>
+<p>
+Reine Auswertung öffentlich verfügbarer Informationen. <strong>Es werden keine Pakete an das Ziel gesendet.</strong> Analogie: Du beobachtest ein Grundstück mit dem Fernglas, ohne es zu betreten.
+</p>
+<ul>
+  <li>Öffentliche DNS-Records (A, MX, TXT, …) über offene Resolver abfragen.</li>
+  <li>Certificate-Transparency-Logs durchsuchen (z. B. <code>crt.sh</code>) für Subdomains.</li>
+  <li>LinkedIn / Stellenanzeigen lesen — verraten häufig den Tech-Stack („Erfahrung mit Spring Boot + PostgreSQL erwünscht" = Tech-Stack-Leak).</li>
+  <li>Pressemitteilungen, News, Paste-Sites nach Leaks durchsehen.</li>
+  <li>Geräte-Suchmaschinen wie <strong>Shodan</strong> oder <strong>Censys</strong>.</li>
+  <li>GitHub nach hardcodeten Credentials und Config-Dateien durchsuchen (z. B. <code>org:Beispielfirma password</code>).</li>
+</ul>
+
+<h3>Active Reconnaissance</h3>
+<p>
+Direkte Interaktion mit dem Ziel. Deine Anfragen können geloggt, erkannt und ggf. blockiert werden. Analogie: Du gehst an jede Tür und jedes Fenster und testest, ob es abgeschlossen ist.
+</p>
+<ul>
+  <li>Live-Hosts entdecken (ICMP-Ping, ARP-Requests).</li>
+  <li>Portscans und Service-Enumeration (<code>nmap</code>, <code>masscan</code>).</li>
+  <li>Webapp-Fuzzing, Directory-Brute-Force (<code>ffuf</code>, <code>gobuster</code>, <code>feroxbuster</code>).</li>
+  <li>Social Engineering: Phishing, Vishing, Pretexting per Telefon.</li>
+  <li>Physisch: Tailgating, sich als Lieferant ausgeben.</li>
+</ul>
+
+<div class="box warn">
+  <span class="label">⚠️ Achtung — rechtliche Grauzone</span>
+  Active Recon ist <strong>nur mit schriftlicher Erlaubnis</strong> (Pentest-Vertrag, Bug-Bounty-Scope) legal. Ohne Erlaubnis riskierst du in Deutschland einen Verstoß gegen § 202c StGB („Hackerparagraph"). Passive Recon ist deutlich risikoärmer, aber: auch hier solltest du nichts tun, was offensichtlich gegen Nutzungsbedingungen verstößt (z. B. aggressives Scraping mit Rate-Limit-Umgehung).
+</div>
+
+<div class="box info">
+  <span class="label">ℹ️ Wichtige Feinheit</span>
+  <strong>Jede direkte Interaktion mit einer Person, die zum Ziel gehört, ist aktive Recon</strong> — auch ohne ein einziges Paket. Wenn du auf einer Konferenz einen Admin der Zielfirma ausfragst, ist das aktiv (du hinterlässt eine Spur in seiner Erinnerung). Reines Lesen seines öffentlichen LinkedIn-Profils ist passiv.
+</div>
+
+<div class="box new">
+  <span class="label">⚡ Defender-Sicht (Verteidiger)</span>
+  Firmen überwachen heute ihren eigenen passiven Footprint: Shodan-/Censys-Alerts auf eigene IP-Ranges, CT-Log-Watcher (z. B. <em>Cert Spotter</em>) und automatisierte Attack-Surface-Management-Tools (z. B. <em>Detectify</em>, <em>RunZero</em>, <em>watchTowr</em>). Ziel: alles, was Angreifer ohne einen einzigen Request finden können, frühzeitig selbst sehen.
+</div>
+
+<div class="box ans">
+  <span class="label">✅ Lösungen zu Task 2</span>
+  <ul>
+    <li><strong>Frage:</strong> Du besuchst die Facebook-Seite der Zielfirma und liest die Namen der Mitarbeiter aus. Aktiv (A) oder passiv (P)?<br><strong>Antwort:</strong> <code>P</code> — du liest nur öffentlich publizierte Daten.</li>
+    <li><strong>Frage:</strong> Du pingst den Webserver des Ziels an, um zu prüfen, ob ICMP blockiert ist. A oder P?<br><strong>Antwort:</strong> <code>A</code> — der Ping geht direkt an den Server.</li>
+    <li><strong>Frage:</strong> Du gehst zu einer Party und befragst einen IT-Admin der Zielfirma über die Infrastruktur. A oder P?<br><strong>Antwort:</strong> <code>A</code> — direkte Interaktion mit einer Person der Zielorganisation.</li>
+  </ul>
+</div>
+</section>
+
+<!-- ============================================================ TASK 3 -->
+<section id="task-3">
+<h2><span class="task-num">Task 3</span>WHOIS und RDAP</h2>
+
+<h3>Was ist WHOIS?</h3>
+<p>
+WHOIS ist ein Query/Response-Protokoll (definiert in <strong>RFC 3912</strong>), bei dem WHOIS-Server auf <strong>TCP-Port 43</strong> lauschen und Registrierungsdaten zu Domains zurückgeben. Der jeweilige Registrar pflegt diese Daten für die von ihm verwalteten Domains.
+</p>
+
+<p>Aus einer WHOIS-Antwort liest du (sofern nicht geschwärzt):</p>
+<ul>
+  <li><strong>Registrar</strong> — bei welchem Anbieter die Domain registriert ist (Namecheap, GoDaddy, Hetzner, …).</li>
+  <li><strong>Registrant-Kontaktdaten</strong> — Name, Organisation, Adresse, Telefon, E-Mail. <em>Seit GDPR 2018</em> üblicherweise durch „Withheld for Privacy" o. ä. ersetzt.</li>
+  <li><strong>Daten:</strong> Creation, Updated, Expiration.</li>
+  <li><strong>Nameserver</strong> — die für die Domain autoritativen DNS-Server.</li>
+  <li><strong>Status-Codes</strong> — z. B. <code>clientTransferProhibited</code> (Domain ist gegen unautorisierte Transfers gesperrt).</li>
+  <li><strong>Abuse-Kontakt</strong> des Registrars.</li>
+</ul>
+
+<div class="box info">
+  <span class="label">ℹ️ Erklärung — WHOIS Status Codes</span>
+  Status-Codes sind nach <strong>EPP</strong> (Extensible Provisioning Protocol) standardisiert (<a href="https://icann.org/epp">icann.org/epp</a>):
+  <ul style="margin-top: 6px;">
+    <li><code>clientTransferProhibited</code> — Registrar hat Transfer gesperrt (gut: Schutz vor Hijacking).</li>
+    <li><code>clientUpdateProhibited</code> — Änderungen an den Records sind gesperrt.</li>
+    <li><code>clientDeleteProhibited</code> — Löschen ist gesperrt.</li>
+    <li><code>serverHold</code> — Domain wurde vom Registry deaktiviert (z. B. Streitfall).</li>
+  </ul>
+  Locked Domains sind schwerer zu hijacken — ein gepflegter Sicherheitsindikator.
+</div>
+
+<p>
+In der Praxis fokussierst du dich auf <strong>Daten</strong> (Domain-Alter, Renewal-Zeitfenster für Phishing), <strong>Registrar</strong>, <strong>Nameserver</strong> und <strong>historische Änderungen</strong>. Dienste wie <a href="https://www.whoxy.com/">whoxy.com</a> oder <a href="https://securitytrails.com/">SecurityTrails</a> liefern historische WHOIS-Snapshots — daraus lassen sich frühere Owner und Infrastructure-Shifts ablesen.
+</p>
+
+<div class="box new">
+  <span class="label">⚡ Aktueller Stand 2026 — WHOIS wird durch RDAP ersetzt</span>
+  <p style="margin: 6px 0;">
+  <strong>Seit 28. Januar 2025</strong> hat <strong>ICANN das klassische WHOIS-Protokoll für alle generischen TLDs (gTLDs) offiziell abgeschaltet</strong> und durch <strong>RDAP</strong> (Registration Data Access Protocol) ersetzt. RDAP-Vorteile:
+  </p>
+  <ul style="margin-top: 4px;">
+    <li>Transport über <strong>HTTPS</strong> statt unverschlüsseltem Port 43.</li>
+    <li>Antwort als <strong>strukturiertes JSON</strong> (parsebar mit <code>jq</code>).</li>
+    <li>Internationalisierung (Unicode in Kontaktdaten).</li>
+    <li>Bessere Privacy-Kontrolle (gestaffelter Zugriff für autorisierte Stellen).</li>
+  </ul>
+  <p style="margin: 6px 0;">
+  Das alte <code>whois</code>-Tool funktioniert weiterhin — oft im Hintergrund per Failover/Legacy-Server. Für neue Tooling-Stacks und automatisierte Pipelines aber direkt RDAP nutzen.
+  </p>
+</div>
+
+<h3>WHOIS-Abfrage (klassisch)</h3>
+<p>Syntax: <code>whois DOMAIN_NAME</code></p>
+
+<pre><code><span class="prompt">user@TryHackMe$</span> whois tryhackme.com
+[Querying whois.verisign-grs.com]
+[Redirected to whois.namecheap.com]
+[Querying whois.namecheap.com]
+[whois.namecheap.com]
+Domain name: tryhackme.com
+Registry Domain ID: 2282723194_DOMAIN_COM-VRSN
+Registrar WHOIS Server: whois.namecheap.com
+Registrar URL: http://www.namecheap.com
+Updated Date: 2021-05-01T19:43:23.31Z
+Creation Date: 2018-07-05T19:46:15.00Z
+Registrar Registration Expiration Date: 2027-07-05T19:46:15.00Z
+Registrar: NAMECHEAP INC
+Registrar IANA ID: 1068
+Registrar Abuse Contact Email: abuse@namecheap.com
+Registrar Abuse Contact Phone: +1.6613102107
+Reseller: NAMECHEAP INC
+Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
+Registrant Name: Withheld for Privacy Purposes
+Registrant Organization: Privacy service provided by Withheld for Privacy ehf
+[...]
+&gt;&gt;&gt; Last update of WHOIS database: 2021-08-25T14:58:29.57Z &lt;&lt;&lt;
+</code></pre>
+
+<p><strong>Worauf du achtest:</strong></p>
+<ul>
+  <li><strong>Redirect-Kette</strong> (Verisign → Registrar-Server) zeigt, wo die maßgeblichen Daten liegen.</li>
+  <li><strong>Daten</strong> — Domain-Alter (hier 2018) und Renewal-Datum (Phishing-Window).</li>
+  <li><strong>Nameserver</strong> — potenzielle weitere Ziele (sofern im Scope).</li>
+  <li><strong>Status</strong> — <code>clientTransferProhibited</code> = Domain ist Hijack-gesichert.</li>
+</ul>
+
+<h3>RDAP-Abfrage (modern)</h3>
+<p>Direkt per <code>curl</code> einen öffentlichen RDAP-Endpoint abfragen und mit <code>jq</code> formatieren:</p>
+
+<pre><code><span class="prompt">user@TryHackMe$</span> curl -s https://rdap.verisign.com/com/v1/domain/tryhackme.com | jq .
+{
+  "domain": "tryhackme.com",
+  "handle": "2282723194_DOMAIN_COM-VRSN",
+  "ldhName": "TRYHACKME.COM",
+  "status": ["clientTransferProhibited"],
+  "registrar": "NAMECHEAP INC",
+  "events": [
+    {"eventAction": "registration", "eventDate": "2018-07-05T19:46:15.00Z"},
+    {"eventAction": "last update", "eventDate": "2025-05-11T...Z"},
+    {"eventAction": "expiration", "eventDate": "2034-07-05T19:46:15.00Z"}
+  ],
+  "nameservers": [ ... ]
+}</code></pre>
+
+<div class="box info">
+  <span class="label">ℹ️ Was macht <code>jq</code>?</span>
+  <code>jq</code> ist ein Kommandozeilen-JSON-Parser — wie <code>grep</code> + <code>sed</code> für JSON. Auf der AttackBox vorinstalliert; lokal über <code>sudo apt install jq</code>. Beispiel: <code>… | jq '.events[] | select(.eventAction=="registration").eventDate'</code> filtert nur das Registrierungsdatum.
+</div>
+
+<h4>Online-Alternativen (wenn das CLI mal hakt)</h4>
+<ul>
+  <li><a href="https://whois.icann.org/">whois.icann.org</a> — legacy WHOIS.</li>
+  <li><a href="https://lookup.icann.org/">lookup.icann.org</a> — modern, RDAP-basiert.</li>
+  <li><a href="https://www.whoxy.com/">whoxy.com</a> — historische WHOIS-Snapshots (kostenlos limitiert).</li>
+  <li><a href="https://securitytrails.com/">SecurityTrails</a> — auch historische DNS/WHOIS-Daten.</li>
+</ul>
+
+<div class="box ans">
+  <span class="label">✅ Lösungen zu Task 3</span>
+  <ul>
+    <li><strong>Wann wurde tryhackme.com registriert?</strong><br>
+    Aus der Zeile <code>Creation Date: 2018-07-05</code> → Antwort im Format <code>YYYYMMDD</code>: <code>20180705</code></li>
+    <li><strong>Wer ist der Registrar?</strong><br>
+    <code>Registrar: NAMECHEAP INC</code> → Antwort: <code>namecheap.com</code></li>
+    <li><strong>Welche Firma stellt die Nameserver von tryhackme.com bereit?</strong><br>
+    Nameserver wie <code>kip.ns.cloudflare.com</code> / <code>uma.ns.cloudflare.com</code> → Antwort: <code>cloudflare.com</code></li>
+  </ul>
+</div>
+</section>
+
+<!-- ============================================================ TASK 4 -->
+<section id="task-4">
+<h2><span class="task-num">Task 4</span>DNS-Lookups mit <code>nslookup</code> und <code>dig</code></h2>
+
+<p>
+DNS-Abfragen, die du gegen <strong>offene Resolver Dritter</strong> (z. B. <code>1.1.1.1</code> von Cloudflare oder <code>8.8.8.8</code> von Google) richtest, sind <strong>passiv</strong>. Du fragst <em>nicht</em> die Nameserver des Ziels direkt — du fragst den Resolver, der die Antwort gecached hat oder selbst auflöst. Aus Sicht des Ziels bleibt das unsichtbar.
+</p>
+
+<p>
+Mit DNS-Lookups bekommst du IP-Adressen, Mailserver, TXT-Records (SPF, DKIM, DMARC, Verifizierungsstrings) und mehr.
+</p>
+
+<h3>Warum <code>dig</code> statt <code>nslookup</code>?</h3>
+<p>
+Beide Tools fragen DNS ab. <code>dig</code> (Domain Information Groper) ist die <strong>moderne Wahl</strong>:
+</p>
+<ul>
+  <li>Klarere, strukturierte Ausgabe (Sektionen ANSWER, AUTHORITY, ADDITIONAL).</li>
+  <li>Zeigt standardmäßig <strong>TTL</strong> (Time-To-Live: wie lange ein Record gecached wird).</li>
+  <li>Zuverlässiger bei komplexen Abfragen und in Scripts.</li>
+</ul>
+<p>
+<code>nslookup</code> wird hier gezeigt, weil es in alter Doku und auf Windows-Systemen weiterhin vorkommt — als Default solltest du aber <code>dig</code> verwenden.
+</p>
+
+<h3><code>nslookup</code> (legacy)</h3>
+<p>Syntax:</p>
+<ul>
+  <li><code>nslookup DOMAIN</code> — einfacher Lookup über den System-Resolver.</li>
+  <li><code>nslookup -type=TYPE DOMAIN [SERVER]</code> — bestimmten Record-Typ und optional einen Resolver.</li>
+</ul>
+
+<h4>DNS-Record-Typen (Auswahl)</h4>
+<table>
+  <tr><th>Typ</th><th>Bedeutung</th></tr>
+  <tr><td><code>A</code></td><td>IPv4-Adresse(n) der Domain</td></tr>
+  <tr><td><code>AAAA</code></td><td>IPv6-Adresse(n)</td></tr>
+  <tr><td><code>CNAME</code></td><td>Canonical Name — Alias, der auf eine andere Domain zeigt</td></tr>
+  <tr><td><code>MX</code></td><td>Mail Exchange — Mailserver der Domain</td></tr>
+  <tr><td><code>SOA</code></td><td>Start of Authority — primärer Nameserver, Admin-E-Mail, Zone-Serial</td></tr>
+  <tr><td><code>TXT</code></td><td>Beliebiger Text — meist SPF, DKIM, DMARC, Domain-Verifizierung (Google, Microsoft, …)</td></tr>
+  <tr><td><code>NS</code></td><td>Nameserver der Zone</td></tr>
+  <tr><td><code>PTR</code></td><td>Reverse-Lookup (IP → Name)</td></tr>
+  <tr><td><code>CAA</code></td><td>Welche CAs dürfen Zertifikate für die Domain ausstellen</td></tr>
+</table>
+
+<div class="box info">
+  <span class="label">ℹ️ Erklärung — SPF, DKIM, DMARC (TXT-Records)</span>
+  <ul style="margin-top: 6px;">
+    <li><strong>SPF</strong> („<code>v=spf1 …</code>") legt fest, welche IPs Mails für diese Domain versenden dürfen.</li>
+    <li><strong>DKIM</strong> („<code>v=DKIM1; k=rsa; p=…</code>") signiert ausgehende Mails kryptografisch.</li>
+    <li><strong>DMARC</strong> („<code>v=DMARC1; p=reject; …</code>") sagt empfangenden Servern, was sie mit nicht-authentifizierten Mails tun sollen.</li>
+  </ul>
+  Für Recon spannend: Aus den TXT-Records erkennst du oft genutzte Cloud-Dienste — z. B. <code>include:_spf.google.com</code> (Google Workspace), <code>include:spf.protection.outlook.com</code> (Microsoft 365), <code>include:mailgun.org</code> usw. Daraus baust du Hypothesen über den Tech-Stack des Ziels.
+</div>
+
+<h4>Beispiel — A-Records über Cloudflare-Resolver</h4>
+<pre><code><span class="prompt">user@TryHackMe$</span> nslookup -type=A tryhackme.com 1.1.1.1
+Server:  1.1.1.1
+Address: 1.1.1.1#53
+
+Non-authoritative answer:
+Name:    tryhackme.com
+Address: 172.67.69.208
+Name:    tryhackme.com
+Address: 104.26.11.229
+Name:    tryhackme.com
+Address: 104.26.10.229</code></pre>
+
+<div class="box info">
+  <span class="label">ℹ️ Erklärung — warum mehrere IPs?</span>
+  Mehrere A-Records bedeuten häufig <strong>Anycast</strong> (alle IPs verweisen auf das gleiche Netzwerk an verschiedenen Standorten — bei Cloudflare üblich) oder Load-Balancing. Für einen Pentest musst du jede IP einzeln prüfen — sie könnten unterschiedliche Dienste hosten, und nicht alle sind automatisch „im Scope".
+</div>
+
+<h4>Beispiel — MX-Records (Mailserver)</h4>
+<pre><code><span class="prompt">user@TryHackMe$</span> nslookup -type=MX tryhackme.com
+Server:  127.0.0.53
+Address: 127.0.0.53#53
+
+Non-authoritative answer:
+tryhackme.com   mail exchanger = 1  aspmx.l.google.com.
+tryhackme.com   mail exchanger = 5  alt1.aspmx.l.google.com.
+tryhackme.com   mail exchanger = 5  alt2.aspmx.l.google.com.
+tryhackme.com   mail exchanger = 10 alt3.aspmx.l.google.com.
+tryhackme.com   mail exchanger = 10 alt4.aspmx.l.google.com.</code></pre>
+
+<p>
+Die Zahl ist die <strong>Priorität</strong>: <em>niedrigere Werte = höhere Priorität</em>. Hier nutzt TryHackMe Google Workspace — gepflegter Anbieter, der i. d. R. gut gepatcht ist.
+</p>
+
+<h3><code>dig</code> (empfohlen)</h3>
+<p>Syntax: <code>dig [@SERVER] DOMAIN [TYPE]</code></p>
+
+<pre><code><span class="prompt">user@TryHackMe$</span> dig @1.1.1.1 tryhackme.com MX
+
+; &lt;&lt;&gt;&gt; DiG 9.18.28-0ubuntu0.22.04.1-Ubuntu &lt;&lt;&gt;&gt; @1.1.1.1 tryhackme.com MX
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 12345
+;; flags: qr rd ra; QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 1
+
+;; ANSWER SECTION:
+tryhackme.com.   300  IN  MX  1  aspmx.l.google.com.
+tryhackme.com.   300  IN  MX  5  alt1.aspmx.l.google.com.
+tryhackme.com.   300  IN  MX  5  alt2.aspmx.l.google.com.
+tryhackme.com.   300  IN  MX  10 alt3.aspmx.l.google.com.
+tryhackme.com.   300  IN  MX  10 alt4.aspmx.l.google.com.
+
+;; Query time: 28 msec
+;; SERVER: 1.1.1.1#53(1.1.1.1) (UDP)
+;; WHEN: Mon Jan 26 22:00:00 UTC 2026
+;; MSG SIZE rcvd: 152</code></pre>
+
+<p>
+Hilfreiche dig-Optionen:
+</p>
+<ul>
+  <li><code>+short</code> — nur die Antwort, sehr nützlich in Scripts.</li>
+  <li><code>+trace</code> — zeigt den vollständigen Auflösungsweg von der Root-Zone an.</li>
+  <li><code>+dnssec</code> — fragt DNSSEC-Signaturen mit ab.</li>
+  <li><code>ANY</code> — fragt alle Record-Typen ab (manche Resolver lehnen das ab).</li>
+</ul>
+
+<div class="box new">
+  <span class="label">⚡ Aktueller Stand 2026 — Alternativen zu dig</span>
+  <ul style="margin-top: 4px;">
+    <li><code>kdig</code> aus dem Knot-DNS-Projekt — Dig-kompatibel, schöner formatiert, kann DoT/DoH.</li>
+    <li><code>doggo</code> — moderner Go-DNS-Client, hübsche farbige Ausgabe.</li>
+    <li><code>dog</code> — Rust-basiert, sehr saubere Ausgabe.</li>
+    <li><code>delv</code> — wie dig, aber validiert DNSSEC automatisch.</li>
+  </ul>
+  Für den THM-Kurs reicht <code>dig</code>, aber gut zu wissen.
+</div>
+
+<div class="box info">
+  <span class="label">ℹ️ Privacy-Tipp</span>
+  Öffentliche Resolver wie <code>1.1.1.1</code> (Cloudflare) oder <code>9.9.9.9</code> (Quad9) unterstützen <strong>DNS-over-HTTPS (DoH)</strong> und <strong>DNS-over-TLS (DoT)</strong>. Damit kann dein ISP deine Lookups nicht mehr mitlesen. In <code>systemd-resolved</code> aktivierst du DoT z. B. mit <code>DNSOverTLS=yes</code> in <code>/etc/systemd/resolved.conf</code>.
+</div>
+
+<div class="box new">
+  <span class="label">⚡ Defender-Hinweis</span>
+  Überwache deine eigenen DNS-Records auf unerwartete Änderungen (neue MX, fremde TXT, Subdomains ohne klare Zuordnung). Solche Änderungen sind oft Indikatoren für Subdomain-Takeover oder Misskonfigurationen.
+</div>
+
+<div class="box ans">
+  <span class="label">✅ Lösung zu Task 4</span>
+  <p style="margin: 4px 0;"><strong>Frage:</strong> Welches Flag steht in den TXT-Records von <code>thmlabs.com</code>?</p>
+  <pre style="margin: 6px 0;"><code><span class="prompt">user@TryHackMe$</span> dig thmlabs.com TXT +short
+"THM{a5b83929888ed36acb0272971e438d78}"</code></pre>
+  <p style="margin: 4px 0;"><strong>Antwort:</strong> <code>THM{a5b83929888ed36acb0272971e438d78}</code></p>
+</div>
+</section>
+
+<!-- ============================================================ TASK 5 -->
+<section id="task-5">
+<h2><span class="task-num">Task 5</span>Subdomain-Enumeration (DNSDumpster &amp; crt.sh)</h2>
+
+<p>
+Mit normalen DNS-Lookups (<code>dig</code>, <code>nslookup</code>) findest du <strong>nur Namen, die du schon kennst</strong>. Subdomains wie <code>blog.tryhackme.com</code>, <code>app.tryhackme.com</code>, <code>dev.internal.firma.de</code> werden so nicht entdeckt — du musst sie kennen, um sie aufzulösen.
+</p>
+
+<p>
+Subdomains sind aus zwei Gründen wichtig:
+</p>
+<ul>
+  <li>Sie hosten oft <strong>vergessene oder verwundbare Services</strong> (veraltete CMS, Dev-Panels, Test-Instanzen).</li>
+  <li>Sie sind „Shadow IT" — eingerichtet, aber außerhalb der Hauptdokumentation, dadurch oft schlechter gepatcht.</li>
+  <li>Sie sind <strong>zusätzliche Angriffsfläche</strong>: APIs, Admin-Portale, Login-Seiten.</li>
+</ul>
+
+<p>
+Bei passiver Recon nutzen wir OSINT-Quellen, ohne auch nur ein Paket an das Ziel zu schicken.
+</p>
+
+<h3>DNSDumpster</h3>
+<p>
+<a href="https://dnsdumpster.com/">DNSDumpster</a> ist ein kostenloses Webtool, das öffentliche DNS-Daten aus diversen Quellen aggregiert (Suchmaschinen-Caches, Zone-Transfer-Datenbanken, Zertifikat-Records). <strong>Es macht keine Brute-Force-Auflösung</strong> — daher voll passiv. Ergebnisse umfassen:
+</p>
+<ul>
+  <li>Subdomains und Hostnames</li>
+  <li>Aufgelöste IPs inkl. Geolocation</li>
+  <li>MX-, TXT- und CNAME-Records</li>
+  <li>Visuelle Graphen, die die Beziehungen darstellen</li>
+</ul>
+<p>
+Suche dort <code>tryhackme.com</code> und du siehst Subdomains wie <code>blog.tryhackme.com</code> — die hätten nur reine DNS-Abfragen nie verraten.
+</p>
+
+<h3>Certificate Transparency (CT) Logs — der mächtigste Weg</h3>
+<p>
+<a href="https://crt.sh/">crt.sh</a> ist heute die <strong>effektivste passive Methode</strong> für Subdomain-Discovery. Hintergrund:
+</p>
+
+<div class="box info">
+  <span class="label">ℹ️ Was ist Certificate Transparency?</span>
+  CT ist ein <strong>öffentliches Logging-Framework</strong>, das praktisch jede SSL/TLS-Zertifikatsausstellung dokumentiert — seit ca. 2015 verbindlich für alle teilnehmenden CAs (durchgesetzt vom CA/Browser Forum, alle Browser verlangen es). Jedes Zertifikat enthält ein <strong>SAN-Feld</strong> (Subject Alternative Name) mit allen Domains und Subdomains, für die es gilt. Wer also je ein TLS-Zert für <code>vpn.firma.de</code> ausgestellt hat, hat diese Subdomain damit unwiderruflich öffentlich gemacht.
+</div>
+
+<p>
+Auf <a href="https://crt.sh/">crt.sh</a> suchst du nach:
+</p>
+<pre><code>%.tryhackme.com</code></pre>
+<p>
+Das <code>%</code> ist ein SQL-Wildcard und matcht jede Subdomain. Resultat: eine Liste aller jemals ausgestellten Zertifikate für Subdomains von <code>tryhackme.com</code> — typischerweise <strong>10–100×</strong> mehr Subdomains als DNSDumpster allein.
+</p>
+
+<p>
+crt.sh ist:
+</p>
+<ul>
+  <li><strong>Voll passiv</strong> — du fragst nur eine externe DB.</li>
+  <li><strong>Echtzeit</strong> — neue Zerts erscheinen innerhalb von Minuten.</li>
+  <li><strong>Kostenlos</strong> ohne nennenswertes Rate-Limit für Basis-Nutzung.</li>
+</ul>
+
+<p>
+Praktischer JSON-Aufruf direkt für Scripting:
+</p>
+<pre><code><span class="prompt">user@TryHackMe$</span> curl -s 'https://crt.sh/?q=%25.tryhackme.com&amp;output=json' \
+  | jq -r '.[].name_value' | sort -u</code></pre>
+
+<div class="box new">
+  <span class="label">⚡ Aktueller Stand 2026 — moderne Subdomain-Toolchain</span>
+  In der Praxis kombiniert man heute mehrere Quellen automatisch:
+  <ul style="margin-top: 4px;">
+    <li><strong><a href="https://github.com/projectdiscovery/subfinder">Subfinder</a></strong> (ProjectDiscovery) — fragt &gt; 30 Quellen parallel ab (crt.sh, Censys, SecurityTrails, Shodan, VirusTotal, …).</li>
+    <li><strong><a href="https://github.com/owasp-amass/amass">Amass</a></strong> — <code>amass enum -passive -d tryhackme.com</code>; sehr gründlich, OWASP-Projekt.</li>
+    <li><strong>Assetfinder</strong> (Tomnomnom) — schnell, klein, fokussiert.</li>
+    <li><strong>chaos-client</strong> — ProjectDiscovery-Datasets über API.</li>
+    <li><strong>gau</strong> / <strong>waybackurls</strong> — Subdomains aus Wayback-Machine-Snapshots.</li>
+  </ul>
+  Typische Pipeline: <code>subfinder -d ziel.de -all | tee subs.txt</code>, dann gegen <code>httpx</code> für Live-Check (das wäre dann aktiv).
+</div>
+
+<div class="box new">
+  <span class="label">⚡ Defender-Sicht</span>
+  Sicherheitsteams überwachen CT-Logs selbst, um <strong>dangling DNS-Records</strong> zu erkennen (Subdomain-Takeover-Risiko) und unautorisierte Zertifikatsausstellungen frühzeitig zu sehen. Tools dafür: Cert Spotter, Sectigo Subdomain Monitor, eigene Pipeline auf Basis von <code>certstream</code>.
+</div>
+
+<div class="box ans">
+  <span class="label">✅ Lösung zu Task 5</span>
+  <p style="margin: 4px 0;"><strong>Frage:</strong> Welche interessante Subdomain (außer den offensichtlichen <code>www</code> und <code>blog</code>) findest du auf DNSDumpster?</p>
+  <p style="margin: 4px 0;"><strong>Antwort:</strong> <code>remote</code> (z. B. <code>remote.tryhackme.com</code>, deutet auf eine Remote-Zugang/VPN-Funktion hin — klassisches Pentest-Ziel).</p>
+</div>
+</section>
+
+<!-- ============================================================ TASK 6 -->
+<section id="task-6">
+<h2><span class="task-num">Task 6</span>Shodan.io</h2>
+
+<p>
+<a href="https://www.shodan.io/">Shodan.io</a> ist eine Suchmaschine für <strong>internetverbundene Geräte</strong>. Während Google Webseiten indexiert, indexiert Shodan <strong>Banner und Service-Antworten</strong> aller erreichbaren Hosts: Server, Netzwerk-Equipment, Webcams, Router, ICS/SCADA-Systeme, IoT-Geräte usw. Shodan scannt das Internet permanent selbst — du nutzt also <strong>Daten Dritter</strong> und kontaktierst das Ziel selbst nicht. Damit ist Shodan voll passiv.
+</p>
+
+<h3>Shodan-Oberfläche</h3>
+<p>
+Auf <a href="https://www.shodan.io">shodan.io</a> brauchst du für die Basis-Suche keinen Account (für volle Filter und API später schon — Lifetime-Membership ist häufig im Black-Friday-Sale für ~5 USD zu haben).
+</p>
+
+<p>
+Suche etwa nach einer IP aus deinem Task-4-Lookup (<code>104.26.10.229</code>) oder direkt nach <code>hostname:tryhackme.com</code>. Bei einem Treffer siehst du:
+</p>
+<ul>
+  <li><strong>IP + ASN</strong> (Autonomous System Number — identifiziert das Netzwerk).</li>
+  <li><strong>Hosting-Provider / Organisation</strong> (Cloudflare, AWS, Hetzner …) — verrät, wer hinter der Infrastruktur steht.</li>
+  <li><strong>Geographische Lage</strong> (Land, Stadt).</li>
+  <li><strong>Offene Ports und Services</strong> mit Versions-Strings und Bannern (z. B. <code>Apache/2.4.41 (Ubuntu)</code>).</li>
+  <li><strong>Tags</strong> wie <code>cdn</code>, <code>vuln</code> (bekanntes CVE für die Banner-Version).</li>
+</ul>
+
+<div class="box info">
+  <span class="label">ℹ️ Was ist eine ASN?</span>
+  Eine <strong>ASN</strong> (Autonomous System Number) ist eine global eindeutige Nummer, die einem Netzwerkbetreiber zugewiesen wird (z. B. <code>AS13335</code> = Cloudflare, <code>AS16509</code> = Amazon AWS). Findest du ein Ziel-Asset in einer bestimmten ASN, kannst du häufig den ganzen IP-Range des Betreibers darüber durchsuchen — sehr nützlich, um benachbarte Services derselben Firma zu finden.
+</div>
+
+<h3>Shodan-Suchsyntax — wichtige Filter</h3>
+<table>
+  <tr><th>Filter</th><th>Beispiel</th><th>Bedeutung</th></tr>
+  <tr><td><code>hostname:</code></td><td><code>hostname:tryhackme.com</code></td><td>matcht einen Hostnamen</td></tr>
+  <tr><td><code>org:</code></td><td><code>org:"TryHackMe"</code></td><td>filtert nach Organisation</td></tr>
+  <tr><td><code>port:</code></td><td><code>port:443</code></td><td>offener Port</td></tr>
+  <tr><td><code>country:</code></td><td><code>country:DE</code></td><td>Länder-Code (ISO 3166-1 Alpha-2)</td></tr>
+  <tr><td><code>city:</code></td><td><code>city:"Berlin"</code></td><td>Stadt</td></tr>
+  <tr><td><code>product:</code></td><td><code>product:"nginx"</code></td><td>Software-Produkt</td></tr>
+  <tr><td><code>version:</code></td><td><code>version:"1.18.0"</code></td><td>genaue Version</td></tr>
+  <tr><td><code>http.component:</code></td><td><code>http.component:"wordpress"</code></td><td>verwendete Web-Komponente</td></tr>
+  <tr><td><code>ssl.cert.subject.cn:</code></td><td><code>ssl.cert.subject.cn:"*.firma.de"</code></td><td>CN im TLS-Zertifikat</td></tr>
+  <tr><td><code>vuln:</code></td><td><code>vuln:CVE-2021-44228</code></td><td>(Premium) gefundene CVE</td></tr>
+  <tr><td><code>os:</code></td><td><code>os:"Windows 10"</code></td><td>Betriebssystem-Fingerprint</td></tr>
+  <tr><td><code>tag:</code></td><td><code>tag:cdn</code></td><td>vordefinierte Tags</td></tr>
+</table>
+<p>Mehrere Filter lassen sich verketten: <code>port:443 country:US org:"Cloudflare"</code>. Volle Referenz: <a href="https://help.shodan.io/the-basics/search-query-fundamentals">help.shodan.io/the-basics/search-query-fundamentals</a>.</p>
+
+<h3>Facets — die Statistik-Funktion</h3>
+<p>
+<strong>Facets</strong> liefern Aggregat-Statistiken zu einem Suchterm — also „nach welchem Feld gruppieren". Damit beantwortest du Fragen wie „welches Land hat die meisten Apache-Server?" oder „welche Ports sind bei nginx am häufigsten?". URL-Schema:
+</p>
+<pre><code>https://www.shodan.io/search/facet?query=&lt;suche&gt;&amp;facet=&lt;feld&gt;</code></pre>
+<p>Konkret für die Kurs-Fragen:</p>
+<ul>
+  <li><a href="https://www.shodan.io/search/facet?query=apache&amp;facet=country">…/facet?query=apache&amp;facet=country</a></li>
+  <li><a href="https://www.shodan.io/search/facet?query=apache&amp;facet=port">…/facet?query=apache&amp;facet=port</a></li>
+  <li><a href="https://www.shodan.io/search/facet?query=nginx&amp;facet=port">…/facet?query=nginx&amp;facet=port</a></li>
+</ul>
+
+<div class="box new">
+  <span class="label">⚡ Aktueller Stand 2026 — Shodan-Alternativen</span>
+  Shodan ist Marktführer, aber für gründliche Recon kombiniert man:
+  <ul style="margin-top: 4px;">
+    <li><strong><a href="https://search.censys.io/">Censys.io</a></strong> — sehr starke Zertifikats- und Host-Daten, gute Free-Tier.</li>
+    <li><strong><a href="https://en.fofa.info/">FOFA</a></strong> (China-Anbieter) — oft Treffer, die andere nicht haben.</li>
+    <li><strong><a href="https://www.zoomeye.org/">ZoomEye</a></strong> — ähnliches Konzept, eigene Sicht.</li>
+    <li><strong><a href="https://netlas.io/">Netlas.io</a></strong> — schöne UI, faire Free-Tier, gute Filter.</li>
+    <li><strong><a href="https://www.onyphe.io/">Onyphe</a></strong> — viele Zusatz-Datasets (Pastebins, Leaks, Risk-Scores).</li>
+  </ul>
+  Cross-Reference über mehrere Engines findet meist deutlich mehr Assets als nur Shodan.
+</div>
+
+<div class="box warn">
+  <span class="label">⚠️ OPSEC-Hinweis</span>
+  „Passiv" heißt: das Ziel sieht nichts. <strong>Shodan/crt.sh/RDAP sehen aber sehr wohl deine IP.</strong> Wenn du nicht möchtest, dass dort deine Heimat-IP auftaucht (Bug-Bounty-Etikette, eigene Anonymität), nutze ein VPN oder eine dedizierte VM mit eigener Exit-IP.
+</div>
+
+<div class="box ans">
+  <span class="label">✅ Lösungen zu Task 6 (Shodan)</span>
+  <p style="margin: 4px 0;">Die genauen Zahlen ändern sich mit der Zeit (Shodan scannt täglich), aber laut deinem THM-Screenshot gelten aktuell:</p>
+  <ul>
+    <li><strong>Land mit den meisten öffentlichen Apache-Servern?</strong><br>
+    → <code>United States</code><br>
+    <span class="small">Verifizieren auf: <a href="https://www.shodan.io/search/facet?query=apache&amp;facet=country">shodan.io/search/facet?query=apache&amp;facet=country</a></span></li>
+
+    <li><strong>3.-häufigster Port, der für Apache verwendet wird?</strong><br>
+    → <code>8080</code><br>
+    <span class="small">Reihenfolge typisch: <code>80</code> (Platz 1) → <code>443</code> (Platz 2) → <code>8080</code> (Platz 3). Verifizieren auf: <a href="https://www.shodan.io/search/facet?query=apache&amp;facet=port">shodan.io/search/facet?query=apache&amp;facet=port</a></span></li>
+
+    <li><strong>Häufigster Port für nginx?</strong><br>
+    → <code>80</code><br>
+    <span class="small">Verifizieren auf: <a href="https://www.shodan.io/search/facet?query=nginx&amp;facet=port">shodan.io/search/facet?query=nginx&amp;facet=port</a></span></li>
+  </ul>
+  <p style="margin: 4px 0;"><strong>Warum hattest du die Antworten nicht gefunden?</strong> Die Fragen erfordern die <strong>Facet-Ansicht</strong> von Shodan — die ist über die normale Suchleiste nicht direkt erreichbar. Du musst entweder die <code>/search/facet</code>-URL direkt aufrufen <em>oder</em> auf der Ergebnisseite einer Suche rechts in der Sidebar die Aggregat-Werte (Top Countries, Top Ports) ablesen.</p>
+</div>
+</section>
+
+<!-- ============================================================ TASK 7 -->
+<section id="task-7">
+<h2><span class="task-num">Task 7</span>Zusammenfassung &amp; Command-Cheatsheet</h2>
+
+<p>Du hast in diesem Room gelernt, wie man Informationen sammelt, <strong>ohne direkt mit dem Ziel zu kommunizieren</strong> — die leiseste Phase der Reconnaissance.</p>
+
+<h3>Methoden &amp; Tools im Überblick</h3>
+<ul>
+  <li><strong>WHOIS / RDAP</strong> — Domain-Registrierungsdaten: Registrar, Daten, Nameserver. Personendaten heute meist redacted. RDAP ersetzt WHOIS seit 28.01.2025 offiziell für gTLDs.</li>
+  <li><strong>DNS-Lookups</strong> — A/AAAA (IPs), MX (Mail), TXT (SPF/DKIM/DMARC/Verifizierungen), CNAME, NS, SOA — über öffentliche Resolver wie <code>1.1.1.1</code>.</li>
+  <li><strong>Subdomain-Enumeration</strong> — DNSDumpster für DNS-Aggregation und Graphen, <strong>crt.sh</strong> für Certificate-Transparency-Logs (heute die effektivste passive Methode).</li>
+  <li><strong>Exponierte Services</strong> — Shodan.io für Banner, offene Ports, Hosting-Infos, geografische Verteilung.</li>
+</ul>
+
+<p>
+<strong>Warum diese Methoden so wertvoll sind:</strong> sie sind voll passiv, lösen keine Alarme aus, bergen minimales Rechtsrisiko (innerhalb des Scopes), liefern aber oft vergessene Subdomains, veraltete Services und Misskonfigurationen.
+</p>
+
+<h3>Command-Cheatsheet</h3>
+<table>
+  <tr><th>Zweck</th><th>Kommando</th></tr>
+  <tr><td>WHOIS-Eintrag abfragen</td><td><code>whois tryhackme.com</code></td></tr>
+  <tr><td>RDAP (modern, JSON)</td><td><code>curl -s https://rdap.verisign.com/com/v1/domain/tryhackme.com | jq .</code></td></tr>
+  <tr><td>A-Records (legacy)</td><td><code>nslookup -type=A tryhackme.com</code></td></tr>
+  <tr><td>MX-Records bei spezifischem Server (legacy)</td><td><code>nslookup -type=MX tryhackme.com 1.1.1.1</code></td></tr>
+  <tr><td>TXT-Records (legacy)</td><td><code>nslookup -type=TXT tryhackme.com</code></td></tr>
+  <tr><td>A-Records (empfohlen)</td><td><code>dig tryhackme.com A</code></td></tr>
+  <tr><td>MX-Records bei spezifischem Server (empfohlen)</td><td><code>dig @1.1.1.1 tryhackme.com MX</code></td></tr>
+  <tr><td>TXT-Records (empfohlen)</td><td><code>dig tryhackme.com TXT</code></td></tr>
+  <tr><td>Nur Antwort (script-freundlich)</td><td><code>dig +short tryhackme.com</code></td></tr>
+  <tr><td>Auflösungsweg von Root an</td><td><code>dig +trace tryhackme.com</code></td></tr>
+  <tr><td>Subdomain-Discovery (browser)</td><td><a href="https://crt.sh">crt.sh</a> → Suche <code>%.tryhackme.com</code></td></tr>
+  <tr><td>Subdomain-Discovery (CLI)</td><td><code>subfinder -d tryhackme.com -all</code></td></tr>
+  <tr><td>Subdomain-Discovery (alternativ)</td><td><code>amass enum -passive -d tryhackme.com</code></td></tr>
+  <tr><td>Geräte-Suche</td><td><a href="https://shodan.io">shodan.io</a> → <code>hostname:tryhackme.com</code></td></tr>
+  <tr><td>Shodan-Statistik (Facets)</td><td><a href="https://www.shodan.io/search/facet?query=apache&amp;facet=country">/search/facet?query=…&amp;facet=…</a></td></tr>
+</table>
+
+<h3>Tipps</h3>
+<ul>
+  <li>Nutze <strong>DoH/DoT-Resolver</strong> wie <code>1.1.1.1</code>, damit dein eigener ISP deine Lookups nicht mitlesen kann.</li>
+  <li>Als Defender deinen eigenen Footprint monitoren: Shodan-/Censys-Alerts, CT-Log-Watcher, DNS-Change-Monitoring (Subdomain-Takeover-Schutz).</li>
+  <li>Auch wenn passiv: stelle sicher, dass das gesamte Engagement <strong>autorisiert und im Scope</strong> ist.</li>
+  <li>Ergebnisse <strong>ändern sich</strong>: IPs rotieren (Cloudflare-Anycast), Subdomains kommen und gehen, Privacy-Redaktionen nehmen zu.</li>
+</ul>
+
+<h3>Nächste Schritte (TryHackMe-Empfehlungen)</h3>
+<ul>
+  <li>DNS vertiefen: Room <em>DNS in Detail</em>.</li>
+  <li>Shodan vertiefen: Room <em>Shodan.io</em>.</li>
+  <li>OSINT generell: <em>Search Skills</em> und <em>OSINT</em>-Rooms — extern auch das <a href="https://osintframework.com/">OSINT Framework</a>.</li>
+</ul>
+
+<div class="box ans">
+  <span class="label">✅ Task 7</span>
+  Keine Fragen mit Antwort — die Aufgabe ist nur „merke dir die Syntax". Genau dafür ist das Cheatsheet oben.
+</div>
+</section>
+
+<!-- ============================================================ ANHANG A -->
+<section id="antworten">
+<h2>Anhang A — Alle Antworten kompakt</h2>
+
+<table>
+  <tr><th>Task</th><th>Frage</th><th>Antwort</th></tr>
+  <tr><td>2</td><td>Facebook-Seite nach Mitarbeitern durchsehen — A/P?</td><td><code>P</code></td></tr>
+  <tr><td>2</td><td>Webserver pingen, um ICMP-Block zu testen — A/P?</td><td><code>A</code></td></tr>
+  <tr><td>2</td><td>IT-Admin auf Party ausfragen — A/P?</td><td><code>A</code></td></tr>
+  <tr><td>3</td><td>Wann wurde tryhackme.com registriert?</td><td><code>20180705</code></td></tr>
+  <tr><td>3</td><td>Registrar von tryhackme.com?</td><td><code>namecheap.com</code></td></tr>
+  <tr><td>3</td><td>Nameserver-Anbieter von tryhackme.com?</td><td><code>cloudflare.com</code></td></tr>
+  <tr><td>4</td><td>TXT-Flag von thmlabs.com?</td><td><code>THM{a5b83929888ed36acb0272971e438d78}</code></td></tr>
+  <tr><td>5</td><td>Interessante Subdomain (neben www/blog)?</td><td><code>remote</code></td></tr>
+  <tr><td>6</td><td>Land mit meisten Apache-Servern (Shodan)?</td><td><code>United States</code></td></tr>
+  <tr><td>6</td><td>3.-häufigster Port für Apache (Shodan)?</td><td><code>8080</code></td></tr>
+  <tr><td>6</td><td>Häufigster Port für nginx (Shodan)?</td><td><code>80</code></td></tr>
+</table>
+</section>
+
+<!-- ============================================================ ANHANG B -->
+<section id="alternativen">
+<h2>Anhang B — Moderne Alternativen 2026</h2>
+
+<table>
+  <tr><th>Bereich</th><th>Im Kurs gezeigt</th><th>Heute empfohlen / Alternative</th></tr>
+  <tr>
+    <td>Domain-Registrierung</td>
+    <td><code>whois</code> (Port 43, Klartext)</td>
+    <td><strong>RDAP</strong> über HTTPS+JSON — seit 28.01.2025 offiziell für gTLDs; <code>curl … | jq</code> oder <a href="https://lookup.icann.org/">lookup.icann.org</a></td>
+  </tr>
+  <tr>
+    <td>WHOIS-Historie</td>
+    <td>whoxy.com</td>
+    <td>SecurityTrails, DomainTools (kommerziell), ViewDNS.info</td>
+  </tr>
+  <tr>
+    <td>DNS-Lookup</td>
+    <td><code>nslookup</code></td>
+    <td><code>dig</code> (Default), <code>kdig</code> (Knot), <code>doggo</code>, <code>dog</code>, <code>delv</code> (DNSSEC)</td>
+  </tr>
+  <tr>
+    <td>Eigene Lookup-Privacy</td>
+    <td>Standard-Resolver</td>
+    <td><strong>DoH / DoT</strong> mit 1.1.1.1, 9.9.9.9; lokal Unbound mit DoT-Upstream</td>
+  </tr>
+  <tr>
+    <td>Subdomain-Enum (passiv)</td>
+    <td>DNSDumpster, crt.sh</td>
+    <td><strong>Subfinder</strong> (aggregiert ~30 Quellen), <strong>Amass</strong> (<code>-passive</code>), <strong>Assetfinder</strong>, <strong>chaos-client</strong>, <strong>gau</strong>/<strong>waybackurls</strong></td>
+  </tr>
+  <tr>
+    <td>Geräte-Suchmaschine</td>
+    <td>Shodan</td>
+    <td>+ <strong>Censys</strong>, <strong>FOFA</strong>, <strong>ZoomEye</strong>, <strong>Netlas</strong>, <strong>Onyphe</strong> — multi-source erhöht Coverage stark</td>
+  </tr>
+  <tr>
+    <td>CT-Log-Watching</td>
+    <td>crt.sh manuell</td>
+    <td>Cert Spotter API, <code>certstream</code> (real-time Stream), Censys-CT-Suche; <em>Facebook CT-Monitor wurde eingestellt</em></td>
+  </tr>
+  <tr>
+    <td>OSINT-Aggregation</td>
+    <td>manuell</td>
+    <td><a href="https://osintframework.com/">OSINT Framework</a>, <strong>SpiderFoot</strong>, <strong>Maltego CE</strong>, <strong>theHarvester</strong>, <strong>Recon-ng</strong></td>
+  </tr>
+  <tr>
+    <td>Attack Surface Monitoring (Defender)</td>
+    <td>—</td>
+    <td>Detectify, RunZero, watchTowr, Censys ASM, eigene Pipelines auf <code>nuclei</code>/<code>httpx</code></td>
+  </tr>
+</table>
+</section>
+
+<!-- ============================================================ ANHANG C -->
+<section id="glossar">
+<h2>Anhang C — Glossar</h2>
+
+<table>
+  <tr><th>Begriff</th><th>Bedeutung</th></tr>
+  <tr><td><strong>Anycast</strong></td><td>Eine IP wird gleichzeitig an mehreren Standorten geroutet; der Client landet automatisch beim nächsten. Cloudflare nutzt das massiv.</td></tr>
+  <tr><td><strong>ASN</strong></td><td>Autonomous System Number — eindeutige Nummer eines Netzwerkbetreibers im Internet-Routing (BGP).</td></tr>
+  <tr><td><strong>CCPA</strong></td><td>California Consumer Privacy Act — kalifornisches Datenschutzgesetz, ähnlich GDPR.</td></tr>
+  <tr><td><strong>CT-Log</strong></td><td>Certificate Transparency Log — öffentliches, append-only Log aller ausgestellten TLS-Zertifikate.</td></tr>
+  <tr><td><strong>DKIM</strong></td><td>DomainKeys Identified Mail — signiert ausgehende Mails kryptografisch (TXT-Record + DNS).</td></tr>
+  <tr><td><strong>DMARC</strong></td><td>Policy oben drauf für SPF+DKIM — sagt empfangenden Servern, was bei Fehlversuchen zu tun ist.</td></tr>
+  <tr><td><strong>DoH / DoT</strong></td><td>DNS-over-HTTPS / DNS-over-TLS — verschlüsselte DNS-Auflösung, damit kein Dritter (z. B. ISP) mitlesen kann.</td></tr>
+  <tr><td><strong>EPP</strong></td><td>Extensible Provisioning Protocol — Standard für Domain-Status-Codes (z. B. <code>clientTransferProhibited</code>).</td></tr>
+  <tr><td><strong>GDPR</strong></td><td>EU-Datenschutz-Grundverordnung (DSGVO) — Grund, warum WHOIS-Daten heute größtenteils geschwärzt sind.</td></tr>
+  <tr><td><strong>gTLD</strong></td><td>Generic Top-Level Domain — <code>.com</code>, <code>.net</code>, <code>.org</code>, <code>.io</code>, … (im Gegensatz zu ccTLDs wie <code>.de</code>).</td></tr>
+  <tr><td><strong>ICANN</strong></td><td>Internet Corporation for Assigned Names and Numbers — verwaltet das DNS-Wurzelsystem und TLD-Vergabe.</td></tr>
+  <tr><td><strong>OPSEC</strong></td><td>Operational Security — Disziplin, eigene Spuren beim Recon/Angriff zu minimieren.</td></tr>
+  <tr><td><strong>OSINT</strong></td><td>Open Source Intelligence — Aufklärung aus öffentlich verfügbaren Quellen.</td></tr>
+  <tr><td><strong>RDAP</strong></td><td>Registration Data Access Protocol — moderner WHOIS-Nachfolger (HTTPS + JSON).</td></tr>
+  <tr><td><strong>RFC</strong></td><td>Request for Comments — Internet-Standarddokumente der IETF (z. B. RFC 3912 für WHOIS).</td></tr>
+  <tr><td><strong>SAN</strong></td><td>Subject Alternative Name — Feld in TLS-Zertifikaten, listet alle abgedeckten Domains/Subdomains.</td></tr>
+  <tr><td><strong>SPF</strong></td><td>Sender Policy Framework — definiert via TXT-Record, welche IPs Mails für die Domain senden dürfen.</td></tr>
+  <tr><td><strong>Subdomain-Takeover</strong></td><td>Angriff: ein Subdomain-CNAME zeigt auf einen externen Dienst (z. B. S3-Bucket), der nicht mehr existiert — Angreifer registriert die Ressource neu und übernimmt die Subdomain.</td></tr>
+  <tr><td><strong>TTL</strong></td><td>Time-To-Live — wie lange (in Sekunden) ein DNS-Record gecached werden darf.</td></tr>
+  <tr><td><strong>WHOIS</strong></td><td>Klassisches Domain-Registrierungsabfrage-Protokoll auf Port 43. 2025 von RDAP abgelöst (gTLDs).</td></tr>
+</table>
+
+<p style="margin-top: 32px;" class="small">
+  <em>Writeup basiert auf dem TryHackMe-Kurs „Passive Reconnaissance" (Junior Penetration Tester / Network Security Module) sowie dem ergänzenden Walkthrough von Aircon (medium.com).</em>
+</p>
+
+</section>
+
+</div>
+</body>
+</html>
