@@ -1,3 +1,0 @@
-[     718ms] [ERROR] Loading the image 'https://unpkg.com/leaflet@1.9.4/dist/images/layers.png' violates the following Content Security Policy directive: "img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com". The action has been blocked. @ https://fpv-spots-germany.de/:549
-[     986ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ https://fpv-spots-germany.de/:0
-[    1178ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ https://fpv-spots-germany.de/:0
