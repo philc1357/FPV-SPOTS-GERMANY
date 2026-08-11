@@ -1,3 +1,0 @@
-SSRF:
-https://claude.ai/share/6426b1e9-f491-4bf0-a5df-30623c19d2cf
-https://cherylmaiselobo.medium.com/intro-to-ssrf-tryhackme-b512f7e242ca
