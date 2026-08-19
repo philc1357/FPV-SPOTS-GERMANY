@@ -425,22 +425,30 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                 <?php if (empty($videos)): ?>
                     <p class="text-secondary mb-0">Noch keine Videos vorhanden.</p>
                 <?php else: ?>
-                    <div class="row g-3">
+                    <div class="row g-3" id="videoGrid">
                         <?php foreach ($videos as $v):
                             $vid   = htmlspecialchars((string)$v['youtube_id'], ENT_QUOTES, 'UTF-8');
                             $title = htmlspecialchars((string)$v['title'],      ENT_QUOTES, 'UTF-8');
                         ?>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-md-6">
+                                <!-- Zwei-Klick-Loesung: Player wird erst bei Klick nachgeladen -->
+                                <div class="yt-embed ratio ratio-16x9 rounded overflow-hidden"
+                                     data-yt-id="<?= $vid ?>" data-yt-title="<?= $title ?>">
+                                    <button type="button" class="yt-facade"
+                                            aria-label="Video abspielen: <?= $title ?>">
+                                        <img src="https://img.youtube.com/vi/<?= $vid ?>/mqdefault.jpg"
+                                             alt="Vorschaubild: <?= $title ?>"
+                                             loading="lazy"
+                                             class="yt-thumb"
+                                             onerror="this.style.visibility='hidden'">
+                                        <span class="yt-play" aria-hidden="true"><i class="bi bi-play-fill"></i></span>
+                                    </button>
+                                </div>
+                                <small class="text-light d-block mt-1 fw-semibold"><?= $title ?></small>
                                 <a href="https://www.youtube.com/watch?v=<?= $vid ?>"
                                    target="_blank" rel="noopener noreferrer"
-                                   class="text-decoration-none">
-                                    <img src="https://img.youtube.com/vi/<?= $vid ?>/mqdefault.jpg"
-                                         alt="<?= $title ?>"
-                                         loading="lazy"
-                                         class="img-fluid rounded"
-                                         style="width:100%; aspect-ratio:16/9; object-fit:cover;"
-                                         onerror="this.style.display='none'">
-                                    <small class="text-light d-block mt-1 fw-semibold"><?= $title ?></small>
+                                   class="small text-secondary text-decoration-none">
+                                    <i class="bi bi-box-arrow-up-right"></i> Auf YouTube ansehen
                                 </a>
                             </div>
                         <?php endforeach; ?>
@@ -642,6 +650,41 @@ function toggleEditParking() {
             ta.disabled = false;
             ta.focus();
         }
+    });
+})();
+
+// ============================================================
+// YouTube-Einbettung (Zwei-Klick-Loesung)
+// Beim Seitenaufruf wird nur das Vorschaubild geladen. Erst wenn
+// der Nutzer auf den Play-Button klickt, wird der Player von
+// youtube-nocookie.com nachgeladen und ersetzt das Vorschaubild.
+// ============================================================
+(function () {
+    var grid = document.getElementById('videoGrid');
+    if (!grid) return;
+
+    var YT_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
+
+    grid.addEventListener('click', function (event) {
+        var facade = event.target.closest('.yt-facade');
+        if (!facade) return;
+
+        var wrapper = facade.closest('.yt-embed');
+        if (!wrapper) return;
+
+        // Video-ID clientseitig erneut gegen Whitelist pruefen
+        var videoId = wrapper.dataset.ytId || '';
+        if (!YT_ID_PATTERN.test(videoId)) return;
+
+        var iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0';
+        iframe.title = wrapper.dataset.ytTitle || 'YouTube-Video';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        iframe.allowFullscreen = true;
+        iframe.setAttribute('frameborder', '0');
+
+        wrapper.replaceChildren(iframe);
     });
 })();
 
