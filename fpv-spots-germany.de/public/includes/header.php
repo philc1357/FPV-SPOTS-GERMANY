@@ -4,6 +4,10 @@ $isLoggedIn = $isLoggedIn ?? false;
 $username = $username ?? '';
 $csrfToken = $csrfToken ?? '';
 
+// Besucherzählung für die Tagesstatistik im Admintool (still, fehlertolerant)
+require_once __DIR__ . '/../../private/php/core/track_visit.php';
+track_visit($pdo ?? null);
+
 // Verbesserungsvorschläge bleiben separat (eigenes Cookie + Symbol)
 $hasUnseenSuggestions = false;
 if ($isLoggedIn && isset($pdo)) {
