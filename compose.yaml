@@ -1,0 +1,85 @@
+# =============================================================
+# FPV Spots Germany – lokale Entwicklungsumgebung
+#
+# Start:  docker compose up -d --build
+# Aufruf: https://fpv.localhost
+#
+# HINWEIS: Hier wird bewusst KEINE ${VAR}-Substitution genutzt.
+# Docker Compose würde dafür automatisch die .env im Projekt-Root
+# einlesen – und das ist die Datei mit den Produktions-Zugangsdaten.
+# Alle Werte unten sind reine Lokal-Credentials.
+# =============================================================
+
+services:
+
+  # -----------------------------------------------------------
+  # PHP 8.3 + Apache (mod_rewrite, mod_headers, mod_ssl)
+  # -----------------------------------------------------------
+  web:
+    build:
+      context: ./docker/php
+      args:
+        UID: "1000"
+        GID: "1000"
+    container_name: fpv_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Projekt-Root, nicht Webroot: vendor/ und .env liegen darüber
+      - ./:/var/www/html
+      # Lokale Konfiguration über die Produktions-.env legen
+      - ./docker/.env.docker:/var/www/html/.env:ro
+      # Selbstsigniertes Zertifikat, vom Entrypoint erzeugt
+      - ./docker/certs:/etc/ssl/app
+    depends_on:
+      db:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # -----------------------------------------------------------
+  # MariaDB 10.11 – gleiche Major-Version wie in Produktion.
+  # database.sql wird beim ERSTEN Start automatisch importiert.
+  # -----------------------------------------------------------
+  db:
+    image: mariadb:10.11
+    container_name: fpv_db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: d046b4e2
+      MARIADB_USER: d046b4e2
+      MARIADB_PASSWORD: fpvlocal
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  # -----------------------------------------------------------
+  # phpMyAdmin – http://localhost:8081
+  # -----------------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: fpv_pma
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: "3306"
+      UPLOAD_LIMIT: 256M
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dbdata:
