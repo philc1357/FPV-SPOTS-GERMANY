@@ -55,7 +55,7 @@
     var messageBadge = document.getElementById('message-notify-badge');
     if (messageBadge) {
         function checkMessages() {
-            fetch('/public/php/api/messages.php?action=unread_count', { credentials: 'same-origin' })
+            fetch('/api/messages.php?action=unread_count', { credentials: 'same-origin' })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     var count = data.unread_count || 0;

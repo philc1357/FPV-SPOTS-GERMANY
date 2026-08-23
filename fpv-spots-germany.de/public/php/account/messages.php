@@ -112,7 +112,7 @@ try {
 'use strict';
 (function () {
     const CSRF   = document.querySelector('meta[name="app-csrf-token"]').content;
-    const API    = '/public/php/api/messages.php';
+    const API    = '/api/messages.php';
 
     const sidebarCol       = document.getElementById('sidebarCol');
     const chatCol          = document.getElementById('chatCol');

@@ -20,7 +20,8 @@ x.fpv-spots-germany.de/
 .claudeignore
 CLAUDE.md
 
-.htaccess
+# .htaccess wird bewusst versioniert: sie enthaelt keine Secrets, aber das
+# komplette Routing – ungetrackt waren Routing-Ausfaelle im Diff unsichtbar.
 fiverr_projektbeschreibung.txt
 werbung.md
 werbung_v2.md

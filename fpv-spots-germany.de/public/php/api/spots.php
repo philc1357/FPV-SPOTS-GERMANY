@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 // =============================================================
-// API: GET /public/php/api/spots.php   – Alle Spots laden
-//      POST /public/php/api/spots.php  – Neuen Spot erstellen
+// API: GET /api/spots.php   – Alle Spots laden
+//      POST /api/spots.php  – Neuen Spot erstellen
 // =============================================================
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
 

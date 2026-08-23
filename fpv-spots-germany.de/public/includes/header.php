@@ -162,3 +162,10 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
 
 <?php include __DIR__ . '/cookie_banner.php'; ?>
 <script src="/public/js/banners.js" defer></script>
+
+<?php
+// Hinweis auf veralteten Service-Worker-Cache. Bewusst NACH banners.js und
+// mit eigenem Inline-CSS/JS: bei Betroffenen kommen banners.css/.js aus dem
+// alten Cache, nur serverseitig geliefertes HTML erreicht sie zuverlaessig.
+include __DIR__ . '/stale_cache_banner.php';
+?>

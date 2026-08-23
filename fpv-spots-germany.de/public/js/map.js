@@ -172,7 +172,7 @@ function escNl2br(str) {
 // ---------------------------------------------------------------
 async function loadAllSpots() {
     try {
-        const res = await fetch('/public/php/api/spots.php');
+        const res = await fetch('/api/spots.php');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const spots = await res.json();
         spots.forEach(addMarker);
@@ -239,7 +239,7 @@ async function openSpotDetail(spot) {
     getOrCreateOffcanvas('spotDetailOffcanvas').show();
 
     try {
-        const res = await fetch(`/public/php/api/spot.php?id=${spot.id}`);
+        const res = await fetch(`/api/spot.php?id=${spot.id}`);
         if (!res.ok) return;
         const data = await res.json();
         renderSpotPhotos(spot.id, data.images || [], !!data.has_more_images);
@@ -419,7 +419,7 @@ function saveLegendToSession() {
     const types = Array.from(document.querySelectorAll('.legend-cb[data-filter="type"]:checked')).map(cb => cb.value);
     const diffs = Array.from(document.querySelectorAll('.legend-cb[data-filter="diff"]:checked')).map(cb => cb.value);
     const sizes = Array.from(document.querySelectorAll('.legend-cb[data-filter="size"]:checked')).map(cb => cb.value);
-    fetch('/public/php/api/save_legend.php', {
+    fetch('/api/save_legend.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ types, diffs, sizes }),

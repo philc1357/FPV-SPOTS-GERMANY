@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 // =============================================================
-// API: GET  /public/php/api/spot.php?id=X  – Einzelnen Spot laden
-//      POST /public/php/api/spot.php?id=X  – Spot bearbeiten (_method=PUT)
-//      POST /public/php/api/spot.php?id=X  – Spot löschen  (_method=DELETE)
+// API: GET  /api/spot.php?id=X  – Einzelnen Spot laden
+//      POST /api/spot.php?id=X  – Spot bearbeiten (_method=PUT)
+//      POST /api/spot.php?id=X  – Spot löschen  (_method=DELETE)
 //
 // Hinweis: HTML-Formulare und die Fetch-API senden kein PUT/DELETE.
 // Wir nutzen das _method-Override-Muster über POST.

@@ -331,7 +331,7 @@ async function dashDeleteSpot(spotId, btn) {
     fd.set('_method', 'DELETE');
 
     try {
-        const res  = await fetch(`/public/php/api/spot.php?id=${encodeURIComponent(spotId)}`, {
+        const res  = await fetch(`/api/spot.php?id=${encodeURIComponent(spotId)}`, {
             method: 'POST', body: fd,
         });
         const data = await res.json();
@@ -388,7 +388,7 @@ document.getElementById('bioSaveBtn').addEventListener('click', async () => {
     saveBtn.disabled = true;
 
     try {
-        const res  = await fetch('/public/php/api/update_bio.php', {
+        const res  = await fetch('/api/update_bio.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bio, csrf_token: CSRF }),

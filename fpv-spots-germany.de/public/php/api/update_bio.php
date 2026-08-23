@@ -2,7 +2,7 @@
 declare(strict_types=1);
 // =============================================================
 // FPV Spots Germany – Bio-Update API
-// POST /public/php/api/update_bio.php
+// POST /api/update_bio.php
 // Body (JSON): { bio: string, csrf_token: string }
 // =============================================================
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
