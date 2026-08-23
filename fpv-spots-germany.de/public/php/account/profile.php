@@ -74,8 +74,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
     <link rel="stylesheet" href="/public/css/dashboard.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+    <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/map_assets_head.php'; ?>
     <meta name="app-csrf-token" content="<?= $csrfToken ?>">
 </head>
 <body class="text-light">
@@ -244,9 +243,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
 </div>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/map_assets_foot.php'; ?>
 
 <script>
 'use strict';
@@ -352,7 +349,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
         overlay.style.display = 'block';
 
         try {
-            const res = await fetch(`/public/php/api/spot.php?id=${spot.id}`);
+            const res = await fetch(`/api/spot.php?id=${spot.id}`);
             if (!res.ok) return;
             const data = await res.json();
             renderSpotPhotos(spot.id, data.images || [], !!data.has_more_images);
@@ -375,7 +372,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
     streetLayer.addTo(map);
     L.control.layers({ 'Straße': streetLayer, 'Satellit': satelliteLayer }, null, { position: 'bottomleft' }).addTo(map);
 
-    fetch(`/public/php/api/spots.php?user_id=${PROFILE_USER_ID}`)
+    fetch(`/api/spots.php?user_id=${PROFILE_USER_ID}`)
         .then(r => r.ok ? r.json() : Promise.reject(r.status))
         .then(spots => {
             if (spots.length === 0) {
@@ -405,7 +402,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
 (function () {
     const CSRF         = document.querySelector('meta[name="app-csrf-token"]').content;
     const PROFILE_ID   = <?= $profileId ?>;
-    const API          = '/public/php/api/messages.php';
+    const API          = '/api/messages.php';
     const msgBody      = document.getElementById('msgBody');
     const msgCharCount = document.getElementById('msgCharCount');
     const msgSendBtn   = document.getElementById('msgSendBtn');

@@ -1,9 +1,8 @@
 // =============================================================
 // FPV Spots Germany – Service Worker
 // =============================================================
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v5';
 const STATIC_CACHE  = 'fpv-static-' + CACHE_VERSION;
-const CDN_CACHE     = 'fpv-cdn-'    + CACHE_VERSION;
 const TILES_CACHE   = 'fpv-tiles-'  + CACHE_VERSION;
 const API_CACHE     = 'fpv-api-'    + CACHE_VERSION;
 
@@ -20,30 +19,51 @@ const STATIC_ASSETS = [
     '/public/imgs/logo2.png',
     '/favicon.ico',
     '/public/imgs/icons/icon-192.png',
-    '/public/imgs/icons/icon-512.png'
+    '/public/imgs/icons/icon-512.png',
+    '/public/vendor/leaflet/leaflet.css',
+    '/public/vendor/leaflet/leaflet.js',
+    '/public/vendor/bootstrap/bootstrap.min.css',
+    '/public/vendor/bootstrap/bootstrap.bundle.min.js'
 ];
 
-// CDN-Ressourcen zum Pre-Cachen
-const CDN_ASSETS = [
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-];
+// -------------------------------------------------------------
+// Pre-Cache: jede URL einzeln und fehlertolerant
+//
+// cache.addAll() ist atomar – schlaegt EIN einziger Request fehl, wird der
+// gesamte Aufruf verworfen, die Installation des Service Workers scheitert
+// und der ALTE Service Worker bleibt aktiv. Deshalb: jede URL einzeln
+// cachen, Fehler protokollieren und ueberspringen. Nicht vorgecachte
+// Dateien laedt die jeweilige Fetch-Strategie spaeter nach.
+//
+// Alle Eintraege sind bewusst same-origin. Externe CDNs (unpkg.com,
+// cdn.jsdelivr.net) standen hier frueher ebenfalls drin – sie wurden von
+// der CSP-Direktive connect-src 'self' blockiert, die auch fuer fetch()
+// INNERHALB des Service Workers gilt. Ergebnis: leerer CDN-Cache, 503 auf
+// leaflet.js und eine Karte, die nicht mehr geladen wurde. Vendor-Libs
+// liegen deshalb jetzt lokal unter /public/vendor/.
+// -------------------------------------------------------------
+function precache(cacheName, urls) {
+    return caches.open(cacheName).then((cache) =>
+        Promise.all(
+            urls.map((url) =>
+                cache.add(url).catch((err) => {
+                    console.warn('[SW] Pre-Cache uebersprungen:', url, err);
+                })
+            )
+        )
+    );
+}
 
 // ── Install: Pre-Cache ──────────────────────────────────────
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        Promise.all([
-            caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)),
-            caches.open(CDN_CACHE).then((cache) => cache.addAll(CDN_ASSETS))
-        ]).then(() => self.skipWaiting())
+        precache(STATIC_CACHE, STATIC_ASSETS).then(() => self.skipWaiting())
     );
 });
 
 // ── Activate: alte Caches loeschen ──────────────────────────
 self.addEventListener('activate', (event) => {
-    const currentCaches = [STATIC_CACHE, CDN_CACHE, TILES_CACHE, API_CACHE];
+    const currentCaches = [STATIC_CACHE, TILES_CACHE, API_CACHE];
     event.waitUntil(
         caches.keys().then((names) =>
             Promise.all(
@@ -64,30 +84,35 @@ self.addEventListener('fetch', (event) => {
     if (request.method !== 'GET') return;
 
     // 1. Map-Tiles (Stale-while-revalidate)
-    if (url.hostname.includes('tile.openstreetmap.org')) {
+    if (isOsmTileHost(url.hostname)) {
         event.respondWith(tileStrategy(request));
         return;
     }
 
-    // 2. CDN-Ressourcen (Cache-first)
-    if (url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('unpkg.com')) {
-        event.respondWith(cacheFirst(request, CDN_CACHE));
-        return;
-    }
+    // 2. Alle uebrigen Cross-Origin-Requests: nicht abfangen.
+    //    Der Browser laedt sie direkt; dort greifen script-src/style-src/
+    //    img-src statt connect-src, das im Service Worker nur 'self' erlaubt.
+    if (url.origin !== self.location.origin) return;
 
     // 3. API-Aufrufe (Network-first mit Cache-Fallback)
-    if (url.pathname.startsWith('/public/php/api/')) {
+    if (url.pathname.startsWith('/api/')) {
         event.respondWith(networkFirst(request, API_CACHE));
         return;
     }
 
-    // 4. Statische Assets (Cache-first)
+    // 4. Eigene App-Logik: JS/CSS aus /public/ und /private/ (Network-first)
+    if (isAppCode(url.pathname)) {
+        event.respondWith(networkFirst(request, STATIC_CACHE));
+        return;
+    }
+
+    // 5. Uebrige statische Assets: Bilder, Fonts, Vendor-Libs (Cache-first)
     if (isStaticAsset(url.pathname)) {
         event.respondWith(cacheFirst(request, STATIC_CACHE));
         return;
     }
 
-    // 5. Navigation / PHP-Seiten (Network-first, Offline-Fallback)
+    // 6. Navigation / PHP-Seiten (Network-first, Offline-Fallback)
     if (request.mode === 'navigate') {
         event.respondWith(navigationStrategy(request));
         return;
@@ -152,6 +177,38 @@ function trimCache(cacheName, maxEntries) {
             }
         });
     });
+}
+
+// -------------------------------------------------------------
+// Hilfsfunktion: Eigene App-Logik erkennen (JS/CSS des Projekts)
+//
+// Diese Dateien tragen keine Versionsnummer im Dateinamen. Wuerden sie
+// cache-first ausgeliefert, fuehren Besucher nach einem Deploy weiter die
+// ALTE App-Logik aus, bis der Service Worker wechselt – genau dadurch rief
+// eine veraltete map.js nach dem API-Routing-Fix noch den alten Endpunkt
+// auf und die Karte blieb leer. Network-first liefert deshalb immer den
+// aktuellen Stand; der Cache dient nur noch als Offline-Fallback.
+//
+// Vendor-Bibliotheken (/public/vendor/) sind bewusst NICHT enthalten:
+// sie sind versioniert und aendern sich nicht zwischen Deploys.
+// -------------------------------------------------------------
+function isAppCode(pathname) {
+    return /^\/(public|private)\/(js|css)\//.test(pathname);
+}
+
+// -------------------------------------------------------------
+// Hilfsfunktion: OSM-Tile-Host erkennen
+//
+// Bewusst ein Suffix-Vergleich und kein hostname.includes(): letzteres
+// haette auch Hosts wie "tile.openstreetmap.org.angreifer.de" akzeptiert
+// und deren Antworten in den Tile-Cache geschrieben.
+//
+// map.js nutzt die Subdomain-Platzhalter {s} (a/b/c.tile.openstreetmap.org).
+// Der Vergleich ist damit deckungsgleich mit der CSP-Quelle
+// *.tile.openstreetmap.org in .htaccess.
+// -------------------------------------------------------------
+function isOsmTileHost(hostname) {
+    return hostname.endsWith('.tile.openstreetmap.org');
 }
 
 // Hilfsfunktion: Statische Assets erkennen

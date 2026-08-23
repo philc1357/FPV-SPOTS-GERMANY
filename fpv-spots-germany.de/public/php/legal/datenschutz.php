@@ -368,19 +368,8 @@ $csrfToken  = $_SESSION['csrf_token'];
             <!-- 18. Externe Ressourcen -->
             <section aria-labelledby="cdn">
                 <h2 id="cdn" class="h5 mt-4">18. Einbindung externer Ressourcen (CDN)</h2>
-                <p>Wir binden CSS- und JavaScript-Bibliotheken über externe Content Delivery Networks (CDN) ein. Beim Aufruf unserer Seiten wird eine Verbindung zu den jeweiligen CDN-Servern hergestellt, wobei Ihre IP-Adresse übermittelt wird.</p>
-                <ul>
-                    <li>
-                        <strong>jsDelivr</strong> – Bootstrap (CSS/JS-Framework):<br>
-                        <a href="https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net" target="_blank" rel="noopener noreferrer" class="text-white">https://www.jsdelivr.com/terms/privacy-policy-jsdelivr-net</a>
-                    </li>
-                    <li class="mt-2">
-                        <strong>unpkg</strong> – Leaflet (JavaScript-Kartenbibliothek):<br>
-                        Betrieben durch Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, USA.<br>
-                        <strong>Hinweis zur Drittlandübermittlung:</strong> unpkg wird über das Cloudflare-Netzwerk ausgeliefert und kann Server in den USA einbinden. Die Übermittlung erfolgt auf Grundlage von Art. 49 Abs. 1 lit. b DSGVO.
-                    </li>
-                </ul>
-                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – performante und zuverlässige Auslieferung der Website.</p>
+                <p>Wir binden <strong>keine</strong> CSS- oder JavaScript-Bibliotheken über externe Content Delivery Networks (CDN) ein. Sämtliche verwendeten Bibliotheken – Bootstrap, Bootstrap Icons und Leaflet – werden von unserem eigenen Server ausgeliefert. Beim Laden dieser Dateien wird daher keine Verbindung zu Dritten hergestellt und Ihre IP-Adresse nicht an CDN-Betreiber übermittelt.</p>
+                <p>Externe Verbindungen entstehen ausschließlich durch die in Abschnitt 16 beschriebenen Kartenanbieter sowie durch eingebettete YouTube-Videos.</p>
             </section>
 
             <!-- 19. PWA / Service Worker -->

@@ -52,7 +52,6 @@ $userId     = (int)$_SESSION['user_id'];
     </div>
     </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 <script src="/private/js/password_confirm.js"></script>
 </body>
