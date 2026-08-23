@@ -7,6 +7,7 @@ require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/password_blacklist.php';
+require_once __DIR__ . '/../core/session_guard.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /public/php/forgot_password.php');
@@ -70,8 +71,9 @@ if (!isset($error)) {
         // Token löschen (einmalig)
         $pdo->prepare("DELETE FROM password_reset_tokens WHERE id = ?")->execute([$token['id']]);
 
-        // Alle Remember-Tokens des Users löschen (andere Sessions invalidieren)
-        $pdo->prepare("DELETE FROM remember_tokens WHERE user_id = ?")->execute([$token['user_id']]);
+        // Alle Anmeldungen des Users entwerten: password_changed_at setzen
+        // (kippt laufende Sessions auf allen Geräten) + Remember-Tokens löschen
+        invalidate_all_user_sessions($pdo, (int)$token['user_id']);
 
         // Audit-Log
         $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_RESET_COMPLETED', ?)")

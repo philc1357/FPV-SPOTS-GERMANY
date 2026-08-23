@@ -67,6 +67,9 @@ declare(strict_types=1);
             $_SESSION['username'] = $user['username'];
             $_SESSION['is_admin'] = (int)$user['admin'] === 1;
             $_SESSION['terms_ok'] = !empty($user['terms_accepted_at']);
+            // Login-Zeitpunkt merken – wird gegen users.password_changed_at
+            // geprüft, um alte Sessions nach einer Passwortänderung zu kippen
+            $_SESSION['auth_time'] = time();
 
             // Remember-Me-Token erstellen wenn Checkbox aktiv
             if (!empty($_POST['remember_me'])) {

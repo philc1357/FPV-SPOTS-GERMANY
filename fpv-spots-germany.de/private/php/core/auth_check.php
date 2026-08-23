@@ -5,6 +5,7 @@ declare(strict_types=1);
 // Wird VOR session_start()-abhängiger Logik eingebunden.
 // Voraussetzung: session_start() wurde bereits aufgerufen.
 // =============================================================
+require_once __DIR__ . '/session_guard.php';
 
 if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
     $parts = explode(':', $_COOKIE['remember_me'], 2);
@@ -34,6 +35,7 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
             $_SESSION['username']      = $token['username'];
             $_SESSION['is_admin']      = (int)$token['admin'] === 1;
             $_SESSION['terms_ok']      = !empty($token['terms_accepted_at']);
+            $_SESSION['auth_time']     = time();
 
             $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$token['user_id']]);
 
@@ -75,15 +77,21 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
             }
         } else {
             // Ungültiges Cookie entfernen
-            setcookie('remember_me', '', [
-                'expires'  => 1,
-                'path'     => '/',
-                'httponly'  => true,
-                'secure'   => true,
-                'samesite' => 'Lax',
-            ]);
+            clear_remember_cookie();
         }
     }
+}
+
+// =============================================================
+// Session-Freshness prüfen
+// Sessions, die älter als die letzte Passwortänderung sind, werden
+// hier beendet – so wirkt eine Passwortänderung auf allen Geräten.
+// =============================================================
+if (isset($_SESSION['user_id'])) {
+    if (!isset($pdo)) {
+        require_once __DIR__ . '/db.php';
+    }
+    enforce_session_freshness($pdo);
 }
 
 // =============================================================

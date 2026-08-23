@@ -6,6 +6,7 @@ declare(strict_types=1);
     //Datenbankverbindungsdatei holen
     require_once __DIR__ . '/../core/db.php';
     require_once __DIR__ . '/../core/password_blacklist.php';
+    require_once __DIR__ . '/../core/session_guard.php';
 
     if (!isset($_SESSION['user_id'])) {
         header("Location: /");
@@ -14,7 +15,7 @@ declare(strict_types=1);
 
     // 2. Nur POST akzeptieren
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: /public/php/change_password.php");
+        header("Location: /change_password.php");
         exit;
     }
 
@@ -89,21 +90,37 @@ declare(strict_types=1);
             // PASSWORD_DEFAULT verwendet aktuell Argon2id (konsistent mit dem Rest des Projekts)
             $newHash = password_hash($newPass1, PASSWORD_DEFAULT);
 
-            $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-            $stmt->execute([$newHash, $userId]);
+            // Passwort setzen und alle bestehenden Anmeldungen entwerten –
+            // beides atomar, damit kein Zwischenzustand entstehen kann.
+            $pdo->beginTransaction();
+            try {
+                $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+                $stmt->execute([$newHash, $userId]);
+
+                // Setzt password_changed_at und löscht alle Remember-Me-Tokens
+                // → Sessions auf ALLEN Geräten werden ungültig
+                invalidate_all_user_sessions($pdo, (int)$userId);
+
+                $pdo->commit();
+            } catch (PDOException $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
 
             // 9. Audit-Log schreiben
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_CHANGED', ?)";
             $pdo->prepare($logSql)->execute([$userId, client_ip()]);
 
-            // 10. Session invalidieren – nach Passwortänderung neu einloggen erzwingen
-            //     Verhindert, dass gestohlene Sessions weiterhin gültig sind
-            session_regenerate_id(true);
-            session_destroy();
+            // 10. Aktuelles Gerät abmelden – Remember-Me-Cookie und
+            //     Session-Cookie entfernen, Session serverseitig zerstören.
+            //     Muss vor der HTML-Ausgabe passieren (setcookie sendet Header).
+            clear_remember_cookie();
+            destroy_current_session();
 
             $success = true;
 
         } catch (PDOException $e) {
+            error_log('change_password_submit.php error: ' . $e->getMessage());
             $error = "Fehler beim Speichern. Bitte versuche es erneut.";
         }
     }
@@ -123,12 +140,12 @@ declare(strict_types=1);
             <?php if (isset($success)): ?>
                 <div class="alert alert-success">
                     Passwort erfolgreich geändert.<br>
-                    <small>Aus Sicherheitsgründen wurdest du ausgeloggt. Bitte melde dich erneut an.</small>
+                    <small>Aus Sicherheitsgründen wurdest du auf allen Geräten ausgeloggt. Bitte melde dich erneut an.</small>
                 </div>
-                <a href="/" class="btn btn-primary mt-2">Zum Login</a>
+                <a href="/login.php" class="btn btn-primary mt-2">Zum Login</a>
             <?php else: ?>
-                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-                <a href="/public/php/change_password.php" class="btn btn-warning mt-2">Zurück</a>
+                <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
+                <a href="/change_password.php" class="btn btn-warning mt-2">Zurück</a>
             <?php endif; ?>
 
         </div>

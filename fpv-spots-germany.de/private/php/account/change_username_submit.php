@@ -5,11 +5,15 @@ declare(strict_types=1);
 
     //Datenbankverbindungsdatei holen
     require_once __DIR__ . '/../core/db.php';
+    require_once __DIR__ . '/../core/session_guard.php';
 
     if (!isset($_SESSION['user_id'])) {
         header("Location: /");
         exit;
     }
+
+    // Sessions, die älter als die letzte Passwortänderung sind, hier abweisen
+    enforce_session_freshness($pdo);
 
     // 2. Nur POST akzeptieren
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

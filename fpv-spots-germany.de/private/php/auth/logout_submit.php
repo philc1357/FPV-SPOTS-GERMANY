@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
+require_once __DIR__ . "/../core/session_guard.php";
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /');
@@ -19,16 +20,11 @@ if (!empty($_COOKIE['remember_me'])) {
         $stmt = $pdo->prepare("DELETE FROM remember_tokens WHERE selector = ?");
         $stmt->execute([$parts[0]]);
     }
-    setcookie('remember_me', '', [
-        'expires'  => 1,
-        'path'     => '/',
-        'httponly'  => true,
-        'secure'   => true,
-        'samesite' => 'Lax',
-    ]);
+    clear_remember_cookie();
 }
 
-session_destroy();
+// Session-Daten löschen und Session-Cookie im Browser entfernen
+destroy_current_session();
 
 // Redirect-Ziel: nur relative Pfade innerhalb der eigenen Seite erlauben
 $redirect = $_POST['redirect'] ?? '';
