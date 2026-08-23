@@ -140,6 +140,7 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Registrieren</a></li>
                 <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/hilfe.php">Anleitung</a></li>
                 <li><a class="dropdown-item" href="/forum.php">Forum</a></li>
                 <li><a class="dropdown-item" href="/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
                 <li><a class="dropdown-item" href="/neuigkeiten.php">Community Updates</a></li>
@@ -156,5 +157,4 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
 </header>
 
 <?php include __DIR__ . '/cookie_banner.php'; ?>
-<?php include __DIR__ . '/update_banner.php'; ?>
 <script src="/public/js/banners.js" defer></script>

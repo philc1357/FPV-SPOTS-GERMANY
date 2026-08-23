@@ -149,8 +149,7 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │   │   ├── header.php
 │   │   ├── login_modal.php
 │   │   ├── register_modal.php
-│   │   ├── cookie_banner.php
-│   │   └── update_banner.php
+│   │   └── cookie_banner.php
 │   └── php/
 │       ├── api/
 │       │   ├── spots.php       ← GET alle / POST neuen Spot

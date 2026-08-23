@@ -31,21 +31,6 @@
         }
     }
 
-    // Update Banner
-    var updateBackdrop = document.getElementById('update-banner-backdrop');
-    if (updateBackdrop) {
-        if (!getCookie('update_notice_v3')) {
-            updateBackdrop.style.display = 'flex';
-        }
-        var updateBtn = document.getElementById('update-banner-btn');
-        if (updateBtn) {
-            updateBtn.addEventListener('click', function () {
-                setCookie('update_notice_v3', 'seen', 356);
-                updateBackdrop.style.display = 'none';
-            });
-        }
-    }
-
     // Notification Badge (Dropdown show/hide)
     var btnBadge = document.getElementById('update-notify-btn');
     if (btnBadge) {
