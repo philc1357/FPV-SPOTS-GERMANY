@@ -389,9 +389,10 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p>Unsere Website kann als Progressive Web App (PWA) auf dem Gerät installiert werden. Zu diesem Zweck wird ein <strong>Service Worker</strong> im Browser registriert.</p>
                 <p><strong>Funktionen des Service Workers:</strong></p>
                 <ul>
-                    <li>Statische Website-Ressourcen (CSS, JavaScript, Bilder) werden im lokalen Browser-Cache gespeichert, um die Ladegeschwindigkeit zu verbessern und eine eingeschränkte Offline-Nutzung zu ermöglichen.</li>
+                    <li>Statische Website-Ressourcen (CSS, JavaScript, Bilder) werden im lokalen Browser-Cache gespeichert, um die Ladegeschwindigkeit zu verbessern.</li>
                     <li>Kartenkacheln werden temporär im Browser-Cache zwischengespeichert (max. 200 Einträge), um wiederholte Ladevorgänge zu beschleunigen.</li>
-                    <li>API-Anfragen werden bevorzugt über das Netzwerk abgerufen; der Cache dient als Fallback bei fehlender Verbindung.</li>
+                    <li>API-Anfragen werden über das Netzwerk abgerufen.</li>
+                    <li>Eine Offline-Nutzung der Anwendung ist nicht vorgesehen. Besteht keine Internetverbindung, wird lediglich eine lokale Hinweisseite angezeigt.</li>
                 </ul>
                 <p><strong>Datenschutz:</strong> Der Service Worker speichert <strong>keine personenbezogenen Daten</strong> im Cache. Es werden ausschließlich öffentliche, nicht personenbezogene Ressourcen lokal vorgehalten.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Verbesserung der Nutzererfahrung und Betriebsbereitschaft der Anwendung.</p>

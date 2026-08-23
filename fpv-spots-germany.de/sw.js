@@ -1,7 +1,7 @@
 // =============================================================
 // FPV Spots Germany – Service Worker
 // =============================================================
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const STATIC_CACHE  = 'fpv-static-' + CACHE_VERSION;
 const CDN_CACHE     = 'fpv-cdn-'    + CACHE_VERSION;
 const TILES_CACHE   = 'fpv-tiles-'  + CACHE_VERSION;
