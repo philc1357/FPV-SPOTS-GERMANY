@@ -13,6 +13,11 @@ const CURRENT_USER  = parseInt(document.querySelector('meta[name="app-user-id"]'
 const IS_ADMIN      = document.querySelector('meta[name="app-is-admin"]').content   === 'true';
 const CSRF_TOKEN    = document.querySelector('meta[name="app-csrf-token"]').content;
 
+// Betriebsklasse des Piloten: u250 / c1c2 / a3. Serverseitig aus dem Cookie
+// pilot_class gerendert (siehe private/php/core/geozones.php). Fehlt das
+// Meta-Tag, gilt bewusst a3 – die strengste Annahme.
+let PILOT_CLASS = (document.querySelector('meta[name="app-pilot-class"]') || {}).content || 'a3';
+
 // ---------------------------------------------------------------
 // Karte initialisieren – Mittelpunkt Deutschland
 // ---------------------------------------------------------------
@@ -99,7 +104,112 @@ const baseLayers = { 'Straße': streetLayer, 'Satellit': satelliteLayer, 'Hybrid
 const savedLayerName = (() => { try { return sessionStorage.getItem('fpv_map_layer'); } catch (_) { return null; } })();
 (baseLayers[savedLayerName] || streetLayer).addTo(map);
 
-L.control.layers(baseLayers, null, { position: 'bottomleft' }).addTo(map);
+// ---------------------------------------------------------------
+// DIPUL-Geozonen als Overlay
+//
+// Die Kacheln kommen ausschliesslich vom eigenen Proxy /api/dipul_wms.php:
+// die CSP erlaubt nur 'self', und so erreicht keine Besucher-IP die DFS.
+// Die Buendelnamen muessen zu DIPUL_BUNDLES in
+// private/php/core/geozones.php passen – dort liegt die einzige Quelle
+// der Wahrheit fuer die Layer-Zuordnung.
+//
+// Unterhalb von Zoom 9 liefert der Proxy bewusst eine leere Kachel
+// (Cache-Schutz), deshalb dieselbe Schwelle hier als minZoom.
+// ---------------------------------------------------------------
+const DIPUL_ATTRIBUTION = 'Quelle Geodaten: DFS, BKG';
+const DIPUL_MIN_ZOOM    = 9;
+const OVERLAY_STATE_KEY = 'fpv_map_overlays';
+
+function dipulLayer(bundle) {
+    return L.tileLayer.wms('/api/dipul_wms.php', {
+        layers:      bundle,
+        format:      'image/png',
+        transparent: true,
+        version:     '1.3.0',
+        opacity:     0.6,
+        minZoom:     DIPUL_MIN_ZOOM,
+        maxZoom:     MAP_MAX_ZOOM,
+        attribution: DIPUL_ATTRIBUTION,
+    });
+}
+
+const overlayLayers = {
+    'Luftverkehr':          dipulLayer('luftverkehr'),
+    'Naturschutz':          dipulLayer('naturschutz'),
+    'Siedlung & Behörden':  dipulLayer('siedlung'),
+    'Infrastruktur':        dipulLayer('infrastruktur'),
+    'Temporäre Sperrungen': dipulLayer('temporaer'),
+};
+
+// Zuletzt gewaehlte Overlays wiederherstellen (analog fpv_map_layer)
+try {
+    const savedOverlays = JSON.parse(sessionStorage.getItem(OVERLAY_STATE_KEY) || '[]');
+    if (Array.isArray(savedOverlays)) {
+        savedOverlays.forEach((name) => {
+            if (overlayLayers[name]) overlayLayers[name].addTo(map);
+        });
+    }
+} catch (_) { /* sessionStorage nicht verfügbar – ignorieren */ }
+
+const layerControl = L.control.layers(baseLayers, overlayLayers, { position: 'bottomleft' }).addTo(map);
+
+// Leaflet graut Overlay-Eintraege automatisch aus, solange der Kartenzoom unter
+// deren minZoom liegt – ohne Erklaerung sieht das nach einem Fehler aus.
+// Deshalb: Tooltip an jedem Eintrag und der Zoom-Hinweis erscheint bereits beim
+// Aufklappen der Layer-Kontrolle, nicht erst bei aktivem Overlay.
+const layerControlBox = layerControl.getContainer();
+layerControlBox.querySelectorAll('.leaflet-control-layers-overlays label').forEach((label) => {
+    label.title = 'Geozonen sind erst ab Zoomstufe ' + DIPUL_MIN_ZOOM + ' verfügbar';
+});
+
+map.on('overlayadd overlayremove', () => {
+    try {
+        const active = Object.keys(overlayLayers).filter((name) => map.hasLayer(overlayLayers[name]));
+        sessionStorage.setItem(OVERLAY_STATE_KEY, JSON.stringify(active));
+    } catch (_) {}
+});
+
+// Faellt die DFS aus, antwortet der Proxy mit einer transparenten Kachel und
+// Status 200 – ein echter tileerror bedeutet also ein Netz-/Serverproblem.
+// Genau einmal melden, sonst flutet jede fehlende Kachel die Konsole.
+let dipulErrorReported = false;
+Object.values(overlayLayers).forEach((layer) => {
+    layer.on('tileerror', () => {
+        if (dipulErrorReported) return;
+        dipulErrorReported = true;
+        console.warn('Geozonen-Overlay derzeit nicht erreichbar – bitte auf dipul.de prüfen.');
+    });
+});
+
+// Hinweis einblenden, solange ein Overlay aktiv ist, der Zoom aber zu klein.
+// Ohne ihn wirkt die leere Karte wie "hier gibt es keine Zonen".
+const dipulZoomHint = L.control({ position: 'bottomright' });
+dipulZoomHint.onAdd = function () {
+    const div = L.DomUtil.create('div', 'dipul-zoom-hint');
+    div.textContent = 'Geozonen erst ab Zoomstufe ' + DIPUL_MIN_ZOOM + ' – näher heranzoomen';
+    return div;
+};
+let dipulZoomHintVisible = false;
+
+function updateDipulZoomHint() {
+    const anyOverlay = Object.keys(overlayLayers).some((name) => map.hasLayer(overlayLayers[name]));
+    const expanded   = layerControlBox.classList.contains('leaflet-control-layers-expanded');
+    const needed     = (anyOverlay || expanded) && map.getZoom() < DIPUL_MIN_ZOOM;
+    if (needed && !dipulZoomHintVisible) {
+        dipulZoomHint.addTo(map);
+        dipulZoomHintVisible = true;
+    } else if (!needed && dipulZoomHintVisible) {
+        map.removeControl(dipulZoomHint);
+        dipulZoomHintVisible = false;
+    }
+}
+
+map.on('overlayadd overlayremove zoomend', updateDipulZoomHint);
+// Auf-/Zuklappen loest kein Leaflet-Event aus – daher direkt am Container lauschen.
+['mouseenter', 'mouseleave', 'click'].forEach((ev) => {
+    layerControlBox.addEventListener(ev, updateDipulZoomHint);
+});
+updateDipulZoomHint();
 
 map.on('baselayerchange', (e) => {
     try { sessionStorage.setItem('fpv_map_layer', e.name); } catch (_) {}
@@ -182,6 +292,10 @@ async function loadAllSpots() {
         if (_urlSpotId && markerStore[_urlSpotId]) {
             const { spot } = markerStore[_urlSpotId];
             map.flyTo([spot.latitude, spot.longitude], 16, { duration: 1.2 });
+            // Der A3-Hinweis auf der Spot-Detailseite verlinkt hierher, um den
+            // 150-m-Radius zu zeigen. Der Kreis wird deshalb direkt gezeichnet –
+            // showA3Circle() prueft selbst, ob die Betriebsklasse a3 aktiv ist.
+            showA3Circle(parseFloat(spot.latitude), parseFloat(spot.longitude));
             // URL bereinigen – kein erneutes Fliegen bei Reload, sessionStorage läuft normal weiter
             history.replaceState(null, '', window.location.pathname);
         }
@@ -202,9 +316,54 @@ function addMarker(spot) {
 }
 
 // ---------------------------------------------------------------
+// A3-Abstandskreis (150 m)
+//
+// Jeder Eigenbau ab 250 g ohne C-Klasse – also der typische 5-Zöller –
+// fliegt in der EU-Unterkategorie A3 und muss 150 m Abstand zu Wohn-,
+// Gewerbe-, Industrie- und Erholungsgebieten halten. Diese Regel steht
+// auf keiner Behördenkarte, deshalb zeichnen wir nur den Radius; ob im
+// Kreis ein solches Gebiet liegt, beurteilt der Pilot selbst.
+// ---------------------------------------------------------------
+const A3_RADIUS_M = 150;
+let a3Circle = null;
+let _activeSpot = null;
+
+function clearA3Circle() {
+    if (a3Circle) {
+        map.removeLayer(a3Circle);
+        a3Circle = null;
+    }
+}
+
+function showA3Circle(lat, lon) {
+    clearA3Circle();
+    if (PILOT_CLASS !== 'a3') return;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+    a3Circle = L.circle([lat, lon], {
+        radius:      A3_RADIUS_M,
+        color:       '#fcc03c',
+        weight:      2,
+        dashArray:   '6 4',
+        fillColor:   '#fcc03c',
+        fillOpacity: 0.08,
+        interactive: false,
+    }).addTo(map);
+}
+
+// Kreis verschwindet mit dem Offcanvas, sonst bleibt er beim nächsten Spot stehen
+document.getElementById('spotDetailOffcanvas')
+    .addEventListener('hidden.bs.offcanvas', () => {
+        clearA3Circle();
+        _activeSpot = null;
+    });
+
+// ---------------------------------------------------------------
 // Spot-Detail-Offcanvas öffnen
 // ---------------------------------------------------------------
 async function openSpotDetail(spot) {
+    _activeSpot = spot;
+
     // Schwierigkeits-Farbe für Badge
     const diffColor = {
         'Anfänger':      'success',
@@ -230,12 +389,17 @@ async function openSpotDetail(spot) {
         <p class="text-secondary small mb-1">
             <i class="bi bi-geo-alt-fill"></i> ${parseFloat(spot.latitude).toFixed(5)}, ${parseFloat(spot.longitude).toFixed(5)}
         </p>
+        ${PILOT_CLASS === 'a3' ? `<div class="alert alert-warning py-2 px-3 small mb-3">
+            <i class="bi bi-exclamation-triangle-fill"></i> <strong>A3:</strong> Der gelbe Kreis zeigt 150 m Abstand.
+            Liegt darin ein Wohn-, Gewerbe-, Industrie- oder Erholungsgebiet, darfst du hier nicht starten.
+        </div>` : ''}
         <p class="text-secondary small mb-0">
             <i class="bi bi-person-fill"></i> <a href="#" class="text-info text-decoration-none profile-link" data-user-id="${encodeURIComponent(spot.user_id)}">${esc(spot.username)}</a> &nbsp;&bull;&nbsp; <i class="bi bi-calendar3"></i> ${date}
         </p>
         <div id="spotPhotoSection"></div>
     `;
 
+    showA3Circle(parseFloat(spot.latitude), parseFloat(spot.longitude));
     getOrCreateOffcanvas('spotDetailOffcanvas').show();
 
     try {
@@ -550,3 +714,33 @@ if (parkingUnknown) {
         }
     });
 }
+
+// ---------------------------------------------------------------
+// Betriebsklassen-Umschalter in der Legende
+//
+// Speichert die Wahl im Cookie pilot_class (serverseitig, HttpOnly)
+// und zeichnet den 150-m-Kreis sofort neu, damit die Umschaltung ohne
+// Reload sichtbar wird. Schlaegt der Request fehl, bleibt die Anzeige
+// trotzdem korrekt – nur die Persistenz fehlt.
+// ---------------------------------------------------------------
+document.querySelectorAll('.pilot-class-cb').forEach((radio) => {
+    radio.addEventListener('change', async () => {
+        if (!radio.checked) return;
+        PILOT_CLASS = radio.value;
+
+        // Offener Spot: Kreis und Hinweis an die neue Klasse anpassen
+        if (_activeSpot) {
+            openSpotDetail(_activeSpot);
+        } else {
+            clearA3Circle();
+        }
+
+        try {
+            await fetch('/api/save_pilot_class.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ class: radio.value }),
+            });
+        } catch (_) { /* Netzfehler – Auswahl gilt nur für diese Sitzung */ }
+    });
+});

@@ -5,6 +5,7 @@ declare(strict_types=1);
 // =============================================================
 require_once __DIR__ . "/private/php/core/session_init.php";
 require_once __DIR__ . '/private/php/core/auth_check.php';
+require_once __DIR__ . '/private/php/core/geozones.php';
 
 // CSRF-Token einmalig pro Session generieren
 if (empty($_SESSION['csrf_token'])) {
@@ -29,6 +30,9 @@ $legendDiffs = isset($_COOKIE['legend_diffs'])
 $legendSizes = isset($_COOKIE['legend_sizes'])
     ? array_intersect(explode(',', $_COOKIE['legend_sizes']), $allSizes)
     : $allSizes;
+
+// Betriebsklasse des Piloten (Cookie pilot_class, Default 'a3')
+$pilotClass = pilot_class_from_cookie();
 
 // Fehlermeldung aus Spot-Erstellung (gesetzt von spot_submit.php)
 $spotError = '';
@@ -114,6 +118,35 @@ if (!empty($_SESSION['spot_error'])) {
         ?>
         <label><?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?><input type="checkbox" class="legend-cb" data-filter="size" value="<?= htmlspecialchars($size, ENT_QUOTES, 'UTF-8') ?>"<?= $chk ?>></label><br>
         <?php endforeach; ?>
+
+        <!-- ----------------------------------------------------------
+             Betriebsklasse des Piloten
+
+             Steuert, welche Rechtstexte die Spot-Detailseite zeigt und
+             ob der 150-m-Abstandskreis der Unterkategorie A3 auf der
+             Karte erscheint. Default ist bewusst die strengste Klasse.
+             ---------------------------------------------------------- -->
+        <hr class="border-secondary my-3">
+        <fieldset class="pilot-class-switch">
+            <legend class="float-none fw-semibold mb-1" style="font-size:.8rem">Mein Copter</legend>
+            <div class="btn-group-vertical w-100" role="group" aria-label="Betriebsklasse wählen">
+                <?php foreach (PILOT_CLASSES as $pcKey => $pcMeta): ?>
+                <input type="radio" class="btn-check pilot-class-cb" name="pilotClass"
+                       id="pilotClass-<?= htmlspecialchars($pcKey, ENT_QUOTES, 'UTF-8') ?>"
+                       value="<?= htmlspecialchars($pcKey, ENT_QUOTES, 'UTF-8') ?>"
+                       autocomplete="off"<?= $pilotClass === $pcKey ? ' checked' : '' ?>>
+                <label class="btn btn-sm btn-outline-light text-start"
+                       for="pilotClass-<?= htmlspecialchars($pcKey, ENT_QUOTES, 'UTF-8') ?>"
+                       title="<?= htmlspecialchars($pcMeta['eu'], ENT_QUOTES, 'UTF-8') ?>">
+                    <span class="d-block"><?= htmlspecialchars($pcMeta['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                    <span class="d-block opacity-75" style="font-size:.68rem"><?= htmlspecialchars($pcMeta['hint'], ENT_QUOTES, 'UTF-8') ?></span>
+                </label>
+                <?php endforeach; ?>
+            </div>
+            <p class="opacity-75 mt-1 mb-0" style="font-size:.68rem">
+                Bestimmt Rechtshinweise und den 150-m-Kreis.
+            </p>
+        </fieldset>
     </div>
 </div>
 
@@ -372,6 +405,7 @@ if (!empty($_SESSION['spot_error'])) {
 <meta name="app-user-id"    content="<?= $userId ?>">
 <meta name="app-is-admin"   content="<?= !empty($_SESSION['is_admin']) ? 'true' : 'false' ?>">
 <meta name="app-csrf-token" content="<?= $csrfToken ?>">
+<meta name="app-pilot-class" content="<?= htmlspecialchars($pilotClass, ENT_QUOTES, 'UTF-8') ?>">
 
 <!-- ============================================================
      Scripts

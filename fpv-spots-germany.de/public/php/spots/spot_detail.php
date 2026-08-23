@@ -7,6 +7,7 @@ require_once __DIR__ . "/../../../private/php/core/session_init.php";
 require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
+require_once __DIR__ . '/../../../private/php/core/geozones.php';
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -30,7 +31,7 @@ $stmt = $pdo->prepare(
             s.latitude, s.longitude, s.spot_type, s.difficulty,
             s.copter_size,
             s.parking_info, s.parking_updated_by, s.parking_updated_at,
-            s.created_at, u.username,
+            s.created_at, s.zones_checked_at, u.username,
             pu.username AS parking_editor
      FROM spots s
      JOIN users u ON s.user_id = u.id
@@ -53,6 +54,39 @@ $spot['difficulty']  = (string)($spot['difficulty']  ?? '');
 $spot['copter_size'] = (string)($spot['copter_size'] ?? '');
 $spot['parking_info']= (string)($spot['parking_info']?? 'Unbekannt');
 $spot['username']    = (string)($spot['username']    ?? '');
+
+// -------------------------------------------------------------
+// Geozonen-Auswertung fuer diesen Spot
+//
+// $zonesChecked unterscheidet "keine Zone gefunden" von "nie geprueft".
+// Ohne diese Trennung wuerde ein fehlgeschlagener Check wie eine
+// Freigabe aussehen – der einzige wirklich gefaehrliche Fehler hier.
+// -------------------------------------------------------------
+$pilotClass   = pilot_class_from_cookie();
+// Liegt der Spot im Ausland, kennt DIPUL ihn gar nicht. "Keine Zone
+// gefunden" waere dort eine Fehlentwarnung – deshalb ein eigener Zustand.
+$inDipulArea  = point_in_dipul_area((float)$spot['latitude'], (float)$spot['longitude']);
+$zonesChecked = $inDipulArea && !empty($spot['zones_checked_at']);
+$spotZones    = $zonesChecked ? load_spot_zones($pdo, $spotId, $pilotClass) : [];
+
+// Pseudo-Zone: der 150-m-Abstand der Unterkategorie A3 steht in keiner
+// amtlichen Karte und wird deshalb unabhaengig vom WFS-Ergebnis gezeigt
+$a3Hint = zone_verdict('a3_abstand', $pilotClass);
+
+// Strengste gefundene Stufe bestimmt die Farbe der Kopfzeile
+$worstAmpel = 'info';
+foreach ($spotZones as $z) {
+    if (zone_ampel_rank($z['ampel']) > zone_ampel_rank($worstAmpel)) {
+        $worstAmpel = $z['ampel'];
+    }
+}
+
+// Ampel -> Bootstrap-Kontextklasse und Symbol
+$ampelStyle = [
+    'rot'  => ['badge' => 'text-bg-danger',  'icon' => 'bi-x-octagon-fill',        'wort' => 'Verboten'],
+    'gelb' => ['badge' => 'text-bg-warning', 'icon' => 'bi-exclamation-triangle-fill', 'wort' => 'Eingeschränkt'],
+    'info' => ['badge' => 'text-bg-info',    'icon' => 'bi-info-circle-fill',      'wort' => 'Hinweis'],
+];
 
 // Durchschnittsbewertung + Anzahl
 $stmt = $pdo->prepare("SELECT AVG(stars) AS avg_stars, COUNT(*) AS count FROM ratings WHERE spot_id = ?");
@@ -329,6 +363,153 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                     <i class="bi bi-person-fill"></i> <a href="/profile.php?id=<?= (int)$spot['user_id'] ?>" class="text-info text-decoration-none profile-link" title="Profil"><?= htmlspecialchars($spot['username']) ?></a> &bull; <i class="bi bi-calendar3"></i> <?= $createdDate ?>
                 </p>
             </div>
+
+            <!-- ====================================================
+                 Darf ich hier fliegen? – DIPUL-Geozonen
+
+                 Reihenfolge bewusst: erst der Pruefstatus, dann die
+                 gefundenen Zonen (strengste zuerst), dann die Pflichten
+                 der gewaehlten Betriebsklasse, zuletzt der Haftungs-
+                 ausschluss. Es gibt keine gruene Freigabe – die beste
+                 Aussage lautet "keine Zone in unseren Daten".
+            ==================================================== -->
+            <section class="card card-dark text-light p-4 mt-4" id="geozonen" aria-labelledby="geozonenTitel">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h2 class="h5 mb-0" id="geozonenTitel">
+                        <i class="bi bi-shield-exclamation me-2"></i>Darf ich hier fliegen?
+                    </h2>
+                    <?php if (!$inDipulArea): ?>
+                        <span class="badge text-bg-secondary">Außerhalb Deutschlands</span>
+                    <?php elseif ($zonesChecked): ?>
+                        <span class="badge <?= count($spotZones) ? $ampelStyle[$worstAmpel]['badge'] : 'text-bg-secondary' ?>">
+                            <?= count($spotZones)
+                                ? htmlspecialchars($ampelStyle[$worstAmpel]['wort'], ENT_QUOTES, 'UTF-8') . ' – ' . count($spotZones) . ' Zone(n)'
+                                : 'Keine Zone gefunden' ?>
+                        </span>
+                    <?php else: ?>
+                        <span class="badge text-bg-secondary">Noch nicht geprüft</span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Betriebsklasse: steuert Rechtstexte und Pflichtenliste -->
+                <form method="POST" action="/api/save_pilot_class.php" id="pilotClassForm" class="mb-4">
+                    <input type="hidden" name="redirect" value="/spot_detail.php?id=<?= $spotId ?>#geozonen">
+                    <fieldset>
+                        <legend class="float-none form-label small text-secondary mb-2">
+                            Mein Copter – die Betriebsklasse bestimmt, welche Regeln gelten:
+                        </legend>
+                        <div class="btn-group flex-wrap" role="group" aria-label="Betriebsklasse wählen">
+                            <?php foreach (PILOT_CLASSES as $pcKey => $pcMeta): ?>
+                            <input type="radio" class="btn-check pilot-class-cb" name="pilot_class"
+                                   id="detailPilotClass-<?= htmlspecialchars($pcKey, ENT_QUOTES, 'UTF-8') ?>"
+                                   value="<?= htmlspecialchars($pcKey, ENT_QUOTES, 'UTF-8') ?>"
+                                   autocomplete="off"<?= $pilotClass === $pcKey ? ' checked' : '' ?>>
+                            <label class="btn btn-outline-light btn-sm text-start"
+                                   for="detailPilotClass-<?= htmlspecialchars($pcKey, ENT_QUOTES, 'UTF-8') ?>">
+                                <span class="d-block"><?= htmlspecialchars($pcMeta['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="d-block opacity-75 small"><?= htmlspecialchars($pcMeta['hint'], ENT_QUOTES, 'UTF-8') ?></span>
+                            </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="small text-secondary mt-2 mb-0">
+                            <?= htmlspecialchars(PILOT_CLASSES[$pilotClass]['eu'], ENT_QUOTES, 'UTF-8') ?>
+                        </p>
+                        <!-- Ohne JavaScript bleibt der Knopf sichtbar und die Seite
+                             funktioniert per PRG genauso; mit JS blendet er sich aus
+                             und das Formular schickt sich beim Umschalten selbst ab. -->
+                        <button type="submit" class="btn btn-primary btn-sm mt-2" id="pilotClassSubmit">Übernehmen</button>
+                    </fieldset>
+                </form>
+
+                <?php if (!$inDipulArea): ?>
+                    <div class="alert alert-secondary py-2 px-3 small">
+                        <i class="bi bi-globe-europe-africa"></i>
+                        Dieser Spot liegt <strong>außerhalb Deutschlands</strong>. Die amtlichen
+                        Geozonen der DFS decken nur das deutsche Hoheitsgebiet ab – wir können
+                        hier <strong>keine Aussage treffen</strong>. Bitte die Drohnenkarte des
+                        jeweiligen Landes prüfen; die unten genannten EU-Regeln
+                        (Betriebskategorien, 120 m, Registrierung) gelten dagegen EU-weit.
+                    </div>
+                <?php elseif (!$zonesChecked): ?>
+                    <div class="alert alert-secondary py-2 px-3 small">
+                        <i class="bi bi-hourglass-split"></i>
+                        Dieser Spot wurde noch nicht gegen die amtlichen Geozonen geprüft –
+                        das ist <strong>keine Entwarnung</strong>. Bitte selbst auf
+                        <a href="<?= htmlspecialchars(DIPUL_INFO_URL, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="alert-link">dipul.de</a>
+                        nachsehen.
+                    </div>
+                <?php elseif (!$spotZones): ?>
+                    <div class="alert alert-secondary py-2 px-3 small">
+                        <i class="bi bi-check2"></i>
+                        Im Umkreis von <?= GEOZONE_CHECK_RADIUS_M ?> Metern liegt <strong>keine der geprüften Geozonen</strong>
+                        (Stand <?= date('d.m.Y', strtotime((string)$spot['zones_checked_at'])) ?>).
+                        Das heißt nicht automatisch, dass der Flug erlaubt ist: temporäre
+                        Einschränkungen, NOTAM und örtliche Verbote sind hier nicht enthalten.
+                    </div>
+                <?php else: ?>
+                    <ul class="list-unstyled mb-3">
+                        <?php foreach ($spotZones as $zone):
+                            $style = $ampelStyle[$zone['ampel']] ?? $ampelStyle['info']; ?>
+                        <li class="d-flex gap-3 mb-3">
+                            <span class="badge <?= $style['badge'] ?> flex-shrink-0" style="height:fit-content">
+                                <i class="bi <?= $style['icon'] ?>"></i> <?= htmlspecialchars($style['wort'], ENT_QUOTES, 'UTF-8') ?>
+                            </span>
+                            <!-- min-width:0 + text-break: ohne beides sprengen lange
+                                 Zonennamen ("Universitätsklinikum …") die Flexbox auf dem Handy -->
+                            <div class="text-break" style="min-width:0">
+                                <strong><?= htmlspecialchars($zone['label'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                <?php if ($zone['zone_name'] !== ''): ?>
+                                    <span class="text-secondary">– <?= htmlspecialchars($zone['zone_name'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <?php endif; ?>
+                                <div class="small mt-1"><?= htmlspecialchars($zone['text'], ENT_QUOTES, 'UTF-8') ?></div>
+                                <div class="small text-secondary mt-1">
+                                    <i class="bi bi-journal-text"></i> <?= htmlspecialchars($zone['paragraf'], ENT_QUOTES, 'UTF-8') ?>
+                                </div>
+                            </div>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <p class="small text-secondary">
+                        Geprüft am <?= date('d.m.Y', strtotime((string)$spot['zones_checked_at'])) ?>
+                        im Umkreis von <?= GEOZONE_CHECK_RADIUS_M ?> Metern um die Spot-Koordinate.
+                    </p>
+                <?php endif; ?>
+
+                <?php if ($a3Hint !== null): ?>
+                <!-- A3-Abstandsregel: steht in keiner amtlichen Karte, deshalb immer zeigen -->
+                <div class="alert alert-warning py-2 px-3 small">
+                    <strong><i class="bi bi-rulers"></i> <?= htmlspecialchars($a3Hint['label'], ENT_QUOTES, 'UTF-8') ?></strong><br>
+                    <?= htmlspecialchars($a3Hint['text'], ENT_QUOTES, 'UTF-8') ?><br>
+                    <span class="text-secondary"><?= htmlspecialchars($a3Hint['paragraf'], ENT_QUOTES, 'UTF-8') ?></span><br>
+                    <a href="/?spot=<?= $spotId ?>" class="alert-link">
+                        <i class="bi bi-map"></i> Auf der Karte mit 150-Meter-Kreis ansehen
+                    </a>
+                </div>
+                <?php endif; ?>
+
+                <!-- Pflichten der gewaehlten Betriebsklasse -->
+                <details class="mb-3">
+                    <summary class="fw-semibold" style="cursor:pointer">
+                        Deine Pflichten als <?= htmlspecialchars(PILOT_CLASSES[$pilotClass]['label'], ENT_QUOTES, 'UTF-8') ?>-Pilot
+                    </summary>
+                    <ul class="small mt-2 mb-0">
+                        <?php foreach (PILOT_CHECKLIST[$pilotClass] as $duty): ?>
+                        <li class="mb-1"><?= htmlspecialchars($duty, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </details>
+
+                <!-- Haftungsausschluss bewusst direkt hier, nicht im Footer -->
+                <p class="small text-secondary border-top border-secondary pt-3 mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Diese Auswertung ist ein Hinweis, <strong>keine Rechtsberatung und keine Freigabe</strong>.
+                    Maßgeblich ist allein die amtliche Karte auf
+                    <a href="<?= htmlspecialchars(DIPUL_INFO_URL, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" class="text-info">dipul.de</a>.
+                    Temporäre Betriebseinschränkungen, NOTAM und örtliche Allgemeinverfügungen
+                    sind hier nicht enthalten und ändern sich täglich.
+                    <br><?= htmlspecialchars(DIPUL_ATTRIBUTION, ENT_QUOTES, 'UTF-8') ?>.
+                </p>
+            </section>
 
             <!-- ====================================================
                  Fotos
@@ -632,6 +813,26 @@ function toggleEditComment(id) {
     document.getElementById('comment-display-' + id).classList.toggle('d-none');
     document.getElementById('comment-edit-' + id).classList.toggle('d-none');
 }
+
+// ---------------------------------------------------------------
+// Betriebsklassen-Umschalter
+//
+// Die Rechtstexte werden serverseitig gerendert, deshalb muss die
+// Seite nach dem Wechsel neu laden. Mit JS uebernimmt das Formular
+// das beim Anklicken selbst, der "Übernehmen"-Knopf entfaellt.
+// ---------------------------------------------------------------
+(function () {
+    var form = document.getElementById('pilotClassForm');
+    if (!form) return;
+    var submitBtn = document.getElementById('pilotClassSubmit');
+    if (submitBtn) submitBtn.classList.add('d-none');
+
+    form.querySelectorAll('.pilot-class-cb').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            if (radio.checked) form.submit();
+        });
+    });
+})();
 
 // Parkmöglichkeit bearbeiten ein-/ausblenden
 function toggleEditParking() {

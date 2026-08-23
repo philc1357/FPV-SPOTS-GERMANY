@@ -80,6 +80,12 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Standortanzeige (nur lokal im Browser, nicht gespeichert)
 - Spot-Favoriten: Spots merken und im Dashboard abrufen
 
+### Geozonen (DIPUL)
+- Amtliche Drohnen-Geozonen der DFS als Karten-Overlay in 5 Gruppen: Luftverkehr, Naturschutz, Siedlung & Behörden, Infrastruktur, Temporäre Sperrungen
+- Betriebsklassen-Umschalter (`u250` / `c1c2` / `a3`) steuert Rechtstexte, Pflichten-Checkliste und den 150-Meter-Abstandskreis der EU-Unterkategorie A3
+- Serverseitiger Zonencheck je Spot über den DIPUL-WFS; Ergebnis auf der Detailseite unter „Darf ich hier fliegen?"
+- Bewusst ohne grüne Freigabe: die günstigste Aussage lautet „keine Zone in unseren Daten gefunden"
+
 ### Spot-Detailseite
 - Spot-Detailansicht mit Fotos, Bewertungen und Kommentaren
 - Spot-Bearbeitung und -Löschung durch Eigentümer oder Admin
@@ -245,7 +251,8 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
         ├── legal/
         │   └── terms_accept_submit.php
         ├── maintenance/
-        │   └── cleanup_orphan_images.php ← CLI-Wartungsskript
+        │   ├── cleanup_orphan_images.php ← CLI-Wartungsskript
+        │   └── refresh_spot_zones.php    ← CLI: DIPUL-Zonencheck nachholen (Cron)
         └── admin/
             └── update_submit.php
 ```
@@ -304,6 +311,7 @@ Das Schema (`database.sql`) enthält folgende Tabellen:
 | `spot_images` | Hochgeladene Bilder, verknüpft mit Spot und Nutzer |
 | `spot_reports` | Meldungen zu Spots (Inhaltsverstöße: Kommentar, Foto, Spot-Info, Spot-Allgemein) |
 | `spot_favorites` | Gemerkte Spots je Nutzer (n:m, Composite PK) |
+| `spot_zones` | Ergebnis des DIPUL-Zonenchecks je Spot (Layername + Zonenbezeichnung); `spots.zones_checked_at` trennt „keine Zone gefunden" von „nie geprüft" |
 | `conversations` | Konversationen zwischen je zwei Nutzern (soft-delete per Nutzer) |
 | `messages` | Einzelne Nachrichten einer Konversation (read_at-Timestamp) |
 | `user_notifications` | Interne Benachrichtigungen (neue Nachricht, Vorschlag-Kommentar) |
@@ -337,8 +345,169 @@ Alle API-Endpunkte liegen unter `public/php/api/` und antworten mit `Content-Typ
 | `POST` | `/api/messages.php` | ja + CSRF | Nachricht senden, Konversation löschen |
 | `POST` | `/api/update_bio.php` | ja + CSRF | Profil-Bio aktualisieren |
 | `POST` | `/api/save_legend.php` | nein | Legendenfilter als Cookie speichern |
+| `POST` | `/api/save_pilot_class.php` | nein | Betriebsklasse als Cookie speichern (JSON oder Form-POST) |
+| `GET` | `/api/dipul_wms.php` | nein | Proxy für die DIPUL-Kacheln (WMS 1.3.0), liefert `image/png` |
 
 Da HTML-Formulare kein `PUT`/`DELETE` senden können, wird das `_method`-Override-Muster über `POST` verwendet.
+
+---
+
+## Geozonen (DIPUL)
+
+Amtliche geografische Gebiete für unbemannte Luftfahrtsysteme, bezogen von der DFS
+Deutsche Flugsicherung über die dipul-Geodienste.
+
+| Datei | Rolle |
+|-------|-------|
+| `private/php/core/geozones.php` | **Einzige Quelle der Wahrheit**: Bündelzuordnung, Bewertungsmatrix, Pflichten-Checkliste, WFS-Abfrage, Persistenz |
+| `public/php/api/dipul_wms.php` | Kachel-Proxy (WMS 1.3.0) mit Whitelist, Dateicache und Rate-Limit |
+| `private/php/maintenance/refresh_spot_zones.php` | CLI: Zonencheck nachholen/auffrischen |
+
+### Endpunkte
+
+- WMS: `https://uas-betrieb.dfs.de/geoservices/dipul/wms` (34 Layer)
+- WFS: `https://uas-betrieb.dfs.de/geoservices/dipul/wfs` (31 Feature-Typen)
+
+Der WFS kennt `haengegleiter` und `modellflugplaetze` **nicht** – sie sind in `ZONE_RULES`
+mit `'nur_karte' => true` markiert und werden vom Spot-Check übersprungen. Ohne diese
+Markierung endet jede Abfrage im `ows:ExceptionReport` und der gesamte Check scheitert.
+
+Der WFS lehnt BBOX-Abfragen über mehrere `typeNames` ab („Extracted invalid join sub-filter"),
+deshalb ein Request pro Layer, parallel über `curl_multi`. Ein vollständiger Check dauert
+rund 1–3 Sekunden.
+
+### Kartenbündel
+
+| Bündel | Inhalt | Cache-TTL |
+|--------|--------|-----------|
+| `luftverkehr` | Flughäfen, Flugplätze, Kontrollzonen, Flugbeschränkungsgebiete, Hängegleiter, Modellflugplätze | 24 h |
+| `naturschutz` | Naturschutzgebiete, Nationalparks, Vogelschutzgebiete, FFH-Gebiete | 24 h |
+| `siedlung` | Wohngrundstücke, Freibäder, Krankenhäuser, JVA, Behörden, Polizei, Militär u. a. | 24 h |
+| `infrastruktur` | Autobahnen, Bundesstraßen, Bahn, Wasserstraßen, Strom, Kraftwerke, Industrie, Windkraft | 24 h |
+| `temporaer` | Temporäre Betriebseinschränkungen | **10 min** |
+
+`temporaer` ist bewusst ein eigenes Bündel: temporäre Einschränkungen ändern sich täglich.
+Im großen Luftverkehrsbündel wären sie entweder veraltet oder würden das ganze Bündel
+kurzlebig machen. Aus demselben Grund ist `/api/dipul_wms.php` im Service Worker
+**network-only** – eine gecachte, nicht mehr gültige Sperrzone wäre ein Sicherheitsproblem.
+
+### Overlay auf der Karte
+
+Die fünf Bündel hängen in der Leaflet-Layer-Kontrolle (unten links). Sie haben
+`minZoom: 9` – darunter deckt eine Kachel halbe Bundesländer ab, das ist weder lesbar
+noch cachebar (die Zahl möglicher BBOXen explodiert bei jedem Schwenk). Leaflet graut
+Einträge unterhalb ihres `minZoom` automatisch aus; damit das nicht nach einem Fehler
+aussieht, trägt jeder Eintrag einen Tooltip und beim Aufklappen der Kontrolle erscheint
+unten rechts der Hinweis „Geozonen erst ab Zoomstufe 9 – näher heranzoomen". Die Auswahl
+überlebt Seitenwechsel in `sessionStorage` (`fpv_map_overlays`), analog `fpv_map_layer`.
+
+Bei Betriebsklasse `a3` zeichnet die Karte zusätzlich den 150-m-Kreis um den geöffneten
+Spot – sowohl beim Öffnen des Detail-Offcanvas als auch beim Aufruf über `/?spot=<id>`,
+worauf der A3-Hinweis der Spot-Detailseite verlinkt (die Detailseite selbst hat keine
+Karte).
+
+### Betriebsklassen
+
+| Schlüssel | Bedeutung | EU-Kategorie |
+|-----------|-----------|--------------|
+| `u250` | unter 250 g (Tinywhoop, 2–3 Zoll) | C0 bzw. Eigenbau < 250 g – A1 |
+| `c1c2` | klassifiziert C1/C2 (Avata, Neo, Cinewhoop mit C-Label) | A1 bzw. A2 |
+| `a3` | ab 250 g Eigenbau (5 Zoll, Freestyle, Cinelifter) | A3 – **Standard** |
+
+Der Default ist bewusst `a3`, die strengste Annahme. Gespeichert im Cookie `pilot_class`.
+
+**Wichtig – die 250-g-Grenze greift kürzer als erwartet:** Als Geozonen-Ausnahme taucht sie
+nur in § 21h Abs. 3 Nr. 7 LuftVO (Wohngrundstücke) auf, und dort zusätzlich unter der
+Bedingung, dass das Gerät keine optischen, akustischen oder Funksignale empfangen, übertragen
+oder aufzeichnen kann. Ein FPV-Copter mit Kamera und VTX erfüllt das nie. Wo die 250 g
+wirklich beißen, steht in keiner amtlichen Karte: die Unterkategorie **A3** verlangt 150 m
+Abstand zu Wohn-, Gewerbe-, Industrie- und Erholungsgebieten. Deshalb der Radius-Kreis auf
+der Karte statt eingefärbter Zonen.
+
+### Geltungsbereich: nur Deutschland
+
+DIPUL kennt ausschließlich deutsche Geozonen. Für einen Spot jenseits der Grenze
+antwortet der WFS korrekt mit „nichts gefunden" – dort heißt das aber **keine Daten**,
+nicht **keine Zone**. Genau diese Verwechslung wäre eine Fehlentwarnung, das einzige
+echte Haftungsrisiko dieses Features. `point_in_dipul_area()` prüft deshalb vorab gegen
+eine grobe Bounding-Box (`DIPUL_BBOX_DE`, lat 47,2–55,1 / lon 5,8–15,1):
+
+- `refresh_spot_zones()` überspringt den WFS-Call, markiert den Spot aber als geprüft,
+  damit der Cron ihn nicht endlos erneut anfasst
+- `spot_detail.php` zeigt den eigenen Zustand **„Außerhalb Deutschlands"** statt
+  „Keine Zone gefunden"
+
+Die Box grenzt die Nachbarländer bewusst nicht sauber ab: ein grenznaher Spot soll
+lieber geprüft werden, als fälschlich als „keine Daten" zu gelten.
+
+Damit kennt die Detailseite vier Zustände – **kein** davon ist eine grüne Freigabe:
+
+| Zustand | Bedeutung |
+|---|---|
+| Außerhalb Deutschlands | DIPUL deckt den Spot nicht ab, keine Aussage möglich |
+| Noch nicht geprüft (`zones_checked_at IS NULL`) | Check steht aus oder ist fehlgeschlagen – ausdrücklich keine Entwarnung |
+| Keine Zone gefunden | Im 150-m-Umkreis liegt keine der geprüften Zonen, Stand mit Datum |
+| n Zone(n) | Liste mit Ampel, Rechtsgrundlage und dipul.de-Link |
+
+### Kachel-Cache
+
+Verzeichnis `private/data/dipul_cache/` (gitignored, wird zur Laufzeit angelegt),
+zweistufig geshardet, Größenlimit 500 MB, probabilistische Bereinigung. Rate-Limit
+800 Cache-Misses pro Stunde und IP über Dateizähler unter `_rate/` – bewusst **nicht**
+über `audit_logs`: eine einzige Kartenansicht erzeugt dutzende Kachel-Requests und
+würde die DSGVO-relevante Audit-Tabelle fluten und forensisch entwerten.
+
+Zwei Arten von Fehlerantworten:
+
+| Fall | Antwort | Warum |
+|---|---|---|
+| Betriebsstörung – DFS-Timeout, 5xx, Rate-Limit, Zoom < 8 | transparentes 1×1-PNG, **HTTP 200** | Ein 5xx ließe Leaflet kaputte Kacheln zeichnen oder endlos nachladen; die Karte muss auch ohne Geozonen benutzbar bleiben |
+| Ungültige Anfrage – unbekanntes Bündel, kaputte BBOX, fremdes CRS, falsche Kachelgröße | **HTTP 400**, `text/plain` | Solche Requests kann Leaflet gar nicht erzeugen, sie stammen immer von Hand. Der Grund steht nur im `error_log`, nie in der Antwort |
+
+Die Validierung läuft vollständig **vor** dem Upstream-Call – eine ungültige Anfrage
+erreicht die DFS nie.
+
+### Wartung
+
+```bash
+# Zonencheck nachholen (nie geprüft) bzw. auffrischen (älter als 30 Tage)
+php fpv-spots-germany.de/private/php/maintenance/refresh_spot_zones.php
+php fpv-spots-germany.de/private/php/maintenance/refresh_spot_zones.php --limit=50
+
+# Cron, täglich 04:20
+20 4 * * * php /pfad/zu/fpv-spots-germany.de/private/php/maintenance/refresh_spot_zones.php
+```
+
+Pro Lauf werden standardmäßig 20 Spots geprüft (max. 200 per `--limit`), mit 0,5 s Pause
+dazwischen, um die Behördenschnittstelle nicht zu belasten.
+
+### Schema-Migration
+
+```sql
+ALTER TABLE `spots` ADD COLUMN `zones_checked_at` datetime DEFAULT NULL;
+
+CREATE TABLE `spot_zones` (
+  `id`         int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `spot_id`    int(10) UNSIGNED NOT NULL,
+  `zone_type`  varchar(64)  NOT NULL,
+  `zone_name`  varchar(255) NOT NULL DEFAULT '',
+  `checked_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `spot_zone` (`spot_id`,`zone_type`,`zone_name`),
+  CONSTRAINT `fk_spot_zones_spot` FOREIGN KEY (`spot_id`) REFERENCES `spots` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### Lizenz und Haftung
+
+Lizenz der Geodaten: **CC BY-ND 4.0**. Die Kacheln werden byteweise unverändert
+durchgereicht – kein Umrendern, kein Umfärben. Das ist Lizenzbedingung, nicht Bequemlichkeit.
+Pflichtangabe: **„Quelle Geodaten: DFS, BKG"**.
+
+Es gibt bewusst **keine grüne Freigabe**. Die günstigste Aussage lautet „keine Zone in
+unseren Daten gefunden – bitte trotzdem auf dipul.de und im NOTAM prüfen". `zones_checked_at
+IS NULL` wird als „noch nicht geprüft" angezeigt, niemals als Entwarnung: eine
+Fehlentwarnung ist das einzige echte Haftungsrisiko dieses Features.
 
 ---
 
@@ -402,13 +571,13 @@ Alle Antworten enthalten folgende Sicherheitsheader (gesetzt via `.htaccess`):
 | Header | Wert |
 |--------|------|
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` (HSTS, 1 Jahr) |
-| `Content-Security-Policy` | `default-src 'self'`; erlaubt Scripts/Styles von `cdn.jsdelivr.net`, `unpkg.com`; Bilder von OSM und Esri |
+| `Content-Security-Policy` | `default-src 'self'`; Scripts/Styles ausschließlich `'self'` (keine CDNs); Bilder von OSM, Esri und YouTube-Thumbnails |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `SAMEORIGIN` |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(self), payment=()` |
 
-CDN-Ressourcen (Bootstrap, Leaflet) werden zusätzlich mit **Subresource Integrity (SRI)** eingebunden.
+Bootstrap und Leaflet liegen lokal unter `public/vendor/` – bewusst nicht über ein CDN: Der Service Worker unterliegt der Direktive `connect-src 'self'`, wodurch CDN-Ressourcen stumm blockiert wurden. Auch die DIPUL-Kacheln kommen deshalb über den eigenen Proxy `/api/dipul_wms.php` statt direkt von der DFS.
 
 ### Session-Härtung
 
@@ -513,6 +682,7 @@ Alle Rate-Limits werden über Abfragen in der `audit_logs`- bzw. Aktions-Tabelle
 | Spot-Meldungen (Duplikat) | 1 Meldung | 1 Tag | Nutzer + Spot + Typ |
 | Forenbeiträge | 10 Beiträge | 1 Stunde | Nutzer |
 | Forenkommentare | 30 Kommentare | 1 Stunde | Nutzer |
+| DIPUL-Kachelabrufe (Cache-Miss) | 800 Kacheln | 1 Stunde | IP (gehasht, Dateizähler) |
 
 ### User-Enumerierungs-Schutz
 

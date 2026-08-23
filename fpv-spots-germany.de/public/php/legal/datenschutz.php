@@ -301,6 +301,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <h3 class="h6 mt-3">Präferenz-Cookies</h3>
                 <ul>
                     <li><strong><code>legend_types</code>, <code>legend_diffs</code> und <code>legend_sizes</code>:</strong> Speichern Ihre gewählten Kartenfilter (Spot-Typen, Schwierigkeitsgrade und Kopter-Größen). Gültig für 30&nbsp;Tage bei aktiver „Eingeloggt bleiben"-Funktion, andernfalls als Session-Cookie.</li>
+                    <li><strong><code>pilot_class</code>:</strong> Speichert die von Ihnen gewählte Betriebsklasse Ihres Kopters (unter 250&nbsp;g, C1/C2 oder ab 250&nbsp;g Eigenbau), damit die Geozonen-Hinweise dazu passen. Enthält ausschließlich einen dieser drei Kennwerte, keine Angaben zu Ihrer Person oder Ihrem Gerät. Gültig für 30&nbsp;Tage bei aktiver „Eingeloggt bleiben"-Funktion, andernfalls als Session-Cookie. HttpOnly, Secure, SameSite=Lax.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Benachrichtigungs-Cookies</h3>
@@ -314,6 +315,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <ul>
                     <li><strong>sessionStorage (<code>fpv_map_state</code>):</strong> Speichert den aktuellen Kartenausschnitt (Koordinaten und Zoom-Stufe) für die Dauer der Browser-Sitzung. Wird beim Schließen des Tabs gelöscht und nicht an unsere Server übertragen.</li>
                     <li><strong>sessionStorage (<code>fpv_map_layer</code>):</strong> Speichert Ihre bevorzugte Kartenansicht (Straße oder Satellit) für die aktuelle Browser-Sitzung.</li>
+                    <li><strong>sessionStorage (<code>fpv_map_overlays</code>):</strong> Speichert, welche Geozonen-Ebenen Sie auf der Karte eingeblendet haben, für die Dauer der Browser-Sitzung.</li>
                     <li><strong>localStorage (<code>pwa-install-dismissed</code>, <code>pwa-ios-dismissed</code>):</strong> Speichert, ob Sie den Hinweis zur Installation der App (PWA) abgelehnt haben. Gültig für 30&nbsp;Tage, ausschließlich im Browser gespeichert.</li>
                 </ul>
 
@@ -352,6 +354,18 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Titelabruf beim Speichern:</strong> Beim Anlegen oder Bearbeiten eines Spots ruft unser Server (nicht Ihr Browser) einmalig die öffentliche oEmbed-Schnittstelle von YouTube auf, um den Videotitel zu ermitteln. Hierbei wird ausschließlich die Video-ID an YouTube übertragen – Ihre IP-Adresse oder weitere personenbezogene Daten werden dabei nicht an YouTube übermittelt.</p>
                 <p><strong>Datenschutzrichtlinie Google/YouTube:</strong> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-white">https://policies.google.com/privacy</a></p>
                 <p><strong>Rechtsgrundlage:</strong> Für die Anzeige der Vorschaubilder berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Darstellung der von Nutzern eingereichten Videos als Bestandteil der Spot-Informationen. Für das Laden des Videoplayers Ihre Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die Sie durch den bewussten Klick auf den Play-Button erteilen und die Sie jederzeit durch Neuladen der Seite für die Zukunft widerrufen können.</p>
+            </section>
+
+            <!-- 16c. Geozonen (DIPUL) -->
+            <section aria-labelledby="geozonen-datenschutz">
+                <h2 id="geozonen-datenschutz" class="h5 mt-4">16c. Geozonen für Drohnen (DIPUL)</h2>
+                <p>Auf der Karte lassen sich die amtlichen geografischen Gebiete für unbemannte Luftfahrtsysteme („Geozonen") einblenden. Die zugrunde liegenden Geodaten stammen aus dem <strong>digitalen Plattform Unbemannte Luftfahrt (dipul)</strong> der DFS Deutsche Flugsicherung GmbH.</p>
+                <p><strong>Keine Übermittlung Ihrer IP-Adresse:</strong> Anders als bei den Kartendiensten in Abschnitt 16 rufen wir diese Kacheln <strong>nicht</strong> direkt aus Ihrem Browser ab. Die Anfrage stellt unser eigener Server; Ihr Browser kommuniziert ausschließlich mit <code>fpv-spots-germany.de</code>. Die DFS erfährt daher weder Ihre IP-Adresse noch, welchen Kartenausschnitt Sie betrachten. Es entsteht <strong>kein zusätzlicher Drittempfänger</strong> im Sinne der DSGVO.</p>
+                <p>Die abgerufenen Kacheln werden auf unserem Server für maximal 24&nbsp;Stunden (bei temporären Betriebseinschränkungen für maximal 10&nbsp;Minuten) zwischengespeichert, um die Behördenschnittstelle zu entlasten. Der Zwischenspeicher enthält ausschließlich Kartenbilder, keine Nutzerdaten. Zur Missbrauchsvermeidung wird die Anzahl der Abrufe je IP-Adresse stundenweise gezählt; gespeichert wird dabei nur ein nicht rückrechenbarer Hashwert, der spätestens nach zwei Stunden gelöscht wird.</p>
+                <p>Zusätzlich prüfen wir <strong>serverseitig und ohne Ihre Beteiligung</strong>, welche Geozonen einen eingetragenen Spot berühren, und speichern das Ergebnis zu dem jeweiligen Spot. Diese Prüfung bezieht sich auf die Spot-Koordinate, nicht auf Ihren Standort.</p>
+                <p><strong>Anbieter der Geodaten:</strong> DFS Deutsche Flugsicherung GmbH, Am DFS-Campus 10, 63225 Langen. Quelle Geodaten: DFS, BKG. Lizenz: CC&nbsp;BY-ND&nbsp;4.0.</p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Hinweis auf luftrechtliche Beschränkungen als Kernfunktion unseres Dienstes.</p>
+                <p><strong>Hinweis:</strong> Die Darstellung ist eine Orientierungshilfe und keine Rechtsberatung. Maßgeblich ist die amtliche Karte unter <a href="https://www.dipul.de/" target="_blank" rel="noopener noreferrer" class="text-white">dipul.de</a>.</p>
             </section>
 
             <!-- 17. Standortfreigabe -->

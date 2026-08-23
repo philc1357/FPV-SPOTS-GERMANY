@@ -1,7 +1,7 @@
 // =============================================================
 // FPV Spots Germany – Service Worker
 // =============================================================
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const STATIC_CACHE  = 'fpv-static-' + CACHE_VERSION;
 const TILES_CACHE   = 'fpv-tiles-'  + CACHE_VERSION;
 const API_CACHE     = 'fpv-api-'    + CACHE_VERSION;
@@ -94,25 +94,38 @@ self.addEventListener('fetch', (event) => {
     //    img-src statt connect-src, das im Service Worker nur 'self' erlaubt.
     if (url.origin !== self.location.origin) return;
 
-    // 3. API-Aufrufe (Network-first mit Cache-Fallback)
+    // 3. Geozonen-Kacheln: NETWORK-ONLY, niemals cachen.
+    //
+    // Kein respondWith() – der Browser laedt die Kachel selbst, damit sie in
+    // keiner Strategie und in keinem Cache landet. Eine gecachte, veraltete
+    // Sperrzone waere kein Komfortproblem, sondern ein Sicherheitsproblem:
+    // temporaere Betriebseinschraenkungen aendern sich taeglich, und offline
+    // eine Zone NICHT zu sehen, die inzwischen gilt, ist schlimmer als gar
+    // keine Karte. Die Vorhaltung uebernimmt der serverseitige Kachel-Cache
+    // in public/php/api/dipul_wms.php mit buendelabhaengiger TTL.
+    if (url.pathname === '/api/dipul_wms.php') {
+        return;
+    }
+
+    // 4. API-Aufrufe (Network-first mit Cache-Fallback)
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(networkFirst(request, API_CACHE));
         return;
     }
 
-    // 4. Eigene App-Logik: JS/CSS aus /public/ und /private/ (Network-first)
+    // 5. Eigene App-Logik: JS/CSS aus /public/ und /private/ (Network-first)
     if (isAppCode(url.pathname)) {
         event.respondWith(networkFirst(request, STATIC_CACHE));
         return;
     }
 
-    // 5. Uebrige statische Assets: Bilder, Fonts, Vendor-Libs (Cache-first)
+    // 6. Uebrige statische Assets: Bilder, Fonts, Vendor-Libs (Cache-first)
     if (isStaticAsset(url.pathname)) {
         event.respondWith(cacheFirst(request, STATIC_CACHE));
         return;
     }
 
-    // 6. Navigation / PHP-Seiten (Network-first, Offline-Fallback)
+    // 7. Navigation / PHP-Seiten (Network-first, Offline-Fallback)
     if (request.mode === 'navigate') {
         event.respondWith(navigationStrategy(request));
         return;

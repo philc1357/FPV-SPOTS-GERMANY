@@ -7,6 +7,7 @@ require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/youtube_helper.php';
+require_once __DIR__ . '/../core/geozones.php';
 
 // Nur POST akzeptieren
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -174,6 +175,18 @@ try {
     ];
     setcookie('legend_types', implode(',', $legendTypes), $legendCookieOpts);
     setcookie('legend_diffs', implode(',', $legendDiffs), $legendCookieOpts);
+
+    // -------------------------------------------------------------
+    // DIPUL-Zonencheck fuer den neuen Spot
+    //
+    // Synchron, weil der Ersteller das Ergebnis sofort sehen soll.
+    // Faellt die DFS aus, bleibt zones_checked_at NULL – die Detailseite
+    // zeigt dann "noch nicht geprueft" (bewusst KEINE Entwarnung) und
+    // refresh_spot_zones.php holt den Check per Cron nach.
+    // -------------------------------------------------------------
+    if ($newSpotId > 0) {
+        refresh_spot_zones($pdo, $newSpotId, (float)$lat, (float)$lng);
+    }
 
     header('Location: /');
     exit;

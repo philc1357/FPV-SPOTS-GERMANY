@@ -134,3 +134,42 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
 @media (max-width: 576px) {
     .offcanvas-bottom { border-radius: 16px 16px 0 0; }
 }
+
+/* ============================================================
+   DIPUL-Geozonen-Overlay
+   ============================================================ */
+
+/* Hinweis, solange ein Zonen-Overlay aktiv ist, der Zoom aber unter
+   der Schwelle liegt – ohne ihn wirkt die leere Karte wie Entwarnung. */
+.dipul-zoom-hint {
+    background: rgba(33, 37, 41, .9);
+    color: #ffe224;
+    font-size: .78rem;
+    line-height: 1.2;
+    padding: .35rem .6rem;
+    border-radius: .375rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.45);
+    pointer-events: none;
+    max-width: 60vw;
+}
+
+/* Layer-Kontrolle: 3 Basiskarten + 5 Overlays werden auf kleinen
+   Displays sonst höher als der Viewport. */
+.leaflet-control-layers-expanded {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Betriebsklassen-Umschalter in der Legende.
+   #mapLegend label ist global auf flex gesetzt – das wuerde die
+   btn-check-Labels von Bootstrap zerlegen, deshalb hier zurueckgesetzt. */
+#mapLegend .pilot-class-switch label {
+    display: block;
+    margin-bottom: 0;
+    line-height: 1.15;
+    padding: .25rem .4rem;
+}
+#mapLegend .pilot-class-switch legend {
+    font-size: .8rem;
+    width: auto;
+}
