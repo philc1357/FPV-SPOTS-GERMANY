@@ -80,40 +80,34 @@ function getConversations(PDO $pdo, int $userId): void
                       CASE WHEN c.user1_id = ? THEN c.deleted_by_user1 ELSE c.deleted_by_user2 END,
                       '1970-01-01'
                   )
-            ) AS unread_count
+            ) AS unread_count,
+            -- Soft-Delete-Zeitstempel und Anzahl der Nachrichten danach.
+            -- Frueher zwei Extra-Queries pro Konversation in der PHP-Schleife.
+            CASE WHEN c.user1_id = ? THEN c.deleted_by_user1 ELSE c.deleted_by_user2 END AS deleted_at,
+            (
+                SELECT COUNT(*) FROM messages m4
+                WHERE m4.conversation_id = c.id
+                  AND m4.created_at > CASE WHEN c.user1_id = ? THEN c.deleted_by_user1 ELSE c.deleted_by_user2 END
+            ) AS messages_after_delete
         FROM conversations c
         JOIN users u ON u.id = CASE WHEN c.user1_id = ? THEN c.user2_id ELSE c.user1_id END
         WHERE (c.user1_id = ? OR c.user2_id = ?)
         HAVING last_message_preview IS NOT NULL
         ORDER BY c.last_message_at DESC
     ");
-    $stmt->execute([$userId, $userId, $userId, $userId, $userId, $userId]);
+    $stmt->execute(array_fill(0, 8, $userId));
     $conversations = $stmt->fetchAll();
 
     // Soft-Delete filtern: Konversationen ausblenden, wenn alle Nachrichten
     // vor dem Loesch-Zeitstempel liegen
-    $deleteCol = null;
-    $filtered  = [];
+    $filtered = [];
     foreach ($conversations as $conv) {
-        // Pruefen ob der User diese Konversation geloescht hat
-        $delStmt = $pdo->prepare("
-            SELECT CASE WHEN user1_id = ? THEN deleted_by_user1 ELSE deleted_by_user2 END AS deleted_at
-            FROM conversations WHERE id = ?
-        ");
-        $delStmt->execute([$userId, $conv['conversation_id']]);
-        $deletedAt = $delStmt->fetchColumn();
-
-        if ($deletedAt !== null && $deletedAt !== false) {
-            // Pruefen ob es Nachrichten nach dem Loesch-Zeitstempel gibt
-            $afterStmt = $pdo->prepare("
-                SELECT COUNT(*) FROM messages
-                WHERE conversation_id = ? AND created_at > ?
-            ");
-            $afterStmt->execute([$conv['conversation_id'], $deletedAt]);
-            if ((int)$afterStmt->fetchColumn() === 0) {
-                continue; // Alle Nachrichten vor dem Loeschen -> ausblenden
-            }
+        // Geloescht und seither nichts Neues -> ausblenden.
+        // Beide Werte kommen aus der Hauptabfrage, kein Query pro Zeile mehr.
+        if ($conv['deleted_at'] !== null && (int)$conv['messages_after_delete'] === 0) {
+            continue;
         }
+        unset($conv['deleted_at'], $conv['messages_after_delete']);
 
         // Vorschau kuerzen
         $preview = $conv['last_message_preview'] ?? '';
