@@ -22,6 +22,11 @@ if ($method === 'GET') {
         'options' => ['min_range' => 1],
     ]);
 
+    // Private Spots gehoeren nicht ins oeffentliche Karten-JSON – nur
+    // der Eigentuemer bekommt sie zu sehen. Dieselbe Regel wie in
+    // header.php, neuigkeiten.php und benachrichtigungen.php.
+    $viewerId = (int)($_SESSION['user_id'] ?? 0);
+
     if ($filterUserId) {
         $stmt = $pdo->prepare(
             "SELECT s.id, s.user_id, s.name, s.description,
@@ -30,18 +35,21 @@ if ($method === 'GET') {
              FROM spots s
              JOIN users u ON s.user_id = u.id
              WHERE s.user_id = ?
+               AND (s.is_private = 0 OR s.user_id = ?)
              ORDER BY s.created_at DESC"
         );
-        $stmt->execute([$filterUserId]);
+        $stmt->execute([$filterUserId, $viewerId]);
     } else {
-        $stmt = $pdo->query(
+        $stmt = $pdo->prepare(
             "SELECT s.id, s.user_id, s.name, s.description,
                     s.latitude, s.longitude, s.spot_type, s.difficulty,
                     s.copter_size, s.parking_info, s.created_at, u.username
              FROM spots s
              JOIN users u ON s.user_id = u.id
+             WHERE s.is_private = 0 OR s.user_id = ?
              ORDER BY s.created_at DESC"
         );
+        $stmt->execute([$viewerId]);
     }
 
     echo json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);

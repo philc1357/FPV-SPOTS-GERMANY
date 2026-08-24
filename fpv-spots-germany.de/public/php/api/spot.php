@@ -28,15 +28,17 @@ $method = $_SERVER['REQUEST_METHOD'];
 // GET – Einzelnen Spot zurückgeben
 // ---------------------------------------------------------------
 if ($method === 'GET') {
+    // Private Spots sieht nur ihr Eigentuemer (vgl. api/spots.php)
     $stmt = $pdo->prepare(
         "SELECT s.id, s.user_id, s.name, s.description,
                 s.latitude, s.longitude, s.spot_type, s.difficulty,
                 s.created_at, u.username
          FROM spots s
          JOIN users u ON s.user_id = u.id
-         WHERE s.id = ?"
+         WHERE s.id = ?
+           AND (s.is_private = 0 OR s.user_id = ?)"
     );
-    $stmt->execute([$spotId]);
+    $stmt->execute([$spotId, (int)($_SESSION['user_id'] ?? 0)]);
     $spot = $stmt->fetch();
 
     if (!$spot) {
