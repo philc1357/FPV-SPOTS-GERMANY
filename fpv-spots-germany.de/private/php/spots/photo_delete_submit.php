@@ -5,6 +5,7 @@ declare(strict_types=1);
 // =============================================================
 require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/../core/image_utils.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /');
@@ -57,6 +58,7 @@ $uploadDir = __DIR__ . '/../../../public/uploads/imgs/';
 $path      = $uploadDir . basename((string)$row['filename']);
 if (is_file($path)) {
     @unlink($path);
+    @unlink(thumb_path($path));
 }
 
 // DB-Eintrag löschen

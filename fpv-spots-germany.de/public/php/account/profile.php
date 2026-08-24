@@ -73,7 +73,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
     <meta name="robots" content="noindex, nofollow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/map_assets_head.php'; ?>
     <meta name="app-csrf-token" content="<?= $csrfToken ?>">
 </head>
@@ -304,8 +304,11 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
         if (!section || images.length === 0) return;
         let html = '<div class="row g-2 mt-2">';
         images.forEach(filename => {
-            const src = '/public/uploads/imgs/' + encodeURIComponent(filename);
-            html += `<div class="col-6"><div style="aspect-ratio:16/9;overflow:hidden;border-radius:.375rem;"><img src="${src}" alt="${esc(filename)}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div></div>`;
+            const src   = '/public/uploads/imgs/' + encodeURIComponent(filename);
+            // Vorschaubild laden, bei fehlendem Thumbnail auf das Original zurueckfallen
+            const thumb = '/public/uploads/imgs/thumbs/' + encodeURIComponent(String(filename).replace(/\.[^.]+$/, '')) + '.jpg';
+            const onErr = `if(!this.dataset.fb){this.dataset.fb='1';this.src='${src}';}`;
+            html += `<div class="col-6"><div style="aspect-ratio:16/9;overflow:hidden;border-radius:.375rem;"><img src="${thumb}" alt="${esc(filename)}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="${onErr}"></div></div>`;
         });
         if (hasMore) {
             html += `<div class="col-6 d-flex align-items-center justify-content-center"><a href="/public/php/spot_detail.php?id=${spotId}" class="text-info small text-decoration-none fw-semibold">Mehr Fotos anzeigen…</a></div>`;

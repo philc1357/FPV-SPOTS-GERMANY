@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
 require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 require_once __DIR__ . '/../../../private/php/core/db.php';
+require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -78,7 +79,7 @@ if (!empty($posts)) {
     <meta name="robots" content="index, follow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/forum.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/forum.css') ?>">
 </head>
 <body class="text-light">
 
@@ -199,11 +200,15 @@ if (!empty($posts)) {
                         <?php if (!empty($pImages)): ?>
                             <div class="forum-image-grid">
                                 <?php foreach ($pImages as $img):
-                                    $src = '/public/uploads/forum/' . htmlspecialchars($img['filename'], ENT_QUOTES, 'UTF-8');
+                                    $file     = '/public/uploads/forum/' . basename((string)$img['filename']);
+                                    $src      = htmlspecialchars($file, ENT_QUOTES, 'UTF-8');            // Original, fuer die Lightbox
+                                    $thumbSrc = htmlspecialchars(thumb_url($file), ENT_QUOTES, 'UTF-8'); // Vorschau im Raster
                                 ?>
                                     <img class="forum-image-thumb"
-                                         src="<?= $src ?>"
+                                         src="<?= $thumbSrc ?>"
                                          alt="Beitragsbild"
+                                         width="140" height="140"
+                                         loading="lazy"
                                          data-bs-toggle="modal"
                                          data-bs-target="#photoModal"
                                          data-img-src="<?= $src ?>"

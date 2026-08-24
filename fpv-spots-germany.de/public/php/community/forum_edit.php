@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
 require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 require_once __DIR__ . '/../../../private/php/core/db.php';
+require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: /forum.php');
@@ -51,7 +52,7 @@ unset($_SESSION['forum_error']);
     <meta name="robots" content="noindex, nofollow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/forum.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/forum.css') ?>">
 </head>
 <body class="text-light">
 
@@ -103,10 +104,11 @@ unset($_SESSION['forum_error']);
                             <div class="forum-edit-image-grid">
                                 <?php foreach ($existingImages as $img):
                                     $iid = (int)$img['id'];
-                                    $src = '/public/uploads/forum/' . htmlspecialchars($img['filename'], ENT_QUOTES, 'UTF-8');
+                                    $file = '/public/uploads/forum/' . basename((string)$img['filename']);
+                                    $src  = htmlspecialchars(thumb_url($file), ENT_QUOTES, 'UTF-8');
                                 ?>
                                     <label class="forum-edit-image-tile" for="rm-<?= $iid ?>">
-                                        <img src="<?= $src ?>" alt="Beitragsbild">
+                                        <img src="<?= $src ?>" alt="Beitragsbild" loading="lazy">
                                         <span class="forum-edit-remove">
                                             <input type="checkbox" id="rm-<?= $iid ?>" name="remove_image_ids[]" value="<?= $iid ?>">
                                             <i class="bi bi-trash3"></i>

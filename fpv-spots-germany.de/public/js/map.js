@@ -419,19 +419,31 @@ async function openSpotDetail(spot) {
     } catch (e) {}
 }
 
+// Vorschaubild-URL zu einem Upload-Dateinamen: thumbs/<name>.jpg.
+// Erzeugt werden die Dateien serverseitig, siehe private/php/core/image_utils.php.
+function thumbSrc(filename) {
+    const base = String(filename).replace(/\.[^.]+$/, '');
+    return '/public/uploads/imgs/thumbs/' + encodeURIComponent(base) + '.jpg';
+}
+
 function renderSpotPhotos(spotId, images, hasMore) {
     const section = document.getElementById('spotPhotoSection');
     if (!section || images.length === 0) return;
 
     let html = '<div class="row g-2 mt-2">';
     images.forEach(filename => {
-        const src = '/public/uploads/imgs/' + encodeURIComponent(filename);
+        const src   = '/public/uploads/imgs/' + encodeURIComponent(filename);
+        const thumb = thumbSrc(filename);
+        // Erster Fehler: auf das Original zurueckfallen (Thumbnail fehlt).
+        // Zweiter Fehler: die Kachel ausblenden, das Bild gibt es nicht mehr.
+        const onErr = `if(!this.dataset.fb){this.dataset.fb='1';this.src='${src}';}`
+                    + `else{this.closest('.col-6').style.display='none';}`;
         html += `<div class="col-6">
             <div style="aspect-ratio:16/9;overflow:hidden;border-radius:.375rem;">
-                <img src="${src}" alt="${esc(filename)}"
+                <img src="${thumb}" alt="${esc(filename)}"
                      style="width:100%;height:100%;object-fit:cover;"
                      loading="lazy"
-                     onerror="this.closest('.col-6').style.display='none'">
+                     onerror="${onErr}">
             </div>
         </div>`;
     });

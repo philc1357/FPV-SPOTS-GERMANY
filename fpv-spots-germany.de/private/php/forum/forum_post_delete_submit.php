@@ -5,6 +5,7 @@ declare(strict_types=1);
 // =============================================================
 require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/../core/image_utils.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /forum.php');
@@ -58,6 +59,7 @@ try {
         $safe = basename((string)$filename);
         if ($safe !== '') {
             @unlink($uploadDir . $safe);
+            @unlink(thumb_path($uploadDir . $safe));
         }
     }
 

@@ -144,6 +144,10 @@ try {
         if (!strip_exif_and_save($f['tmp_name'], $destination, $f['mime'])) {
             throw new RuntimeException('strip_exif_and_save failed');
         }
+        // Thumbnail ist optional – ein Fehler darf den Beitrag nicht kippen
+        if (!create_thumbnail($destination, thumb_path($destination))) {
+            error_log('forum_post_submit.php: Thumbnail fehlgeschlagen fuer ' . $newFilename);
+        }
         $savedFiles[] = $destination;
         $imgIns->execute([$postId, $newFilename]);
     }
@@ -159,6 +163,7 @@ try {
     }
     foreach ($savedFiles as $path) {
         @unlink($path);
+        @unlink(thumb_path($path));
     }
     error_log('forum_post_submit.php error: ' . $e->getMessage());
     $_SESSION['forum_error'] = 'Beitrag konnte nicht gespeichert werden. Bitte erneut versuchen.';

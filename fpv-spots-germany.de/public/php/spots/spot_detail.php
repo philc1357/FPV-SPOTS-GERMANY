@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/geozones.php';
+require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -68,6 +69,14 @@ $pilotClass   = pilot_class_from_cookie();
 $inDipulArea  = point_in_dipul_area((float)$spot['latitude'], (float)$spot['longitude']);
 $zonesChecked = $inDipulArea && !empty($spot['zones_checked_at']);
 $spotZones    = $zonesChecked ? load_spot_zones($pdo, $spotId, $pilotClass) : [];
+
+// Konnten die Zonen nicht gelesen werden (null), gilt der Spot wieder als
+// ungeprueft. Sonst stuende dort "keine Zone gefunden" – eine Entwarnung
+// auf Basis eines Datenbankfehlers.
+if ($spotZones === null) {
+    $zonesChecked = false;
+    $spotZones    = [];
+}
 
 // Pseudo-Zone: der 150-m-Abstand der Unterkategorie A3 steht in keiner
 // amtlichen Karte und wird deshalb unabhaengig vom WFS-Ergebnis gezeigt
@@ -191,7 +200,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
     <link rel="canonical" href="https://fpv-spots-germany.de/public/php/spot_detail.php?id=<?= $spotId ?>">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/spot_detail.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/spot_detail.css') ?>">
 </head>
 <body class="text-light">
 
@@ -550,7 +559,9 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                 <?php else: ?>
                     <div class="row g-2">
                         <?php foreach ($images as $img):
-                            $imgSrc = '/public/uploads/imgs/' . htmlspecialchars($img['filename'], ENT_QUOTES, 'UTF-8');
+                            $imgFile  = '/public/uploads/imgs/' . basename((string)$img['filename']);
+                            $imgSrc   = htmlspecialchars($imgFile, ENT_QUOTES, 'UTF-8');            // Original, fuer die Lightbox
+                            $thumbSrc = htmlspecialchars(thumb_url($imgFile), ENT_QUOTES, 'UTF-8'); // Vorschau im Raster
                             $imgAlt = 'Foto von ' . htmlspecialchars($spot['name'], ENT_QUOTES, 'UTF-8') . ', hochgeladen von ' . htmlspecialchars($img['username'], ENT_QUOTES, 'UTF-8');
                             $canDeleteImg = $isLoggedIn && (
                                 $userId === (int)($img['user_id'] ?? 0)
@@ -566,7 +577,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                         data-img-src="<?= $imgSrc ?>"
                                         data-img-alt="<?= $imgAlt ?>"
                                         aria-label="Foto vergrößern">
-                                    <img src="<?= $imgSrc ?>"
+                                    <img src="<?= $thumbSrc ?>"
                                          alt="<?= $imgAlt ?>"
                                          class="img-fluid rounded"
                                          loading="lazy"

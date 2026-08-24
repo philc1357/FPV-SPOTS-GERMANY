@@ -16,6 +16,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
+require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 
 $userId    = (int)$_SESSION['user_id'];
 $username  = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');$csrfToken = $_SESSION['csrf_token'];
@@ -74,7 +75,7 @@ $videoError = isset($_GET['video_error']);
     <meta name="robots" content="noindex, nofollow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
 </head>
 <body class="text-light">
 
@@ -245,7 +246,8 @@ $videoError = isset($_GET['video_error']);
                     <?php else: ?>
                         <div class="row g-2">
                             <?php foreach ($images as $img):
-                                $imgSrc = '/public/uploads/imgs/' . htmlspecialchars($img['filename'], ENT_QUOTES, 'UTF-8');
+                                $imgFile = '/public/uploads/imgs/' . basename((string)$img['filename']);
+                                $imgSrc  = htmlspecialchars(thumb_url($imgFile), ENT_QUOTES, 'UTF-8');
                                 $imgAlt = 'Foto von ' . htmlspecialchars($spot['name'], ENT_QUOTES, 'UTF-8');
                             ?>
                                 <div class="col-6 col-md-4">

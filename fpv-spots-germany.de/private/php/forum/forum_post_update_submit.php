@@ -183,6 +183,10 @@ try {
             if (!strip_exif_and_save($f['tmp_name'], $destination, $f['mime'])) {
                 throw new RuntimeException('strip_exif_and_save failed');
             }
+            // Thumbnail ist optional – ein Fehler darf die Aenderung nicht kippen
+            if (!create_thumbnail($destination, thumb_path($destination))) {
+                error_log('forum_post_update_submit.php: Thumbnail fehlgeschlagen fuer ' . $newFilename);
+            }
             $newSavedFiles[] = $destination;
             $imgIns->execute([$postId, $newFilename]);
         }
@@ -199,6 +203,7 @@ try {
     }
     foreach ($newSavedFiles as $path) {
         @unlink($path);
+        @unlink(thumb_path($path));
     }
     error_log('forum_post_update_submit.php error: ' . $e->getMessage());
     $_SESSION['forum_error'] = 'Beitrag konnte nicht aktualisiert werden. Bitte erneut versuchen.';
@@ -211,6 +216,7 @@ foreach ($removeFiles as $filename) {
     $safe = basename((string)$filename);
     if ($safe !== '') {
         @unlink($uploadDir . $safe);
+        @unlink(thumb_path($uploadDir . $safe));
     }
 }
 

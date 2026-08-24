@@ -126,6 +126,12 @@ if (!strip_exif_and_save($file['tmp_name'], $destination, $mimeType)) {
     exit;
 }
 
+// Thumbnail fuer die Galerie erzeugen. Schlaegt das fehl, ist der Upload
+// trotzdem gueltig – die Anzeige faellt dann auf das Original zurueck.
+if (!create_thumbnail($destination, thumb_path($destination))) {
+    error_log('upload_submit.php: Thumbnail fehlgeschlagen fuer ' . $newFilename);
+}
+
 // In DB speichern
 try {
     $stmt = $pdo->prepare(

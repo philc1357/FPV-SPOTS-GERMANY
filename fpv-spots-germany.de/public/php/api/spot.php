@@ -11,6 +11,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
+require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -187,6 +188,7 @@ if ($method === 'POST') {
                 $path = $uploadDir . $img['filename'];
                 if (is_file($path)) {
                     @unlink($path);
+                    @unlink(thumb_path($path));
                 }
             }
 
