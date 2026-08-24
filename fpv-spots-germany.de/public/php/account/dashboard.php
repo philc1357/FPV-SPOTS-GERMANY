@@ -79,7 +79,7 @@ $diffBadgeClass = [
     <meta name="robots" content="noindex, nofollow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
     <style>
         [data-bs-target="#mySpotsCollapse"] .bi-chevron-down { transition: transform .2s; }
         [data-bs-target="#mySpotsCollapse"][aria-expanded="true"] .bi-chevron-down { transform: rotate(-180deg); }

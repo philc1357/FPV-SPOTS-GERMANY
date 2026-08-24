@@ -86,7 +86,7 @@ if (!empty($suggestions)) {
     <meta name="robots" content="index, follow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/kritik.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/kritik.css') ?>">
 </head>
 <body class="text-light">
 

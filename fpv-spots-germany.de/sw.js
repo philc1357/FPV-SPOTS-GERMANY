@@ -1,7 +1,14 @@
 // =============================================================
 // FPV Spots Germany – Service Worker
 // =============================================================
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v9';
+
+// Muss mit ASSET_VERSION in private/php/core/assets.php uebereinstimmen:
+// die Seiten fordern CSS/JS als /pfad.css?v=N an, und caches.match()
+// vergleicht die Query mit. Ohne den Parameter liefe der Pre-Cache ins
+// Leere und offline fehlten genau diese Dateien.
+const ASSET_VERSION = '9';
+const v = (path) => path + '?v=' + ASSET_VERSION;
 const STATIC_CACHE  = 'fpv-static-' + CACHE_VERSION;
 const TILES_CACHE   = 'fpv-tiles-'  + CACHE_VERSION;
 const API_CACHE     = 'fpv-api-'    + CACHE_VERSION;
@@ -12,18 +19,21 @@ const TILES_MAX_ENTRIES = 200;
 const STATIC_ASSETS = [
     '/',
     '/offline.html',
-    '/public/css/map.css',
-    '/public/js/map.js',
-    '/public/js/pwa.js',
+    v('/public/css/theme.css'),
+    v('/public/css/banners.css'),
+    v('/public/css/map.css'),
+    v('/public/js/map.js'),
+    v('/public/js/pwa.js'),
     '/public/imgs/logo.png',
-    '/public/imgs/logo2.png',
     '/favicon.ico',
     '/public/imgs/icons/icon-192.png',
     '/public/imgs/icons/icon-512.png',
-    '/public/vendor/leaflet/leaflet.css',
-    '/public/vendor/leaflet/leaflet.js',
-    '/public/vendor/bootstrap/bootstrap.min.css',
-    '/public/vendor/bootstrap/bootstrap.bundle.min.js'
+    v('/public/vendor/leaflet/leaflet.css'),
+    v('/public/vendor/leaflet/leaflet.js'),
+    v('/public/vendor/bootstrap/bootstrap.min.css'),
+    v('/public/vendor/bootstrap/bootstrap.bundle.min.js'),
+    v('/public/vendor/bootstrap-icons/bootstrap-icons.min.css'),
+    '/public/vendor/bootstrap-icons/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6'
 ];
 
 // -------------------------------------------------------------
@@ -195,7 +205,8 @@ function trimCache(cacheName, maxEntries) {
 // -------------------------------------------------------------
 // Hilfsfunktion: Eigene App-Logik erkennen (JS/CSS des Projekts)
 //
-// Diese Dateien tragen keine Versionsnummer im Dateinamen. Wuerden sie
+// Diese Dateien tragen zwar seit Einfuehrung von asset() einen ?v=-Parameter,
+// aber keine Versionsnummer im Dateinamen. Wuerden sie
 // cache-first ausgeliefert, fuehren Besucher nach einem Deploy weiter die
 // ALTE App-Logik aus, bis der Service Worker wechselt – genau dadurch rief
 // eine veraltete map.js nach dem API-Routing-Fix noch den alten Endpunkt

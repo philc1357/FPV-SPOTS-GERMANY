@@ -89,15 +89,14 @@ $hasKritikNotification = $hasUnseenSuggestions || $hasUnreadSuggestionComments;
 $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $hasUnreadMessages;
 ?>
 
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="stylesheet" href="/public/css/banners.css">
+<?php /* Favicon und banners.css stehen jetzt im <head> (head_assets.php) */ ?>
 <!-- ============================================================
      Navbar
 ============================================================ -->
 <header class="bg-dark pb-2 sticky-top">
     <nav class="navbar navbar-dark px-3" style="height:56px;">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/" title="Startseite">
-            <img src="/public/imgs/logo.png" alt="FPV Spots Germany Logo" height="40">
+            <img src="/public/imgs/logo.png" alt="FPV Spots Germany Logo" width="49" height="40">
             <span>FPV Spots Germany</span>
         </a>
         <div class="dropdown">
@@ -161,7 +160,7 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
 </header>
 
 <?php include __DIR__ . '/cookie_banner.php'; ?>
-<script src="/public/js/banners.js" defer></script>
+<script src="<?= asset('/public/js/banners.js') ?>" defer></script>
 
 <?php
 // Hinweis auf veralteten Service-Worker-Cache. Bewusst NACH banners.js und

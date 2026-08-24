@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../private/php/core/assets.php';
 /* ============================================================
    Leaflet-Styles (im <head> einbinden)
 
@@ -10,8 +11,9 @@
    Drittland-Uebermittlung an unpkg (DSGVO).
 
    Muss VOR /public/css/map.css laden, damit eigene Overrides
-   gewinnen. Versionswechsel nur hier + in map_assets_foot.php.
+   gewinnen. Cache-Busting via asset() – Version in
+   private/php/core/assets.php pflegen.
    Aktuelle Version: Leaflet 1.9.4
    ============================================================ */
 ?>
-<link rel="stylesheet" href="/public/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="<?= asset('/public/vendor/leaflet/leaflet.css') ?>">

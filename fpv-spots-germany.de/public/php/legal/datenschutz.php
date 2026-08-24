@@ -22,7 +22,7 @@ $csrfToken  = $_SESSION['csrf_token'];
     <link rel="canonical" href="https://fpv-spots-germany.de/datenschutz.php">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
 </head>
 <body class="text-light">
 

@@ -45,8 +45,8 @@ try {
     <meta name="app-user-id" content="<?= $userId ?>">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/dashboard.css">
-    <link rel="stylesheet" href="/public/css/messages.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
+    <link rel="stylesheet" href="<?= asset('/public/css/messages.css') ?>">
 </head>
 <body class="text-light">
 

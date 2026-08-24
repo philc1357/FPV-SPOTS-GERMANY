@@ -71,7 +71,7 @@ if (!empty($_SESSION['spot_error'])) {
     <!-- Leaflet CSS -->
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/map_assets_head.php'; ?>
 
-    <link rel="stylesheet" href="/public/css/map.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/map.css') ?>">
 </head>
 <body>
 
@@ -414,8 +414,8 @@ if (!empty($_SESSION['spot_error'])) {
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 
-<script src="/public/js/map.js"></script>
-<script src="/public/js/pwa.js"></script>
+<script src="<?= asset('/public/js/map.js') ?>"></script>
+<script src="<?= asset('/public/js/pwa.js') ?>"></script>
 <script>
 (function () {
     var checks = document.querySelectorAll('.create-copter-check');

@@ -41,7 +41,7 @@ if ($selector !== '' && $validator !== '') {
     <meta name="robots" content="noindex, nofollow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
 </head>
 <body class="text-light">
 
@@ -79,6 +79,6 @@ if ($selector !== '' && $validator !== '') {
     </main>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
-<script src="/private/js/password_confirm.js"></script>
+<script src="<?= asset('/private/js/password_confirm.js') ?>"></script>
 </body>
 </html>

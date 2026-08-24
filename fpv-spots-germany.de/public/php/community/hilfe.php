@@ -20,7 +20,7 @@ $csrfToken  = $_SESSION['csrf_token'];
     <meta name="description" content="Bedienungsanleitung für FPV Spots Germany: Karte und Filter nutzen, FPV-Spots finden, eigene Spots eintragen, bewerten, kommentieren und mit der Community austauschen.">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
 
-    <link rel="stylesheet" href="/public/css/dashboard.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
 </head>
 <body class="text-light">
 

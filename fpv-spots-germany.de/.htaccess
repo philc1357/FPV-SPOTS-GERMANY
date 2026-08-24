@@ -43,6 +43,48 @@
     php_flag  session.use_only_cookies On
 </IfModule>
 
+# =============================================================
+# Kompression
+#
+# Apaches mitgelieferte deflate.conf deckt zwar text/* und
+# application/javascript ab, aber NICHT application/json – die
+# JSON-APIs (/api/spots.php & Co.) gingen dadurch unkomprimiert
+# raus. Die Liste hier steht bewusst im versionierten .htaccess
+# statt in der Server-Config: so gilt sie auch bei einem Hoster,
+# dessen globale Konfiguration wir nicht kennen.
+# =============================================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/json application/manifest+json
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript text/javascript
+</IfModule>
+
+# =============================================================
+# Browser-Caching statischer Assets
+#
+# Ohne Freshness-Header revalidiert der Browser bei JEDER
+# Navigation jedes Asset einzeln (18 Round-Trips fuer lauter
+# 304er). mod_expires ist nicht ueberall geladen, deshalb setzen
+# wir Cache-Control direkt ueber mod_headers.
+#
+# Bilder/Fonts sind inhaltlich unveraenderlich -> ein Jahr.
+# Eigenes CSS/JS bekommt eine Woche; die Invalidierung laeuft
+# ueber den ?v=-Parameter aus private/php/core/assets.php.
+#
+# WICHTIG: Der sw.js-Block weiter unten muss NACH diesem Block
+# stehen – er ueberschreibt das max-age fuer den Service Worker
+# wieder mit no-store. Reihenfolge hier nicht vertauschen.
+# =============================================================
+<IfModule mod_headers.c>
+    <FilesMatch "\.(woff2?|ttf|eot|ico|png|jpe?g|webp|svg|gif)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
+
 # Service Worker: kein Cache, damit Updates sofort greifen
 <IfModule mod_headers.c>
     <Files "sw.js">

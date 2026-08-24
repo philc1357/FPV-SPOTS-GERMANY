@@ -67,7 +67,7 @@ $events = $stmt->fetchAll();
     <meta name="robots" content="index, follow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/neuigkeiten.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/neuigkeiten.css') ?>">
 </head>
 <body class="text-light">
 

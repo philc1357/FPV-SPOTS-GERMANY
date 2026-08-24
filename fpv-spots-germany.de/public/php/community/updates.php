@@ -38,7 +38,7 @@ $error   = isset($_GET['error']);
     <meta name="robots" content="index, follow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/updates.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/updates.css') ?>">
 </head>
 <body class="text-light">
 

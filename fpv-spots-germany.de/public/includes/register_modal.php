@@ -66,7 +66,7 @@ if (!$isLoggedIn):
         </div>
     </div>
 </div>
-<script src="/private/js/password_confirm.js"></script>
+<script src="<?= asset('/private/js/password_confirm.js') ?>"></script>
 <script>
 (function () {
     var params = new URLSearchParams(window.location.search);

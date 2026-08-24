@@ -262,7 +262,7 @@ $all = array_slice($all, 0, 80);
     <meta name="robots" content="noindex, nofollow">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     
-    <link rel="stylesheet" href="/public/css/neuigkeiten.css">
+    <link rel="stylesheet" href="<?= asset('/public/css/neuigkeiten.css') ?>">
     <style>
         .notification-new {
             background-color: rgba(255, 193, 7, 0.10);
