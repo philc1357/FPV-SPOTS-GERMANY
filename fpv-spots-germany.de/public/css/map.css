@@ -87,8 +87,87 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
 }
 
 /* Layer-Wechsler: über der Attribution-Zeile */
-.leaflet-bottom.leaflet-left .leaflet-control-layers {
+.leaflet-bottom.leaflet-left .leaflet-control-layers,
+.leaflet-bottom.leaflet-left .layer-switch {
     margin-bottom: 30px;
+}
+
+/* Basiskarten-Umschalter: schwebende Icon-Leiste (Straße/Satellit/Hybrid).
+   Gleicher Glass-Look wie #mapLegend, damit alle Kartenkontrollen als ein
+   zusammengehöriges System wirken statt als Leaflet-Standardelemente. */
+.layer-switch {
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    background: rgba(33, 37, 41, .75);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+}
+.layer-switch-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: #adb5bd;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.layer-switch-btn:hover { background: rgba(255, 255, 255, .12); color: #f8f9fa; }
+.layer-switch-btn.active { background: #0d6efd; color: #fff; }
+.layer-switch-btn:focus-visible { outline: 2px solid #6ea8fe; outline-offset: 2px; }
+
+/* Geozonen-Umschalter (Overlays): dunkles Glass-Panel statt weißer
+   Leaflet-Standardbox, damit er zur Icon-Leiste und zur Legende passt. */
+.leaflet-control-layers {
+    background: rgba(33, 37, 41, .85);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+}
+.leaflet-control-layers-toggle {
+    width: 38px;
+    height: 38px;
+    background-image: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+}
+.leaflet-control-layers-toggle::before {
+    content: '\f45b'; /* bi-layers */
+    font-family: bootstrap-icons !important;
+    font-size: 1.05rem;
+    color: #f8f9fa;
+}
+.leaflet-touch .leaflet-control-layers-toggle { width: 38px; height: 38px; }
+.leaflet-touch .leaflet-control-layers { border: none; }
+.leaflet-control-layers-expanded {
+    color: #f8f9fa;
+    padding: 10px 14px;
+}
+.leaflet-control-layers label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .85rem;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+.leaflet-control-layers label:last-of-type { margin-bottom: 0; }
+.leaflet-control-layers-selector {
+    accent-color: #0d6efd;
+    margin: 0;
+}
+.leaflet-control-layers-separator {
+    border-top-color: rgba(255, 255, 255, .15);
+    margin: 8px -14px;
 }
 
 /* Standort-Button unten rechts */

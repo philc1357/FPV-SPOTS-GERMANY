@@ -51,7 +51,7 @@ function readSavedMapState() {
 
 // Bei direktem Spot-Link sessionStorage ignorieren, damit flyTo ungestört greift
 const savedMapState = _urlSpotId ? null : readSavedMapState();
-const map = L.map('map', { zoomControl: true, wheelPxPerZoomLevel: 120 }).setView(
+const map = L.map('map', { zoomControl: false, wheelPxPerZoomLevel: 120 }).setView(
     savedMapState ? [savedMapState.lat, savedMapState.lng] : MAP_DEFAULT_CENTER,
     savedMapState ? savedMapState.zoom : MAP_DEFAULT_ZOOM
 );
@@ -102,7 +102,48 @@ const hybridLayer = L.layerGroup([
 
 const baseLayers = { 'Straße': streetLayer, 'Satellit': satelliteLayer, 'Hybrid': hybridLayer };
 const savedLayerName = (() => { try { return sessionStorage.getItem('fpv_map_layer'); } catch (_) { return null; } })();
-(baseLayers[savedLayerName] || streetLayer).addTo(map);
+let activeBaseLayerName = baseLayers[savedLayerName] ? savedLayerName : 'Straße';
+baseLayers[activeBaseLayerName].addTo(map);
+
+// ---------------------------------------------------------------
+// Basiskarten-Umschalter: schwebende Icon-Leiste statt der klassischen
+// Leaflet-Radiobox – bleibt immer sichtbar, kein Aufklappen nötig.
+// ---------------------------------------------------------------
+const BASE_LAYER_ICONS = { 'Straße': 'bi-map', 'Satellit': 'bi-image', 'Hybrid': 'bi-layers-half' };
+
+const BaseLayerSwitch = L.Control.extend({
+    options: { position: 'bottomleft' },
+    onAdd: function () {
+        const container = L.DomUtil.create('div', 'layer-switch');
+        L.DomEvent.disableClickPropagation(container);
+        Object.keys(baseLayers).forEach((name) => {
+            const btn = L.DomUtil.create('button', 'layer-switch-btn', container);
+            btn.type = 'button';
+            btn.title = name;
+            btn.setAttribute('aria-label', name);
+            btn.setAttribute('aria-pressed', String(name === activeBaseLayerName));
+            btn.classList.toggle('active', name === activeBaseLayerName);
+            btn.innerHTML = `<i class="bi ${BASE_LAYER_ICONS[name]}" aria-hidden="true"></i>`;
+            L.DomEvent.on(btn, 'click', () => selectBaseLayer(name));
+        });
+        return container;
+    },
+});
+
+function selectBaseLayer(name) {
+    if (name === activeBaseLayerName || !baseLayers[name]) return;
+    map.removeLayer(baseLayers[activeBaseLayerName]);
+    map.addLayer(baseLayers[name]);
+    activeBaseLayerName = name;
+    try { sessionStorage.setItem('fpv_map_layer', name); } catch (_) { /* sessionStorage nicht verfügbar – ignorieren */ }
+    baseLayerSwitchBox.querySelectorAll('.layer-switch-btn').forEach((btn) => {
+        const isActive = btn.title === name;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+    });
+}
+
+const baseLayerSwitchBox = new BaseLayerSwitch().addTo(map).getContainer();
 
 // ---------------------------------------------------------------
 // DIPUL-Geozonen als Overlay
@@ -151,7 +192,7 @@ try {
     }
 } catch (_) { /* sessionStorage nicht verfügbar – ignorieren */ }
 
-const layerControl = L.control.layers(baseLayers, overlayLayers, { position: 'bottomleft' }).addTo(map);
+const layerControl = L.control.layers({}, overlayLayers, { position: 'bottomleft' }).addTo(map);
 
 // Leaflet graut Overlay-Eintraege automatisch aus, solange der Kartenzoom unter
 // deren minZoom liegt – ohne Erklaerung sieht das nach einem Fehler aus.
@@ -219,10 +260,6 @@ map.on('overlayadd overlayremove zoomend', updateDipulZoomHint);
     layerControlBox.addEventListener(ev, updateDipulZoomHint);
 });
 updateDipulZoomHint();
-
-map.on('baselayerchange', (e) => {
-    try { sessionStorage.setItem('fpv_map_layer', e.name); } catch (_) {}
-});
 
 // ---------------------------------------------------------------
 // Spot-Typ → Marker-Farbe
