@@ -712,8 +712,19 @@ function refresh_spot_zones(PDO $pdo, int $spotId, float $lat, float $lon): bool
  *
  * Layer ohne Eintrag in ZONE_RULES werden uebersprungen: lieber eine Zone
  * nicht anzeigen, als sie ohne Rechtsgrundlage und Erklaerung zu zeigen.
+ *
+ * Rueckgabe:
+ *   array  Liste der Zonen (auch leer = geprueft, nichts gefunden)
+ *   null   Zonen konnten nicht gelesen werden (z. B. fehlende Tabelle)
+ *
+ * Die Unterscheidung ist Absicht: ein leeres Array laesst die Detailseite
+ * "keine Zone gefunden" anzeigen. Waere das auch die Antwort auf einen
+ * Datenbankfehler, wuerde ein fehlgeschlagener Lesevorgang wie eine
+ * Freigabe aussehen – die Fehlentwarnung, die dieses Feature um jeden
+ * Preis vermeiden soll (siehe Kopfkommentar). Der Aufrufer behandelt
+ * null deshalb wie "nie geprueft".
  */
-function load_spot_zones(PDO $pdo, int $spotId, string $class): array
+function load_spot_zones(PDO $pdo, int $spotId, string $class): ?array
 {
     try {
         $stmt = $pdo->prepare(
@@ -723,7 +734,7 @@ function load_spot_zones(PDO $pdo, int $spotId, string $class): array
         $rows = $stmt->fetchAll();
     } catch (PDOException $e) {
         error_log('geozones: Laden der Zonen fehlgeschlagen: ' . $e->getMessage());
-        return [];
+        return null;
     }
 
     $result = [];

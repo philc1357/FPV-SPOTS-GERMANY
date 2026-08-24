@@ -183,10 +183,19 @@ Object.values(overlayLayers).forEach((layer) => {
 
 // Hinweis einblenden, solange ein Overlay aktiv ist, der Zoom aber zu klein.
 // Ohne ihn wirkt die leere Karte wie "hier gibt es keine Zonen".
-const dipulZoomHint = L.control({ position: 'bottomright' });
+//
+// Position bewusst 'bottomleft': Leaflet haengt Controls in den unteren Ecken
+// VOR die bereits vorhandenen (Control.addTo -> insertBefore), der Hinweis
+// steht dadurch immer direkt ueber der Layer-Box – also genau dort, wo der
+// Nutzer die Geozonen einschalten will. Unten rechts wurde er uebersehen.
+const dipulZoomHint = L.control({ position: 'bottomleft' });
 dipulZoomHint.onAdd = function () {
     const div = L.DomUtil.create('div', 'dipul-zoom-hint');
-    div.textContent = 'Geozonen erst ab Zoomstufe ' + DIPUL_MIN_ZOOM + ' – näher heranzoomen';
+    div.setAttribute('role', 'status');
+    const icon = L.DomUtil.create('i', 'bi bi-exclamation-triangle-fill', div);
+    icon.setAttribute('aria-hidden', 'true');
+    const text = L.DomUtil.create('span', '', div);
+    text.textContent = 'Geozonen erst ab Zoomstufe ' + DIPUL_MIN_ZOOM + ' – näher heranzoomen';
     return div;
 };
 let dipulZoomHintVisible = false;

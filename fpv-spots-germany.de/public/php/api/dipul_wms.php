@@ -144,6 +144,7 @@ if ($zoom < MIN_ZOOM) {
 // -------------------------------------------------------------
 const CACHE_ROOT       = __DIR__ . '/../../../private/data/dipul_cache';
 const CACHE_MAX_BYTES  = 500 * 1024 * 1024;   // Obergrenze fuer den gesamten Kachel-Cache
+const GC_MAX_SECONDS   = 2;                    // Zeitschranke fuer den Cache-GC im Kachel-Request
 
 $ttl = DIPUL_BUNDLE_TTL[$bundle] ?? 3600;
 $key = sha1($bundle . '|' . implode(',', $bbox) . '|' . $width . 'x' . $height);
@@ -233,10 +234,16 @@ if (is_dir($dir) || @mkdir($dir, 0775, true) || is_dir($dir)) {
 }
 
 // -------------------------------------------------------------
-// Cache-Bereinigung, probabilistisch bei ~0,5 % der Abrufe
+// Cache-Bereinigung, probabilistisch bei ~0,05 % der Abrufe
 // (dasselbe Muster wie die DSGVO-Loeschung in db.php)
+//
+// Der GC laeuft synchron IM Kachel-Request. Bei 478 Dateien sind das
+// wenige Millisekunden, an der Obergrenze CACHE_MAX_BYTES waeren es
+// aber rund 50.000 Dateien mit je einem stat() – dann wuerde ein vom
+// Nutzer angeforderter Tile spuerbar blockieren. Deshalb seltener
+// als frueher (1:2000 statt 1:200) und mit harter Zeitschranke.
 // -------------------------------------------------------------
-if (random_int(1, 200) === 1) {
+if (random_int(1, 2000) === 1) {
     dipul_cache_gc();
 }
 
@@ -257,6 +264,13 @@ function dipul_cache_gc(): void
     $total = 0;
     $now   = time();
 
+    // Zeitschranke: der GC darf den laufenden Kachel-Request nicht
+    // laenger als GC_MAX_SECONDS aufhalten. Was liegen bleibt, raeumt
+    // der naechste Durchlauf – die TTL-Loeschung ist idempotent.
+    $deadline = microtime(true) + GC_MAX_SECONDS;
+    $checked  = 0;
+    $aborted  = false;
+
     $it = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator(CACHE_ROOT, FilesystemIterator::SKIP_DOTS)
     );
@@ -265,6 +279,12 @@ function dipul_cache_gc(): void
         /** @var SplFileInfo $entry */
         if (!$entry->isFile()) {
             continue;
+        }
+
+        // microtime() nur alle 500 Dateien, sonst kostet die Pruefung selbst
+        if ((++$checked % 500) === 0 && microtime(true) > $deadline) {
+            $aborted = true;
+            break;
         }
         $path  = $entry->getPathname();
         $mtime = $entry->getMTime();
@@ -287,6 +307,13 @@ function dipul_cache_gc(): void
 
         $files[] = ['path' => $path, 'mtime' => $mtime, 'size' => $entry->getSize()];
         $total  += $entry->getSize();
+    }
+
+    // Nach einem Abbruch sind $files und $total unvollstaendig – die
+    // Obergrenze liesse sich damit nicht sinnvoll durchsetzen.
+    if ($aborted) {
+        error_log('dipul_wms.php: Cache-GC nach ' . GC_MAX_SECONDS . ' s abgebrochen (' . $checked . ' Dateien geprueft)');
+        return;
     }
 
     // Obergrenze halten: aelteste Kacheln zuerst entfernen

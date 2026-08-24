@@ -140,17 +140,47 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
    ============================================================ */
 
 /* Hinweis, solange ein Zonen-Overlay aktiv ist, der Zoom aber unter
-   der Schwelle liegt – ohne ihn wirkt die leere Karte wie Entwarnung. */
+   der Schwelle liegt – ohne ihn wirkt die leere Karte wie Entwarnung.
+   Sitzt unten links direkt ueber der Layer-Box (Position in map.js) und
+   ist als gelbes Warnbanner gehalten: der frueher kleine dunkle Kasten
+   unten rechts wurde schlicht uebersehen. pointer-events: none, damit
+   der Hinweis das Aufgeklappt-Halten der Layer-Box nicht stoert. */
 .dipul-zoom-hint {
-    background: rgba(33, 37, 41, .9);
-    color: #ffe224;
-    font-size: .78rem;
-    line-height: 1.2;
-    padding: .35rem .6rem;
-    border-radius: .375rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,.45);
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+    position: relative;
+    background: #ffc107;
+    color: #212529;
+    font-size: .95rem;
+    font-weight: 600;
+    line-height: 1.25;
+    padding: .55rem .8rem;
+    border-radius: .5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,.45);
     pointer-events: none;
-    max-width: 60vw;
+    max-width: min(320px, 78vw);
+}
+.dipul-zoom-hint i {
+    font-size: 1.05rem;
+    line-height: 1.25;
+    flex-shrink: 0;
+}
+
+/* Pfeilspitze nach unten auf die Layer-Box. Der zusaetzliche Abstand
+   ueberschreibt Leaflets .leaflet-bottom .leaflet-control (10px) –
+   gleiche Spezifitaet, map.css laedt nach leaflet.css. */
+.leaflet-bottom .dipul-zoom-hint {
+    margin-bottom: 18px;
+}
+.dipul-zoom-hint::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    bottom: -8px;
+    border: 8px solid transparent;
+    border-bottom: 0;
+    border-top-color: #ffc107;
 }
 
 /* Layer-Kontrolle: 3 Basiskarten + 5 Overlays werden auf kleinen
