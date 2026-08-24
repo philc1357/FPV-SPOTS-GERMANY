@@ -69,7 +69,41 @@
                 })
                 .catch(function () {});
         }
+        // ---------------------------------------------------------
+        // Ungelesene Nachrichten pollen
+        //
+        // Frueher alle 15 s auf jeder Seite – 240 Requests pro Stunde
+        // und offenem Tab, jeder mit Session-Start, auth_check und
+        // DB-Zugriff. Jetzt 60 s, und im Hintergrund-Tab gar nicht:
+        // beim Zurueckwechseln wird einmal sofort nachgezogen.
+        // ---------------------------------------------------------
+        var POLL_INTERVAL = 60000;
+        var pollTimer = null;
+
+        function startPolling() {
+            if (pollTimer === null) {
+                pollTimer = setInterval(checkMessages, POLL_INTERVAL);
+            }
+        }
+        function stopPolling() {
+            if (pollTimer !== null) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') {
+                stopPolling();
+            } else {
+                checkMessages();
+                startPolling();
+            }
+        });
+
         checkMessages();
-        setInterval(checkMessages, 15000);
+        if (document.visibilityState !== 'hidden') {
+            startPolling();
+        }
     }
 }());
