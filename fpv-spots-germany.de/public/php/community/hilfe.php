@@ -58,6 +58,9 @@ $csrfToken  = $_SESSION['csrf_token'];
                         Browser und wird nicht gespeichert.</li>
                     <li><strong>Spot-Vorschau:</strong> Ein Klick auf einen Marker öffnet eine Kurzinfo mit
                         Link zur vollständigen Spot-Seite.</li>
+                    <li><strong>Geozonen einblenden:</strong> Über die Kartensteuerung lassen sich die
+                        amtlichen DIPUL-Geozonen (Sperr- und Beschränkungszonen für Drohnen) als
+                        zusätzliche Ebene einblenden – als erste Orientierung, keine Rechtsberatung.</li>
                 </ul>
             </section>
 
@@ -78,6 +81,12 @@ $csrfToken  = $_SESSION['csrf_token'];
                     <li>den Spot als <strong>Favorit merken</strong> und im Dashboard wiederfinden,</li>
                     <li>Inhalte <strong>melden</strong>, wenn etwas nicht in Ordnung ist.</li>
                 </ul>
+                <p class="mb-0">
+                    Ein aufklappbarer <strong>Wetterbereich</strong> zeigt dir aktuelle Bedingungen, eine
+                    Vorschau der nächsten 24 Stunden und eine 7-Tage-Übersicht für den Spot – ergänzt um
+                    den Kp-Index als Hinweis auf die geomagnetische Aktivität, die die GPS-Genauigkeit
+                    beeinflussen kann.
+                </p>
             </section>
 
             <!-- ============ Spot eintragen ============ -->
