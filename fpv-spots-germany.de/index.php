@@ -83,9 +83,25 @@ if (!empty($_SESSION['spot_error'])) {
 <main>
     <h1 class="visually-hidden">FPV Spots Germany – Interaktive Karte</h1>
     <div id="map"></div>
-    <button id="locateMeBtn" aria-label="Zu meinem Standort" title="Zu meinem Standort">
-        <i class="bi bi-geo-alt-fill"></i>
-    </button>
+
+    <!-- ------------------------------------------------------------
+         Karten-Aktionen unten rechts
+
+         Standort-Button oben, darunter der Einstieg in den
+         Platzierungs-Modus. "Spot erstellen" wird immer gerendert –
+         die Login-Weiche sitzt im JS (map.js), damit auch Gäste den
+         Weg zum Anlegen sehen.
+         ------------------------------------------------------------ -->
+    <div id="mapActions">
+        <button id="locateMeBtn" aria-label="Zu meinem Standort" title="Zu meinem Standort">
+            <i class="bi bi-geo-alt-fill"></i>
+        </button>
+        <button id="createSpotBtn" type="button" aria-pressed="false"
+                title="Neuen Spot auf der Karte platzieren">
+            <i id="createSpotBtnIcon" class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span id="createSpotBtnLabel">Spot erstellen</span>
+        </button>
+    </div>
 </main>
 
 <!-- ============================================================
@@ -150,33 +166,18 @@ if (!empty($_SESSION['spot_error'])) {
     </div>
 </div>
 
-<!-- Karte-Klick-Hinweis (nur für eingeloggte Nutzer sichtbar) -->
-<!-- <?php if ($isLoggedIn): ?>
-<div id="mapHint">
-    <span class="badge bg-dark bg-opacity-75 text-light px-3 py-2 fs-7">
-        Auf die Karte klicken, um einen Spot zu erstellen
-    </span>
-</div>
-<?php endif; ?> -->
-
 <!-- ============================================================
-     Toast: Hinweis für nicht eingeloggte Nutzer beim Karten-Klick
+     Hinweisbanner des Platzierungs-Modus
+
+     Nur sichtbar, solange auf einen Karten-Klick gewartet wird
+     (map.js schaltet das hidden-Attribut). Ausserhalb des Modus
+     bleibt ein Karten-Klick folgenlos.
 ============================================================ -->
-<div class="position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index:1200">
-    <div id="loginHintToast"
-         class="toast align-items-center text-bg-warning border-0"
-         role="alert" aria-live="assertive" data-bs-delay="3000">
-        <div class="d-flex">
-            <div class="toast-body">
-                Bitte
-                <a href="#" class="alert-link fw-bold"
-                   data-bs-toggle="modal" data-bs-target="#loginModal">einloggen</a>,
-                um Spots zu erstellen.
-            </div>
-            <button type="button" class="btn-close me-2 m-auto"
-                    data-bs-dismiss="toast" aria-label="Schliessen"></button>
-        </div>
-    </div>
+<div id="placingHint" role="status" aria-live="polite" hidden>
+    <i class="bi bi-crosshair" aria-hidden="true"></i>
+    <span>Tippe auf die Karte, um den Spot zu setzen</span>
+    <button type="button" id="placingCancelBtn" class="btn-close btn-close-white"
+            aria-label="Platzieren abbrechen"></button>
 </div>
 
 <!-- ============================================================

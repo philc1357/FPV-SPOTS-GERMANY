@@ -397,10 +397,12 @@ function showA3Circle(lat, lon) {
     }).addTo(map);
 }
 
-// Kreis verschwindet mit dem Offcanvas, sonst bleibt er beim nächsten Spot stehen
+// Kreis verschwindet mit dem Offcanvas, sonst bleibt er beim nächsten Spot stehen.
+// Ausnahme: Im Platzierungs-Modus bzw. bei gesetztem Vorschau-Marker gehoert der
+// Kreis bereits zum neuen Spot – dieses Event trifft dann verspaetet ein.
 document.getElementById('spotDetailOffcanvas')
     .addEventListener('hidden.bs.offcanvas', () => {
-        clearA3Circle();
+        if (!_placingMode && !_newSpotMarker) clearA3Circle();
         _activeSpot = null;
     });
 
@@ -497,10 +499,17 @@ function renderSpotPhotos(spotId, images, hasMore) {
 }
 
 // ---------------------------------------------------------------
-// Karten-Klick: Spot-Erstellen-Offcanvas öffnen
+// Spot erstellen: Platzierungs-Modus
+//
+// Ein Karten-Klick allein legt bewusst KEINEN Spot mehr an – das
+// oeffnete das Offcanvas auch beim Zuklappen von Legende oder
+// Layer-Box und beim Danebentippen neben einen Marker. Stattdessen
+// schaltet der Button "Spot erstellen" die Karte in einen Modus,
+// in dem genau ein Klick die Koordinaten setzt; danach endet er.
 // ---------------------------------------------------------------
 let _pendingAction = null;
 let _forceClose    = false;
+let _placingMode   = false;
 
 function createFormHasData() {
     const form = document.getElementById('createSpotForm');
@@ -530,30 +539,133 @@ document.getElementById('createSpotOffcanvas').addEventListener('hide.bs.offcanv
     }
 });
 
+// ---------------------------------------------------------------
+// Vorschau-Marker fuer den noch nicht gespeicherten Spot
+// ---------------------------------------------------------------
+let _newSpotMarker = null;
+
+function clearNewSpotMarker() {
+    if (_newSpotMarker) {
+        map.removeLayer(_newSpotMarker);
+        _newSpotMarker = null;
+    }
+}
+
+function setNewSpotMarker(latlng) {
+    clearNewSpotMarker();
+    _newSpotMarker = L.marker(latlng, {
+        icon: L.divIcon({
+            className:  '',
+            html:       '<div class="new-spot-marker"></div>',
+            iconSize:   [22, 22],
+            iconAnchor: [11, 11],
+        }),
+        zIndexOffset: 1000,
+        interactive:  false,
+    }).addTo(map);
+
+    // Zeigt beim Anlegen denselben 150-m-Radius wie die Spot-Detailansicht
+    showA3Circle(latlng.lat, latlng.lng);
+}
+
+// ---------------------------------------------------------------
+// Modus betreten / verlassen
+// ---------------------------------------------------------------
+function enterPlacingMode() {
+    _placingMode = true;
+    document.body.classList.add('spot-placing');
+    document.getElementById('placingHint').hidden = false;
+
+    const btn = document.getElementById('createSpotBtn');
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    document.getElementById('createSpotBtnLabel').textContent = 'Abbrechen';
+    document.getElementById('createSpotBtnIcon').className = 'bi bi-x-lg';
+
+    // Offene Spot-Detailansicht weicht der Platzierung. Deren Kreis wird
+    // hier direkt entfernt, weil der verspaetete hidden-Handler ihn im
+    // Modus bewusst stehen laesst.
+    const detailEl = document.getElementById('spotDetailOffcanvas');
+    if (detailEl.classList.contains('show')) {
+        getOrCreateOffcanvas('spotDetailOffcanvas').hide();
+    }
+    clearA3Circle();
+
+    // Legende einklappen – sie ist im Modus ausgeblendet und soll
+    // danach nicht aufgeklappt wieder auftauchen.
+    const content = document.getElementById('legendContent');
+    if (!content.hidden) {
+        content.hidden = true;
+        document.getElementById('legendToggle').setAttribute('aria-expanded', 'false');
+        document.getElementById('legendArrow').innerHTML = '<i class="bi bi-chevron-down"></i>';
+    }
+}
+
+function exitPlacingMode() {
+    _placingMode = false;
+    document.body.classList.remove('spot-placing');
+    document.getElementById('placingHint').hidden = true;
+
+    const btn = document.getElementById('createSpotBtn');
+    btn.classList.remove('active');
+    btn.setAttribute('aria-pressed', 'false');
+    document.getElementById('createSpotBtnLabel').textContent = 'Spot erstellen';
+    document.getElementById('createSpotBtnIcon').className = 'bi bi-plus-lg';
+}
+
+// ---------------------------------------------------------------
+// Karten-Klick: nur im Platzierungs-Modus wirksam
+// ---------------------------------------------------------------
 map.on('click', (e) => {
-    if (!IS_LOGGED_IN) {
-        new bootstrap.Toast(document.getElementById('loginHintToast')).show();
-        return;
-    }
+    if (!_placingMode) return;
 
-    const lat = e.latlng.lat.toFixed(6);
-    const lng = e.latlng.lng.toFixed(6);
-    const offcanvasEl = document.getElementById('createSpotOffcanvas');
-
-    if (offcanvasEl.classList.contains('show')) {
-        // Offcanvas ist noch offen (hide.bs.offcanvas hat den Close verhindert)
-        if (createFormHasData()) {
-            // Modal wurde bereits durch den hide.bs.offcanvas-Handler gezeigt –
-            // hier nur die ausstehende Aktion mit den neuen Koordinaten speichern.
-            _pendingAction = () => applyNewSpotLocation(lat, lng);
-        } else {
-            applyNewSpotLocation(lat, lng);
-        }
-        return;
-    }
-
-    applyNewSpotLocation(lat, lng);
+    exitPlacingMode();
+    setNewSpotMarker(e.latlng);
+    applyNewSpotLocation(e.latlng.lat.toFixed(6), e.latlng.lng.toFixed(6));
 });
+
+// ---------------------------------------------------------------
+// Button "Spot erstellen"
+// ---------------------------------------------------------------
+document.getElementById('createSpotBtn').addEventListener('click', () => {
+    if (!IS_LOGGED_IN) {
+        new bootstrap.Modal(document.getElementById('loginModal')).show();
+        return;
+    }
+
+    if (_placingMode) {
+        exitPlacingMode();
+        return;
+    }
+
+    // Offenes Formular mit Eingaben: erst nachfragen, dann neu platzieren
+    const offcanvasEl = document.getElementById('createSpotOffcanvas');
+    if (offcanvasEl.classList.contains('show')) {
+        if (createFormHasData()) {
+            _pendingAction = enterPlacingMode;
+            new bootstrap.Modal(document.getElementById('discardSpotModal')).show();
+            return;
+        }
+        _forceClose = true;
+        getOrCreateOffcanvas('createSpotOffcanvas').hide();
+        _forceClose = false;
+    }
+
+    enterPlacingMode();
+});
+
+// Abbrechen ueber das Banner oder die Escape-Taste
+document.getElementById('placingCancelBtn').addEventListener('click', exitPlacingMode);
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && _placingMode) exitPlacingMode();
+});
+
+// Vorschau-Marker und Kreis verschwinden mit dem Offcanvas
+document.getElementById('createSpotOffcanvas')
+    .addEventListener('hidden.bs.offcanvas', () => {
+        clearNewSpotMarker();
+        clearA3Circle();
+    });
 
 document.getElementById('discardConfirmBtn').addEventListener('click', () => {
     bootstrap.Modal.getInstance(document.getElementById('discardSpotModal')).hide();

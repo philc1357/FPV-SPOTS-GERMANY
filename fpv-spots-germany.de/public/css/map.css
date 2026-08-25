@@ -5,16 +5,45 @@ body.offcanvas-open { padding-right: 0 !important; }
 header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
 #map { position: fixed; top: 56px; left: 0; right: 0; bottom: 0; }
 
-/* Karte-Klick-Hinweis */
-#mapHint {
-    position: absolute;
-    bottom: 30px;
+/* ============================================================
+   Platzierungs-Modus
+
+   Hinweisbanner unter der Navbar, solange auf den Karten-Klick
+   gewartet wird. Der Vorgaenger (#mapHint) war per white-space:
+   nowrap beliebig breit und hat andere Bedienelemente verdeckt –
+   hier bricht der Text um und die Breite ist gedeckelt.
+   ============================================================ */
+#placingHint {
+    position: fixed;
+    top: 72px;                      /* 56px Navbar + 16px Abstand */
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1000;
-    pointer-events: none;
-    white-space: nowrap;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    max-width: min(420px, calc(100vw - 32px));
+    padding: .5rem .75rem;
+    background: rgba(33, 37, 41, .9);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+    color: #f8f9fa;
+    font-size: .85rem;
+    line-height: 1.25;
 }
+#placingHint i { font-size: 1rem; flex-shrink: 0; }
+#placingHint .btn-close { flex-shrink: 0; font-size: .7rem; }
+
+/* Aktiver Modus: Fadenkreuz statt Greifhand, und bestehende Marker
+   fangen keine Klicks mehr ab – ein Klick "knapp daneben" trifft so
+   immer die Karte. Gilt automatisch auch fuer spaeter nachgeladene
+   Marker. Die Legende weicht dem Banner. */
+body.spot-placing #map,
+body.spot-placing .leaflet-grab,
+body.spot-placing .leaflet-interactive { cursor: crosshair !important; }
+body.spot-placing .leaflet-marker-icon { pointer-events: none !important; }
+body.spot-placing #mapLegend { display: none; }
 
 /* Kartenlegende */
 #mapLegend {
@@ -48,9 +77,13 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
     gap: 8px;
 }
 #legendToggle:hover { color: #adb5bd; }
+/* Die Hoehe ist zusaetzlich an den Viewport gekoppelt, damit die
+   aufgeklappte Legende auf flachen Fenstern nicht in den Aktions-
+   Stapel unten rechts laeuft: 80px Startabstand + 37px Toggle oben,
+   142px fuer die beiden Buttons und 16px Luft dazwischen. */
 #legendContent {
     padding: 0 14px 10px;
-    max-height: 320px;
+    max-height: min(320px, calc(100dvh - 259px));
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #495057 #2b2f33;
@@ -170,12 +203,22 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
     margin: 8px -14px;
 }
 
-/* Standort-Button unten rechts */
-#locateMeBtn {
+/* ============================================================
+   Karten-Aktionen unten rechts: Standort + Spot erstellen
+   ============================================================ */
+#mapActions {
     position: fixed;
     bottom: 24px;
     right: 16px;
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+/* Standort-Button (Position kommt von #mapActions) */
+#locateMeBtn {
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -192,6 +235,32 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
 }
 #locateMeBtn:hover { background: #0b5ed7; }
 
+/* Einstieg in den Platzierungs-Modus. Gruen wie "Spot speichern",
+   damit er sich klar vom blauen Standort-Button abhebt; 44px hoch
+   als Touch-Target. Im aktiven Modus rot mit Label "Abbrechen". */
+#createSpotBtn {
+    height: 44px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 22px;
+    background: #198754;
+    color: #fff;
+    font-size: .9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,.45);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+#createSpotBtn:hover { background: #157347; }
+#createSpotBtn.active { background: #dc3545; }
+#createSpotBtn.active:hover { background: #bb2d3b; }
+#locateMeBtn:focus-visible,
+#createSpotBtn:focus-visible { outline: 2px solid #6ea8fe; outline-offset: 2px; }
+
 /* Standort-Marker: pulsierender blauer Punkt */
 .user-location-marker {
     width: 20px;
@@ -207,6 +276,24 @@ header { position: fixed; top: 0; left: 0; right: 0; z-index: 1040; }
     0%   { box-shadow: 0 0 0 0   rgba(13, 110, 253, 0.6); }
     70%  { box-shadow: 0 0 0 12px rgba(13, 110, 253, 0);   }
     100% { box-shadow: 0 0 0 0   rgba(13, 110, 253, 0);    }
+}
+
+/* Vorschau-Marker fuer den gerade gesetzten, noch nicht gespeicherten
+   Spot – gleiche Formensprache wie der Standort-Marker, aber gruen. */
+.new-spot-marker {
+    width: 22px;
+    height: 22px;
+    background-color: #198754;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(25, 135, 84, 0.6);
+    animation: new-spot-pulse 2s infinite;
+}
+
+@keyframes new-spot-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(25, 135, 84, 0.6); }
+    70%  { box-shadow: 0 0 0 14px rgba(25, 135, 84, 0);  }
+    100% { box-shadow: 0 0 0 0   rgba(25, 135, 84, 0);   }
 }
 
 /* Offcanvas auf Mobilgeräten mit abgerundeten Ecken */
