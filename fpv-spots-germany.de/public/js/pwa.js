@@ -11,6 +11,19 @@
             .catch(function (err) {
                 console.error('SW Registrierung fehlgeschlagen:', err);
             });
+
+        // sw.js ruft skipWaiting() bereits automatisch beim Install auf,
+        // uebernimmt die Seite also ohne Klick auf den Update-Banner. Ohne
+        // Reload liefe die schon offene Seite aber weiter mit den alten,
+        // bereits geladenen Assets – deshalb hier neu laden, sobald der
+        // neue SW tatsaechlich die Kontrolle uebernimmt. Guard verhindert
+        // eine Reload-Schleife, falls das Event mehrfach feuert.
+        var swRefreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (swRefreshing) return;
+            swRefreshing = true;
+            location.reload();
+        });
     }
 
     // ── SW Update-Erkennung ─────────────────────────────────
