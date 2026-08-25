@@ -593,12 +593,7 @@ function enterPlacingMode() {
 
     // Legende einklappen – sie ist im Modus ausgeblendet und soll
     // danach nicht aufgeklappt wieder auftauchen.
-    const content = document.getElementById('legendContent');
-    if (!content.hidden) {
-        content.hidden = true;
-        document.getElementById('legendToggle').setAttribute('aria-expanded', 'false');
-        document.getElementById('legendArrow').innerHTML = '<i class="bi bi-chevron-down"></i>';
-    }
+    closeLegend();
 }
 
 function exitPlacingMode() {
@@ -767,7 +762,21 @@ document.querySelectorAll('.legend-cb').forEach(cb => {
     });
 });
 
-// Legende Dropdown-Toggle
+// ---------------------------------------------------------------
+// Legende auf-/zuklappen
+//
+// closeLegend() ist die eine Stelle, die den Zustand zurueckdreht –
+// sie wird aus mehreren Richtungen gerufen (Header-Dropdown,
+// Platzierungs-Modus, Karten-Klick).
+// ---------------------------------------------------------------
+function closeLegend() {
+    const content = document.getElementById('legendContent');
+    if (content.hidden) return;
+    content.hidden = true;
+    document.getElementById('legendToggle').setAttribute('aria-expanded', 'false');
+    document.getElementById('legendArrow').innerHTML = '<i class="bi bi-chevron-down"></i>';
+}
+
 document.getElementById('legendToggle').addEventListener('click', () => {
     const content = document.getElementById('legendContent');
     const arrow   = document.getElementById('legendArrow');
@@ -779,14 +788,12 @@ document.getElementById('legendToggle').addEventListener('click', () => {
 });
 
 // Legende schließen, wenn das Header-Dropdown aufgeht
-document.addEventListener('show.bs.dropdown', () => {
-    const content = document.getElementById('legendContent');
-    if (!content.hidden) {
-        content.hidden = true;
-        document.getElementById('legendToggle').setAttribute('aria-expanded', 'false');
-        document.getElementById('legendArrow').innerHTML = '<i class="bi bi-chevron-down"></i>';
-    }
-});
+document.addEventListener('show.bs.dropdown', closeLegend);
+
+// Legende schließen, sobald in die Karte geklickt wird. Die Legende
+// und die Kartenkontrollen liegen ausserhalb des Karten-Containers
+// bzw. sind von Leaflet abgeschirmt – ihre Klicks landen hier nicht.
+map.on('click', closeLegend);
 
 // ---------------------------------------------------------------
 // App starten
@@ -824,7 +831,10 @@ function showUserLocation() {
                 .addTo(map)
                 .bindPopup('Dein Standort');
 
+            // Aktiv-Zustand wie beim gewaehlten Kartenlayer: blau,
+            // sobald ein Standort vorliegt und der Button etwas tut.
             const btn = document.getElementById('locateMeBtn');
+            btn.classList.add('active');
             btn.addEventListener('click', () => {
                 map.setView([latitude, longitude], 13);
                 userMarker.openPopup();

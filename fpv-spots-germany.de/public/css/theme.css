@@ -65,3 +65,50 @@
    Freiraum für projektspezifisches CSS, das keiner --bs-*-Variable
    entspricht.
    ------------------------------------------------------------ */
+
+/* Menü-Button in der Navbar: gleiche Rundung, Schrift und Pfeil-Icon
+   wie die Kartenlegende (public/css/map.css, #mapLegend/#legendToggle),
+   damit beide Glass-Panels als ein Design-System wirken. Der
+   Bootstrap-Standardpfeil (::after) weicht dem bi-chevron-down-Icon. */
+.navbar-menu-btn {
+    border: none;
+    border-radius: 10px;
+    font-size: .8rem;
+    font-weight: 600;
+    padding: 5px 14px;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #f8f9fa;
+    /* Gleicher Hintergrund wie das aufgeklappte Dropdown-Menu
+       (.dropdown-menu-dark, --bs-dropdown-bg) – nur solange es
+       geschlossen ist, sonst verschmilzt der Button optisch mit dem
+       Menu darunter. */
+    background-color: #343a40;
+    transition: background-color .15s, color .15s;
+}
+.navbar-menu-btn:hover,
+.navbar-menu-btn:focus {
+    background-color: #3f454b;
+    color: #fff;
+}
+.navbar-menu-btn[aria-expanded="true"] {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+.navbar-menu-btn:focus-visible {
+    outline: 2px solid #6ea8fe;
+    outline-offset: 2px;
+    box-shadow: none;
+}
+.navbar-menu-btn::after {
+    display: none;
+}
+.navbar-menu-btn-arrow {
+    font-size: .8rem;
+    transition: transform .15s;
+}
+.navbar-menu-btn[aria-expanded="true"] .navbar-menu-btn-arrow {
+    transform: rotate(180deg);
+}

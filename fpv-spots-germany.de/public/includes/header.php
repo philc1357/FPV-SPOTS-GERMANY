@@ -100,15 +100,16 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
             <span>FPV Spots Germany</span>
         </a>
         <div class="dropdown">
-            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn dropdown-toggle navbar-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <?php if ($isLoggedIn): ?>
                     <i class="bi bi-person-fill"></i>
                 <?php else: ?>
-                    Menu
+                    Menü
                 <?php endif; ?>
                 <?php if ($hasAnyNotifications): ?>
                     <span id="update-notify-btn" class="text-warning fw-bold" aria-label="Neue Benachrichtigungen vorhanden"><i class="bi bi-exclamation-circle-fill"></i></span>
                 <?php endif; ?>
+                <i class="bi bi-chevron-down navbar-menu-btn-arrow"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                 <?php if ($isLoggedIn): ?>

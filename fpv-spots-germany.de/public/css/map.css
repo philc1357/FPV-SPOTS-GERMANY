@@ -55,7 +55,8 @@ body.spot-placing #mapLegend { display: none; }
     z-index: 999;
     background: rgba(33, 37, 41, .75);
     backdrop-filter: blur(4px);
-    border-radius: 8px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
     font-size: .8rem;
     line-height: 1.2;
     color: #f8f9fa;
@@ -80,10 +81,11 @@ body.spot-placing #mapLegend { display: none; }
 /* Die Hoehe ist zusaetzlich an den Viewport gekoppelt, damit die
    aufgeklappte Legende auf flachen Fenstern nicht in den Aktions-
    Stapel unten rechts laeuft: 80px Startabstand + 37px Toggle oben,
-   142px fuer die beiden Buttons und 16px Luft dazwischen. */
+   10px Innenabstand, 144px fuer den Stapel inkl. seines Abstands
+   zum Fensterrand und 16px Luft dazwischen. */
 #legendContent {
     padding: 0 14px 10px;
-    max-height: min(320px, calc(100dvh - 259px));
+    max-height: min(320px, calc(100dvh - 287px));
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #495057 #2b2f33;
@@ -116,7 +118,6 @@ body.spot-placing #mapLegend { display: none; }
 #mapLegend .legend-cb {
     margin-left: auto;
     cursor: pointer;
-    accent-color: #0d6efd;
 }
 
 /* Layer-Wechsler: über der Attribution-Zeile */
@@ -156,14 +157,22 @@ body.spot-placing #mapLegend { display: none; }
 .layer-switch-btn:focus-visible { outline: 2px solid #6ea8fe; outline-offset: 2px; }
 
 /* Geozonen-Umschalter (Overlays): dunkles Glass-Panel statt weißer
-   Leaflet-Standardbox, damit er zur Icon-Leiste und zur Legende passt. */
+   Leaflet-Standardbox, damit er zur Icon-Leiste und zur Legende passt.
+   Gleiche Deckkraft (.75) wie die Leiste darunter – mit .85 wirkte
+   die obere Reihe schwerer als die untere. */
 .leaflet-control-layers {
-    background: rgba(33, 37, 41, .85);
+    background: rgba(33, 37, 41, .75);
     backdrop-filter: blur(4px);
     border-radius: 10px;
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+    transition: background .15s;
 }
+.leaflet-control-layers:hover { background: rgba(52, 58, 64, .9); }
+/* Aufgeklappt bleibt der Grundton stehen: der Hover-Aufhellung
+   fehlt hier der Button-Charakter, sie wuerde nur flackern. */
+.leaflet-control-layers-expanded,
+.leaflet-control-layers-expanded:hover { background: rgba(33, 37, 41, .75); }
 .leaflet-control-layers-toggle {
     width: 38px;
     height: 38px;
@@ -195,8 +204,34 @@ body.spot-placing #mapLegend { display: none; }
 }
 .leaflet-control-layers label:last-of-type { margin-bottom: 0; }
 .leaflet-control-layers-selector {
-    accent-color: #0d6efd;
     margin: 0;
+}
+
+/* Runde Checkboxen statt eckiger Standard-Inputs: aktiv nur blau
+   ausgefuellt, ohne Haken. Gilt fuer die Legende (Kategorie-Filter)
+   und die DIPUL-Geozonen-Overlays; die Basiskarten-Radiobuttons
+   (input[type=radio]) bleiben unberuehrt, da Leaflet fuer beide
+   dieselbe Klasse "leaflet-control-layers-selector" vergibt. */
+#mapLegend .legend-cb,
+.leaflet-control-layers-selector[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 2px solid #adb5bd;
+    border-radius: 50%;
+    background: transparent;
+    transition: background .15s, border-color .15s;
+}
+#mapLegend .legend-cb:checked,
+.leaflet-control-layers-selector[type="checkbox"]:checked {
+    background: #0d6efd;
+}
+#mapLegend .legend-cb:focus-visible,
+.leaflet-control-layers-selector[type="checkbox"]:focus-visible {
+    outline: 2px solid #6ea8fe;
+    outline-offset: 2px;
 }
 .leaflet-control-layers-separator {
     border-top-color: rgba(255, 255, 255, .15);
@@ -205,61 +240,80 @@ body.spot-placing #mapLegend { display: none; }
 
 /* ============================================================
    Karten-Aktionen unten rechts: Standort + Spot erstellen
+
+   Spiegelbild der linken Seite: der Standort-Button steht einzeln
+   ueber "Spot erstellen", genau wie der Geozonen-Toggle einzeln
+   ueber der Basiskarten-Leiste steht. Beide Reihen liegen dadurch
+   auf derselben Hoehe.
+
+   Rechnung fuer die Ausrichtung (jeweils vom Fensterrand aus):
+   untere Reihe 30px Abstand + 46px hoch, danach 30px Luecke –
+   der Standort-Button landet damit wie sein linkes Gegenueber
+   bei 106px. Die Werte stammen aus Leaflets Control-Margins und
+   der .layer-switch-Regel weiter oben.
+
+   Die frueheren Vollflaechen-Buttons (blauer Kreis, gruene Pille)
+   fielen als Fremdkoerper aus dem System der Kartenkontrollen
+   heraus. Farbe tragen sie jetzt nur noch im aktiven Zustand.
    ============================================================ */
 #mapActions {
     position: fixed;
-    bottom: 24px;
-    right: 16px;
+    bottom: 30px;
+    right: 10px;
     z-index: 1000;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 10px;
+    gap: 30px;
 }
 
-/* Standort-Button (Position kommt von #mapActions) */
-#locateMeBtn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: none;
-    background: #0d6efd;
-    color: #fff;
-    font-size: 1.2rem;
+/* Gemeinsame Basis: jeder Button ist selbst ein Glass-Panel im
+   Stil der Kartenkontrollen links – gleicher Hintergrund, Blur,
+   Radius und Schatten. */
+#locateMeBtn,
+#createSpotBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,.45);
-    cursor: pointer;
-    transition: background 0.15s;
-}
-#locateMeBtn:hover { background: #0b5ed7; }
-
-/* Einstieg in den Platzierungs-Modus. Gruen wie "Spot speichern",
-   damit er sich klar vom blauen Standort-Button abhebt; 44px hoch
-   als Touch-Target. Im aktiven Modus rot mit Label "Abbrechen". */
-#createSpotBtn {
-    height: 44px;
-    padding: 0 16px;
     border: none;
-    border-radius: 22px;
-    background: #198754;
-    color: #fff;
-    font-size: .9rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(0,0,0,.45);
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+    color: #f8f9fa;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background .15s, color .15s;
 }
-#createSpotBtn:hover { background: #157347; }
-#createSpotBtn.active { background: #dc3545; }
-#createSpotBtn.active:hover { background: #bb2d3b; }
+#locateMeBtn:hover,
+#createSpotBtn:hover { background: rgba(52, 58, 64, .9); }
 #locateMeBtn:focus-visible,
 #createSpotBtn:focus-visible { outline: 2px solid #6ea8fe; outline-offset: 2px; }
+
+/* Standort-Button: gleiche Masse und Deckkraft wie der
+   Geozonen-Toggle links (.leaflet-control-layers). */
+#locateMeBtn {
+    width: 38px;
+    height: 38px;
+    background: rgba(33, 37, 41, .75);
+    font-size: 1.05rem;
+}
+#locateMeBtn.active { background: #0d6efd; color: #fff; }
+#locateMeBtn.active:hover { background: #0b5ed7; }
+
+/* Einstieg in den Platzierungs-Modus. Als Hauptaktion behaelt er
+   sein Label; Hoehe und Deckkraft entsprechen der Basiskarten-
+   Leiste links. Im aktiven Modus rot mit Label "Abbrechen" –
+   das bleibt als Warnsignal. */
+#createSpotBtn {
+    height: 46px;
+    padding: 0 16px;
+    gap: .5rem;
+    background: rgba(33, 37, 41, .75);
+    font-size: .875rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+#createSpotBtn.active { background: #dc3545; color: #fff; }
+#createSpotBtn.active:hover { background: #bb2d3b; }
 
 /* Standort-Marker: pulsierender blauer Punkt */
 .user-location-marker {
