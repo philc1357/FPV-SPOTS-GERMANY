@@ -368,6 +368,19 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Hinweis:</strong> Die Darstellung ist eine Orientierungshilfe und keine Rechtsberatung. Maßgeblich ist die amtliche Karte unter <a href="https://www.dipul.de/" target="_blank" rel="noopener noreferrer" class="text-white">dipul.de</a>.</p>
             </section>
 
+
+            <!-- 16d. Wetterdaten (Open-Meteo, NOAA) -->
+            <section aria-labelledby="wetter-datenschutz">
+                <h2 id="wetter-datenschutz" class="h5 mt-4">16d. Wetterdaten (Open-Meteo, NOAA)</h2>
+                <p>Auf der Detailseite eines Spots lässt sich ein Wetterbereich aufklappen, der aktuelle Bedingungen, eine Vorschau der nächsten 24&nbsp;Stunden und eine 7-Tage-Übersicht für den jeweiligen Spot anzeigt. Die Daten stammen von <strong>Open-Meteo</strong> (für Deutschland auf Grundlage des Modells ICON des Deutschen Wetterdienstes). Ergänzend zeigen wir den weltweit einheitlichen <strong>Kp-Index</strong> des <strong>NOAA Space Weather Prediction Center</strong>, ein Maß für die geomagnetische Aktivität, die sich auf die GPS-Genauigkeit auswirken kann.</p>
+                <p><strong>Keine Übermittlung Ihrer IP-Adresse:</strong> Wie bei den Geozonen in Abschnitt 16c rufen wir diese Daten <strong>nicht</strong> aus Ihrem Browser ab. Die Anfrage stellt unser eigener Server; Ihr Browser kommuniziert ausschließlich mit <code>fpv-spots-germany.de</code>. Open-Meteo und die NOAA erfahren daher weder Ihre IP-Adresse noch, welchen Spot Sie betrachten. Es entsteht <strong>kein zusätzlicher Drittempfänger</strong> im Sinne der DSGVO.</p>
+                <p><strong>Bezugspunkt ist der Spot, nicht Ihr Standort:</strong> Übermittelt wird ausschließlich die in unserer Datenbank hinterlegte Koordinate des aufgerufenen Spots, gerundet auf etwa 100&nbsp;Meter. Ihr eigener Standort wird dabei weder erhoben noch verwendet; die Standortfreigabe nach Abschnitt 17 ist davon unabhängig.</p>
+                <p><strong>Abruf nur auf Ihre Aktion hin:</strong> Der Bereich ist beim Aufruf der Seite stets zugeklappt. Die Wetterdaten werden erst geladen, wenn Sie ihn öffnen.</p>
+                <p>Die abgerufenen Wetterdaten werden auf unserem Server für maximal 15&nbsp;Minuten zwischengespeichert (der Kp-Index für maximal eine Stunde), um die kostenlos bereitgestellten Schnittstellen zu entlasten. Der Zwischenspeicher enthält ausschließlich Wetterwerte und Spot-Koordinaten, keine Nutzerdaten. Zur Missbrauchsvermeidung wird die Anzahl der tatsächlichen Abrufe je IP-Adresse stundenweise gezählt; gespeichert wird dabei nur ein nicht rückrechenbarer Hashwert, der spätestens nach zwei Stunden gelöscht wird.</p>
+                <p><strong>Anbieter:</strong> Open-Meteo, Zürich, Schweiz (Lizenz der Daten: CC&nbsp;BY&nbsp;4.0) – <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener noreferrer" class="text-white">open-meteo.com/en/terms</a>. NOAA Space Weather Prediction Center, Boulder, USA – <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener noreferrer" class="text-white">swpc.noaa.gov</a>. Beide erhalten keine personenbezogenen Daten von uns.</p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Unterstützung bei der Planung eines Flugs am jeweiligen Spot.</p>
+                <p><strong>Hinweis:</strong> Die angezeigten Werte sind Messwerte und Modellprognosen. Sie enthalten <strong>keine Bewertung</strong>, ob ein Flug möglich, sinnvoll oder zulässig ist; diese Entscheidung treffen ausschließlich Sie als Pilot vor Ort.</p>
+            </section>
             <!-- 17. Standortfreigabe -->
             <section aria-labelledby="standort">
                 <h2 id="standort" class="h5 mt-4">17. Standortfreigabe (Geolocation)</h2>

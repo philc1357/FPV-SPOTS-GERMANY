@@ -13,3 +13,68 @@ body { background-color: #1a1a2e; }
 .yt-thumb { width: 100%; height: 100%; object-fit: cover; }
 .yt-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; width: 4rem; height: 4rem; border-radius: 50%; background: rgba(255, 0, 0, .85); color: #fff; font-size: 2rem; line-height: 1; transition: transform .15s, background .15s; }
 .yt-facade:hover .yt-play, .yt-facade:focus-visible .yt-play { background: #ff0000; transform: translate(-50%, -50%) scale(1.1); }
+
+/* ============================================================
+   Wetter am Spot
+
+   Palette wie der Rest der Seite: #16213e Karte, #0f3460 Rahmen,
+   #1a1a2e Grund. Die Kacheln setzen sich mit dem Grundton von der
+   Karte ab, statt einen weiteren Farbton einzufuehren.
+============================================================ */
+
+/* Chevron der Aufklapp-Schaltflaeche folgt aria-expanded, damit
+   der Zustand ohne zusaetzliches JavaScript sichtbar ist. */
+.wx-chevron { transition: transform .2s; }
+[aria-expanded="true"] .wx-chevron { transform: rotate(180deg); }
+
+/* Aktueller Zustand */
+.wx-now-icon { font-size: 2.75rem; line-height: 1; color: #6ea8fe; }
+.wx-now-temp { font-size: 2rem; font-weight: 600; line-height: 1.1; }
+
+/* Messwert-Kacheln */
+.wx-tile { background: #1a1a2e; border: 1px solid #0f3460; border-radius: .375rem; padding: .5rem .75rem; }
+.wx-tile-label { font-size: .75rem; color: #adb5bd; }
+.wx-tile-value { font-size: 1.05rem; font-weight: 600; white-space: nowrap; }
+
+/* Windrichtung: Pfeil zeigt in die Bewegungsrichtung des Windes */
+.wx-arrow { display: inline-block; font-size: .9rem; color: #6ea8fe; }
+
+/* 24-Stunden-Streifen: scrollt horizontal in sich, nie die Seite */
+.wx-hours { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .5rem; scrollbar-width: thin; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
+.wx-hour { flex: 0 0 4.25rem; text-align: center; scroll-snap-align: start; background: #1a1a2e; border: 1px solid #0f3460; border-radius: .375rem; padding: .5rem .25rem; }
+.wx-hour i { font-size: 1.25rem; color: #6ea8fe; }
+.wx-hour-time { font-size: .75rem; color: #adb5bd; }
+.wx-hour-temp { font-weight: 600; }
+.wx-hour-wind, .wx-hour-dir, .wx-hour-rain { font-size: .7rem; color: #adb5bd; white-space: nowrap; }
+
+/* 7-Tage-Liste */
+.wx-day { display: grid; grid-template-columns: 4.5rem 1.5rem 1fr auto auto; gap: .5rem; align-items: center; padding: .45rem 0; border-bottom: 1px solid #0f3460; }
+.wx-day:last-child { border-bottom: none; }
+.wx-day i { font-size: 1.15rem; color: #6ea8fe; }
+.wx-day-name { font-size: .85rem; font-weight: 600; }
+.wx-day-date { display: block; font-size: .7rem; font-weight: 400; color: #adb5bd; }
+.wx-day-temp { font-size: .9rem; }
+.wx-day-wind, .wx-day-rain { font-size: .8rem; color: #adb5bd; white-space: nowrap; }
+
+/* Spaltenbeschriftung der kompakten Streifen */
+.wx-legend { margin: .35rem 0 0; font-size: .7rem; color: #6c757d; }
+
+/* Ladeplatzhalter bis zur ersten Antwort */
+.wx-skeleton { background: linear-gradient(90deg, #16213e, #1e2b4d, #16213e); background-size: 200% 100%; animation: wx-shimmer 1.2s linear infinite; border-radius: .375rem; }
+@keyframes wx-shimmer { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .wx-skeleton { animation: none; }
+    .wx-chevron { transition: none; }
+}
+
+/* Schmale Displays: enger setzen statt umbrechen. Ein Umbruch der
+   Regenspalte in eine zweite Zeile verdoppelt die Zeilenhoehe und
+   macht die Woche unuebersichtlich – die fuenf Spalten passen bei
+   kleinerem Schriftgrad auch auf 360 px noch nebeneinander. */
+@media (max-width: 420px) {
+    .wx-day { grid-template-columns: 3.4rem 1.15rem 1fr auto auto; gap: .35rem; }
+    .wx-day i { font-size: 1rem; }
+    .wx-day-temp { font-size: .82rem; }
+    .wx-day-wind, .wx-day-rain { font-size: .72rem; }
+}

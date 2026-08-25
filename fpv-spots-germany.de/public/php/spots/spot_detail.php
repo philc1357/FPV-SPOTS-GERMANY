@@ -381,12 +381,22 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                  der gewaehlten Betriebsklasse, zuletzt der Haftungs-
                  ausschluss. Es gibt keine gruene Freigabe – die beste
                  Aussage lautet "keine Zone in unseren Daten".
+
+                 Bewusst zugeklappt wie der Wetter-Bereich: der Badge-
+                 Status bleibt im Header sichtbar, der Inhalt ist bereits
+                 serverseitig gerendert (kein Nachladen per JS noetig).
             ==================================================== -->
             <section class="card card-dark text-light p-4 mt-4" id="geozonen" aria-labelledby="geozonenTitel">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                    <h2 class="h5 mb-0" id="geozonenTitel">
-                        <i class="bi bi-shield-exclamation me-2"></i>Darf ich hier fliegen?
-                    </h2>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <button class="btn btn-link text-light text-decoration-none p-0 d-flex align-items-center gap-2"
+                            type="button"
+                            data-bs-toggle="collapse" data-bs-target="#geozonenCollapse"
+                            aria-expanded="false" aria-controls="geozonenCollapse">
+                        <h2 class="h5 mb-0" id="geozonenTitel">
+                            <i class="bi bi-shield-exclamation me-2" aria-hidden="true"></i>Darf ich hier fliegen?
+                        </h2>
+                        <i class="bi bi-chevron-down small wx-chevron" aria-hidden="true"></i>
+                    </button>
                     <?php if (!$inDipulArea): ?>
                         <span class="badge text-bg-secondary">Außerhalb Deutschlands</span>
                     <?php elseif ($zonesChecked): ?>
@@ -399,6 +409,9 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                         <span class="badge text-bg-secondary">Noch nicht geprüft</span>
                     <?php endif; ?>
                 </div>
+
+                <div class="collapse" id="geozonenCollapse">
+                <div class="mt-3">
 
                 <!-- Betriebsklasse: steuert Rechtstexte und Pflichtenliste -->
                 <form method="POST" action="/api/save_pilot_class.php" id="pilotClassForm" class="mb-4">
@@ -518,6 +531,47 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                     sind hier nicht enthalten und ändern sich täglich.
                     <br><?= htmlspecialchars(DIPUL_ATTRIBUTION, ENT_QUOTES, 'UTF-8') ?>.
                 </p>
+
+                </div>
+                </div>
+            </section>
+
+            <!-- ====================================================
+                 Wetter am Spot
+
+                 Bewusst immer zugeklappt: die Seite beantwortet
+                 zuerst die rechtliche Frage, das Wetter ist die
+                 Anschlussfrage. Der Inhalt wird erst beim ersten
+                 Aufklappen per fetch geladen (siehe Skriptblock am
+                 Seitenende), damit das Feature den Seitenaufbau
+                 weder um einen Request noch um Renderzeit verteuert.
+
+                 Hier wird nichts bewertet. Es gibt keine Ampel und
+                 keine "gut/schlecht zum Fliegen"-Einstufung –
+                 ausgegeben werden Zahlen und der Wetter-Klartext.
+            ==================================================== -->
+            <section class="card card-dark text-light p-4 mt-4" id="wetter" aria-labelledby="wetterTitel">
+                <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <button class="btn btn-link text-light text-decoration-none p-0 d-flex align-items-center gap-2"
+                            type="button"
+                            data-bs-toggle="collapse" data-bs-target="#wetterCollapse"
+                            aria-expanded="false" aria-controls="wetterCollapse">
+                        <h2 class="h5 mb-0" id="wetterTitel">
+                            <i class="bi bi-cloud-sun me-2" aria-hidden="true"></i>Wetter am Spot
+                        </h2>
+                        <i class="bi bi-chevron-down small wx-chevron" aria-hidden="true"></i>
+                    </button>
+                    <span class="small text-secondary" id="wetterStand"></span>
+                </div>
+
+                <div class="collapse" id="wetterCollapse" data-spot-id="<?= (int)$spotId ?>">
+                    <div class="mt-3" id="wetterBody" aria-live="polite" aria-busy="true">
+                        <!-- Platzhalter bis zum ersten Ladevorgang; wird per JS ersetzt -->
+                        <div class="wx-skeleton" style="height:5.5rem"></div>
+                        <div class="wx-skeleton mt-2" style="height:5rem"></div>
+                        <span class="visually-hidden">Wetterdaten werden geladen …</span>
+                    </div>
+                </div>
             </section>
 
             <!-- ====================================================
@@ -1012,6 +1066,227 @@ if (starRating) {
 })();
 </script>
 <?php endif; ?>
+
+<!-- ============================================================
+     Wetter: Lazy-Load beim ersten Aufklappen
+
+     Der Bereich startet immer zugeklappt. Erst shown.bs.collapse
+     loest den fetch aus, danach merkt sich data-loaded den Erfolg –
+     wiederholtes Auf- und Zuklappen erzeugt keinen weiteren Request.
+     Fuer dieses Muster gab es im Projekt bisher kein Vorbild.
+
+     Alle Fremdwerte gehen entweder durch Number() oder durch esc();
+     Icon-Klassen zusaetzlich durch eine Formatpruefung. Kein rohes
+     innerHTML mit ungepruefter Antwort – dieselbe Regel wie map.js.
+
+     Bewusst ohne Bewertung: keine Ampel, keine Schwellwerte, keine
+     Aussage darueber, ob sich ein Flug lohnt. Nur Zahlen und der
+     amtliche Wetter-Klartext.
+============================================================ -->
+<script>
+(function () {
+    var box = document.getElementById('wetterCollapse');
+    if (!box) return;
+
+    var body  = document.getElementById('wetterBody');
+    var stand = document.getElementById('wetterStand');
+    var laeuft = false;   // schuetzt vor schnellem Auf/Zu/Auf
+
+    // ── Hilfsfunktionen ──────────────────────────────────────
+
+    function esc(str) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(str === null || str === undefined ? '' : str));
+        return d.innerHTML;
+    }
+
+    // Icon-Klassen kommen aus einer festen Tabelle auf dem Server.
+    // Die Pruefung ist zweite Verteidigungslinie, kein Ersatz dafuer.
+    function icon(name) {
+        return /^bi-[a-z0-9-]+$/.test(name || '') ? name : 'bi-cloud';
+    }
+
+    // Zahl mit deutschem Dezimalkomma; fehlende Werte als Gedankenstrich.
+    function num(wert, einheit, stellen) {
+        if (wert === null || wert === undefined || isNaN(wert)) return '–';
+        var s = Number(wert).toLocaleString('de-DE', {
+            minimumFractionDigits: stellen || 0,
+            maximumFractionDigits: stellen || 0
+        });
+        if (!einheit) return s;
+        // Nach DIN 5008 steht vor einer Einheit ein Leerzeichen ("14,8 °C").
+        // Das blosse Gradzeichen als Kurzform in den Streifen bildet die
+        // Ausnahme – dort waere "15 °" typografisch falsch getrennt.
+        return einheit === '\u00b0' ? s + einheit : s + ' ' + einheit;
+    }
+
+    // Windpfeil: Open-Meteo nennt die Richtung, AUS DER der Wind weht.
+    // Fuer einen Pfeil in Bewegungsrichtung sind das +180 Grad.
+    function pfeil(grad, kuerzel) {
+        if (grad === null || grad === undefined || isNaN(grad)) return '';
+        return '<i class="bi bi-arrow-up wx-arrow" aria-hidden="true" style="transform:rotate('
+             + (Number(grad) + 180) % 360 + 'deg)"></i> ' + esc(kuerzel || '');
+    }
+
+    function kachel(bi, titel, inhalt) {
+        return '<div class="col-6 col-md-4"><div class="wx-tile h-100">'
+             + '<div class="wx-tile-label"><i class="bi ' + icon(bi) + ' me-1" aria-hidden="true"></i>'
+             + esc(titel) + '</div>'
+             + '<div class="wx-tile-value">' + inhalt + '</div>'
+             + '</div></div>';
+    }
+
+    // ── Rendern ──────────────────────────────────────────────
+
+    function render(d) {
+        var a = d.aktuell || {};
+        var h = '';
+
+        // Aktueller Zustand
+        h += '<div class="d-flex align-items-center gap-3 mb-3">'
+           +   '<i class="bi ' + icon(a.icon) + ' wx-now-icon" aria-hidden="true"></i>'
+           +   '<div>'
+           +     '<div class="wx-now-temp">' + num(a.temp, '°C', 1) + '</div>'
+           +     '<div class="text-secondary small">' + esc(a.text)
+           +       ' &middot; gefühlt ' + num(a.gefuehlt, '°C', 1) + '</div>'
+           +   '</div>'
+           + '</div>';
+
+        // Messwert-Kacheln
+        h += '<div class="row g-2 mb-3">'
+           + kachel('bi-wind',            'Wind',       num(a.wind, 'km/h') + ' ' + pfeil(a.richtung, a.richtung_text))
+           + kachel('bi-wind',            'Böen',       num(a.boeen, 'km/h'))
+           + kachel('bi-umbrella',        'Niederschlag', num(a.niederschlag, 'mm', 1))
+           + kachel('bi-clouds',          'Bewölkung',  num(a.bewoelkung, '%'))
+           + kachel('bi-eye',             'Sicht',      num(a.sicht_km, 'km', 1))
+           + kachel('bi-droplet-half',    'Luftfeuchte', num(a.feuchte, '%'))
+           + '</div>';
+
+        // Sonnenzeiten
+        var s = d.sonne || {};
+        if (s.aufgang || s.untergang) {
+            h += '<p class="small text-secondary mb-2">'
+               + '<i class="bi bi-sunrise me-1" aria-hidden="true"></i>' + esc(s.aufgang) + ' Uhr'
+               + '<span class="mx-2">&middot;</span>'
+               + '<i class="bi bi-sunset me-1" aria-hidden="true"></i>' + esc(s.untergang) + ' Uhr'
+               + '</p>';
+        }
+
+        // Kp-Index – entfaellt still, wenn die NOAA nicht erreichbar war
+        if (d.kp) {
+            h += '<p class="small text-secondary mb-3">'
+               + '<i class="bi bi-activity me-1" aria-hidden="true"></i>'
+               + 'Kp-Index ' + num(d.kp.wert, '', 1) + ' (' + esc(d.kp.text) + ') '
+               + '<span class="text-secondary">– geomagnetische Aktivität, '
+               + 'hohe Werte können die GPS-Genauigkeit verringern.</span>'
+               + '</p>';
+        }
+
+        // Naechste 24 Stunden – horizontal scrollbarer Streifen
+        if (d.stunden && d.stunden.length) {
+            h += '<h3 class="h6 mt-4 mb-2">Nächste 24 Stunden</h3><div class="wx-hours">';
+            d.stunden.forEach(function (x) {
+                h += '<div class="wx-hour">'
+                   +   '<div class="wx-hour-time">' + esc(x.zeit) + '</div>'
+                   +   '<i class="bi ' + icon(x.icon) + '" title="' + esc(x.text) + '"></i>'
+                   +   '<div class="wx-hour-temp">' + num(x.temp, '°') + '</div>'
+                   +   '<div class="wx-hour-wind">' + num(x.wind) + '<span class="text-secondary">/</span>'
+                   +     num(x.boeen) + '</div>'
+                   +   '<div class="wx-hour-dir">' + esc(x.richtung_text || '') + '</div>'
+                   +   '<div class="wx-hour-rain">' + num(x.regen_prozent, '%') + '</div>'
+                   + '</div>';
+            });
+            h += '</div><p class="wx-legend">Zeit &middot; Wetter &middot; Temperatur &middot; '
+               + 'Wind/Böen in km/h &middot; Richtung &middot; Regenwahrscheinlichkeit</p>';
+        }
+
+        // 7-Tage-Uebersicht
+        if (d.tage && d.tage.length) {
+            h += '<h3 class="h6 mt-4 mb-2">7 Tage</h3><div class="wx-days">';
+            d.tage.forEach(function (x) {
+                h += '<div class="wx-day">'
+                   +   '<div class="wx-day-name">' + (x.heute ? 'Heute' : esc(x.wochentag))
+                   +     '<span class="wx-day-date">' + esc(x.datum) + '</span></div>'
+                   +   '<i class="bi ' + icon(x.icon) + '" title="' + esc(x.text) + '"></i>'
+                   +   '<div class="wx-day-temp">' + num(x.tmax, '°') + '<span class="text-secondary"> / '
+                   +     num(x.tmin, '°') + '</span></div>'
+                   +   '<div class="wx-day-wind"><i class="bi bi-wind me-1" aria-hidden="true"></i>'
+                   +     num(x.boeen, 'km/h') + '</div>'
+                   +   '<div class="wx-day-rain"><i class="bi bi-umbrella me-1" aria-hidden="true"></i>'
+                   +     num(x.regen_prozent, '%') + '</div>'
+                   + '</div>';
+            });
+            h += '</div><p class="wx-legend">Wetter &middot; Höchst-/Tiefsttemperatur &middot; '
+               + 'stärkste Böen &middot; Regenwahrscheinlichkeit</p>';
+        }
+
+        // Quellenangabe – Open-Meteo steht unter CC BY 4.0 und verlangt sie
+        h += '<p class="small text-secondary border-top border-secondary pt-3 mt-4 mb-0">'
+           + '<i class="bi bi-info-circle me-1" aria-hidden="true"></i>'
+           + 'Prognosen sind Modellrechnungen und keine Zusage. Ob ein Flug möglich und '
+           + 'zulässig ist, entscheidest du vor Ort.'
+           + '<br>Wetterdaten: <a href="https://open-meteo.com/" target="_blank" rel="noopener" '
+           + 'class="text-info">Open-Meteo.com</a> (CC BY 4.0), für Deutschland auf Basis von DWD ICON. '
+           + 'Kp-Index: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener" '
+           + 'class="text-info">NOAA SWPC</a>.'
+           + '</p>';
+
+        body.innerHTML = h;
+
+        if (stand && d.stand_text) {
+            stand.textContent = 'Stand: ' + d.stand_text;
+        }
+    }
+
+    function renderFehler(meldung) {
+        body.innerHTML =
+            '<div class="alert alert-secondary mb-0">'
+          +   '<p class="mb-2"><i class="bi bi-cloud-slash me-1" aria-hidden="true"></i>' + esc(meldung) + '</p>'
+          +   '<button type="button" class="btn btn-outline-secondary btn-sm" id="wetterRetry">'
+          +     'Erneut versuchen</button>'
+          + '</div>';
+        if (stand) stand.textContent = '';
+
+        var btn = document.getElementById('wetterRetry');
+        if (btn) btn.addEventListener('click', function () {
+            body.innerHTML = '<div class="wx-skeleton" style="height:5.5rem"></div>'
+                           + '<div class="wx-skeleton mt-2" style="height:5rem"></div>';
+            laden();
+        });
+    }
+
+    // ── Laden ────────────────────────────────────────────────
+
+    function laden() {
+        if (box.dataset.loaded === '1' || laeuft) return;
+        laeuft = true;
+        body.setAttribute('aria-busy', 'true');
+
+        fetch('/api/weather.php?spot_id=' + encodeURIComponent(box.dataset.spotId), {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function (res) {
+            return res.json().then(function (daten) {
+                if (!res.ok) throw new Error(daten && daten.error ? daten.error : 'HTTP ' + res.status);
+                return daten;
+            });
+        })
+        .then(function (daten) {
+            render(daten);
+            box.dataset.loaded = '1';
+        })
+        .catch(function (e) {
+            renderFehler(e && e.message ? e.message : 'Wetterdaten konnten nicht geladen werden.');
+        })
+        .finally(function () {
+            laeuft = false;
+            body.setAttribute('aria-busy', 'false');
+        });
+    }
+
+    box.addEventListener('shown.bs.collapse', laden);
+})();
+</script>
 
 </body>
 </html>

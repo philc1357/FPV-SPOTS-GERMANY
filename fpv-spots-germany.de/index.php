@@ -151,13 +151,13 @@ if (!empty($_SESSION['spot_error'])) {
 </div>
 
 <!-- Karte-Klick-Hinweis (nur für eingeloggte Nutzer sichtbar) -->
-<?php if ($isLoggedIn): ?>
+<!-- <?php if ($isLoggedIn): ?>
 <div id="mapHint">
     <span class="badge bg-dark bg-opacity-75 text-light px-3 py-2 fs-7">
         Auf die Karte klicken, um einen Spot zu erstellen
     </span>
 </div>
-<?php endif; ?>
+<?php endif; ?> -->
 
 <!-- ============================================================
      Toast: Hinweis für nicht eingeloggte Nutzer beim Karten-Klick
