@@ -8,6 +8,7 @@ require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/youtube_helper.php';
 require_once __DIR__ . '/../core/geozones.php';
+require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 // Nur POST akzeptieren
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -188,7 +189,7 @@ try {
         refresh_spot_zones($pdo, $newSpotId, (float)$lat, (float)$lng);
     }
 
-    header('Location: /');
+    header('Location: ' . umami_prg_marker('/', 'spot'));
     exit;
 
 } catch (PDOException $e) {

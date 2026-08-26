@@ -49,7 +49,19 @@ DB_PASS=dbpassword
 SMTP_HOST=mail.example.com
 SMTP_USER=noreply@example.com
 SMTP_PASS=smtppassword
+
+# Reichweitenmessung (siehe Abschnitt "Reichweitenmessung (Umami)")
+APP_BASE_URL=https://fpv-spots-germany.de
+UMAMI_ENABLED=1
+UMAMI_WEBSITE_ID=00000000-0000-0000-0000-000000000000
+UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js
+UMAMI_COLLECT_HOST=https://gateway.umami.is
+UMAMI_IP_MODE=truncate
 ```
+
+`APP_BASE_URL` ist die eigene Origin ohne Pfad. Sie wird bewusst **nicht** aus
+`$_SERVER['HTTP_HOST']` abgeleitet: der Host-Header ist Nutzereingabe, und der
+Sammel-Endpunkt vergleicht ihn gegen den Hostnamen im Messdatensatz.
 
 ### 4. Datenbank einrichten
 
@@ -117,6 +129,7 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Nutzungsbedingungen mit Acceptance-Wall (neue Nutzer müssen aktiv zustimmen)
 - Impressum und Datenschutzerklärung
 - Progressive Web App (installierbar, offline-fähig)
+- Cookiefreie Reichweitenmessung über einen First-Party-Proxy, mit Opt-out in der Datenschutzerklärung
 
 ---
 
@@ -347,6 +360,7 @@ Alle API-Endpunkte liegen unter `public/php/api/` und antworten mit `Content-Typ
 | `POST` | `/api/save_legend.php` | nein | Legendenfilter als Cookie speichern |
 | `POST` | `/api/save_pilot_class.php` | nein | Betriebsklasse als Cookie speichern (JSON oder Form-POST) |
 | `GET` | `/api/dipul_wms.php` | nein | Proxy für die DIPUL-Kacheln (WMS 1.3.0), liefert `image/png` |
+| `POST` | `/api/send` | nein | Sammel-Proxy der Reichweitenmessung (`public/php/api/umami_send.php`) |
 
 Da HTML-Formulare kein `PUT`/`DELETE` senden können, wird das `_method`-Override-Muster über `POST` verwendet.
 
@@ -524,6 +538,92 @@ Die App ist vollständig als PWA ausgebaut:
 - **Automatische Update-Erkennung** mit Hinweis-Banner und `SKIP_WAITING`-Trigger
 - **Icons** in 8 Größen (72px bis 512px), inkl. maskable Icons
 - **Service Worker** wird mit `Cache-Control: no-cache` ausgeliefert, sodass Updates sofort greifen
+
+---
+
+## Reichweitenmessung (Umami)
+
+Gemessen wird mit **Umami Cloud** (EU-Region), eingebunden als **First-Party-Proxy**:
+Skript und Datenendpunkt liegen auf der eigenen Domain, der Browser des Besuchers
+baut nie eine Verbindung zum Anbieter auf.
+
+```
+Browser  ->  /public/js/umami.js      gepinnte Kopie des Trackers
+Browser  ->  /api/send                eigener Sammel-Proxy
+Proxy    ->  UMAMI_COLLECT_HOST       gateway.umami.is
+```
+
+Gründe – dieselben wie beim DIPUL-Kachelproxy:
+
+1. Die CSP bleibt bei `default-src 'self'`; ein Skript von `cloud.umami.is` würde
+   an `script-src` scheitern und sein `POST` zusätzlich an `connect-src`.
+2. Die Besucher-IP erreicht den Anbieter nie unverkürzt.
+3. Filterlisten kennen `cloud.umami.is` und `gateway.umami.is`, aber nicht
+   `/public/js/umami.js` – die Zahlen bleiben vollständiger.
+
+### Beteiligte Dateien
+
+| Datei | Zweck |
+|---|---|
+| `private/php/core/analytics.php` | Konfiguration, Abschaltlogik, Script-Tags, PRG-Marker |
+| `public/php/api/umami_send.php` | Sammel-Proxy mit Missbrauchsschutz |
+| `public/js/umami.js` | Gepinnte Kopie des Trackers (nicht selbst bearbeiten) |
+| `public/js/analytics.js` | Ereignis-Wrapper `window.fpvTrack`, PRG-Marker, Offline-Erkennung |
+| `private/php/legal/analytics_optout.php` | Setzt bzw. löscht das Opt-out-Cookie |
+| `private/php/maintenance/update_umami_script.php` | Holt eine neue Version des Trackers |
+
+### Abschaltgründe
+
+`umami_enabled()` liefert `false` – und damit wird **serverseitig gar kein
+Script-Tag gerendert** – bei: CLI-Aufruf, `UMAMI_ENABLED != 1`, ungültiger
+Konfiguration, gesetztem Cookie `analytics_optout`, `DNT: 1` bzw. `Sec-GPC: 1`,
+Admin-Session und auf der Admin-Subdomain `x.`.
+
+### Ereignisse
+
+Namensschema `bereich:aktion`. Einfache Klicks kann der Tracker selbst über
+`data-umami-event="name"` im Markup erfassen; `analytics.js` deckt ab, was ein
+Attribut nicht abbildet.
+
+| Gruppe | Ereignisse |
+|---|---|
+| Spot | `spot:erstellt`, `spot:detail`, `spot:bewertet`, `spot:kommentiert`, `spot:bild` |
+| Karte | `karte:layer`, `karte:filter`, `karte:geozonen`, `karte:standort`, `karte:wetter` |
+| Konto | `konto:registrierung_start`, `konto:registrierung_ok`, `konto:login`, `konto:tos_ok`, `vorschlag:abgeschickt`, `kontakt:abgeschickt` |
+| PWA | `pwa:installiert`, `pwa:offline` |
+
+**Grenze:** keine personenbezogenen Ereignisdaten – keine Benutzernamen, keine
+Nutzer-IDs, kein `umami.identify()`, keine Spot-Koordinaten. Öffentliche
+Spot-IDs und Kategorien sind zulässig.
+
+Serverseitige Erfolge (Registrierung, Spot-Anlage, Kommentar …) enden im
+PRG-Muster mit einem Redirect – dort läuft kein JavaScript. Das Redirect-Ziel
+bekommt deshalb über `umami_prg_marker()` ein `?ok=<marker>`; `analytics.js`
+übersetzt den Marker gegen eine Whitelist in ein Ereignis und entfernt ihn per
+`history.replaceState()`. Weil das Tracker-Tag mit `data-exclude-search` läuft,
+landet der Marker nicht in den erfassten URLs.
+
+`data-performance` (Core Web Vitals) ist bewusst **nicht** gesetzt: es erzeugt
+mehrere Ereignisse pro Seitenaufruf und würde das Monatskontingent aufzehren.
+
+### Wartung
+
+Der Tracker wird als Datei mitausgeliefert, nicht zur Laufzeit geholt. Umami hat
+seine Endpunkte bereits unangekündigt verschoben (`analytics.eu.umami.is`
+antwortet heute mit 404), deshalb halbjährlich prüfen:
+
+```bash
+php private/php/maintenance/update_umami_script.php          # nur prüfen (Hash/Diff)
+php private/php/maintenance/update_umami_script.php --apply  # herunterladen und ersetzen
+```
+
+Nach einem Update: `ASSET_VERSION` und `CACHE_VERSION` anheben (siehe
+`CLAUDE.md`) und im Umami-Dashboard prüfen, ob Echtzeitdaten ankommen.
+
+> **`data-host-url` ist zwingend.** Im Tracker steht der Zielhost fest
+> verdrahtet (`(x || "https://gateway.umami.is") + "/api/send"`). Ohne das
+> Attribut sendet er *nicht* an den Origin, von dem er geladen wurde – der Proxy
+> wäre wirkungslos und die CSP würde den Request blocken.
 
 ---
 

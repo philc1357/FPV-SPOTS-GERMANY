@@ -4,6 +4,14 @@
 (function () {
     'use strict';
 
+    // ── Reichweitenmessung ──────────────────────────────────
+    // window.fpvTrack kommt aus public/js/analytics.js und fehlt,
+    // wenn nicht gemessen wird (Opt-out, DNT, Admin). Die PWA darf
+    // davon nicht abhaengen – deshalb dieser Wrapper.
+    function track(name, data) {
+        if (typeof window.fpvTrack === 'function') window.fpvTrack(name, data);
+    }
+
     // ── Service Worker registrieren ─────────────────────────
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
@@ -81,6 +89,7 @@
     window.addEventListener('appinstalled', function () {
         hideInstallBanner();
         deferredPrompt = null;
+        track('pwa:installiert');
     });
 
     // ── Install-Banner ──────────────────────────────────────

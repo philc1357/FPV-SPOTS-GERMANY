@@ -7,6 +7,7 @@ require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/image_utils.php';
+require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 // Nur POST akzeptieren
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -150,5 +151,5 @@ try {
     exit;
 }
 
-header("Location: /spot_detail.php?id=$spotId");
+header('Location: ' . umami_prg_marker("/spot_detail.php?id=$spotId", 'bild'));
 exit;

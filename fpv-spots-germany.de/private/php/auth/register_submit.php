@@ -4,6 +4,7 @@ require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/password_blacklist.php';
+require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 function safe_redirect_target(?string $raw): string {
     if (!$raw) return '/';
@@ -25,7 +26,7 @@ function register_flash_redirect(string $type, string $msg, string $redirect, bo
 
 function register_success_redirect(string $msg): void {
     $_SESSION['login_flash'] = ['type' => 'success', 'msg' => $msg];
-    header('Location: /?showLogin=1');
+    header('Location: ' . umami_prg_marker('/?showLogin=1', 'registrierung'));
     exit;
 }
 

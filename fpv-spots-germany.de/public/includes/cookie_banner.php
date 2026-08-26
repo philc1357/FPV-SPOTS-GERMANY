@@ -6,6 +6,8 @@
             <a href="/nutzungsbedingungen.php" class="text-info">Nutzungsbedingungen</a> zu –
             insbesondere, dass alle Spot-Informationen nutzergeneriert sind und du selbst für die
             Einhaltung von Luftrecht und Betretungsrechten verantwortlich bist.
+            Zur Verbesserung der Seite läuft außerdem eine cookiefreie Reichweitenmessung, der du
+            <a href="/datenschutz.php#reichweitenmessung" class="text-info">jederzeit widersprechen</a> kannst.
             Weitere Informationen in unserer
             <a href="/datenschutz.php" class="text-info">Datenschutzerklärung</a>.
         </p>

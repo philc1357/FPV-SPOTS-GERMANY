@@ -10,6 +10,23 @@ if (empty($_SESSION['csrf_token'])) {
 $isLoggedIn = isset($_SESSION['user_id']);
 $username   = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');
 $csrfToken  = $_SESSION['csrf_token'];
+
+/* ============================================================
+   Widerspruch gegen die Reichweitenmessung (Abschnitt 16e)
+
+   Der Schalter unten im Abschnitt zeigt den aktuellen Zustand.
+   Quelle ist allein das Cookie – analytics.php wertet dasselbe
+   aus, wenn es entscheidet, ob ueberhaupt ein Tracking-Tag
+   gerendert wird. Gesetzt wird es in
+   private/php/legal/analytics_optout.php.
+   ============================================================ */
+require_once __DIR__ . '/../../../private/php/core/analytics.php';
+
+$analyticsOptOut = !empty($_COOKIE[UMAMI_OPTOUT_COOKIE]);
+
+// Rueckmeldung nach dem Umschalten (PRG) – einmalig anzeigen.
+$analyticsFlash = $_SESSION['analytics_flash'] ?? '';
+unset($_SESSION['analytics_flash']);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -283,7 +300,7 @@ $csrfToken  = $_SESSION['csrf_token'];
             <!-- 15. Cookies und Sessions -->
             <section aria-labelledby="cookies">
                 <h2 id="cookies" class="h5 mt-4">15. Cookies, Session-Verwaltung und lokaler Speicher</h2>
-                <p>Unsere Website verwendet ausschließlich technisch notwendige Cookies und Präferenz-Cookies. Analyse-, Tracking- oder Marketing-Cookies werden <strong>nicht</strong> eingesetzt.</p>
+                <p>Unsere Website verwendet ausschließlich technisch notwendige Cookies und Präferenz-Cookies. Analyse-, Tracking- oder Marketing-Cookies werden <strong>nicht</strong> eingesetzt. Die in Abschnitt <a href="#reichweitenmessung" class="text-white">16e</a> beschriebene Reichweitenmessung arbeitet <strong>cookiefrei</strong> und setzt keine Kennung in Ihrem Browser; lediglich Ihr Widerspruch dagegen wird als Cookie festgehalten (siehe unten).</p>
 
                 <h3 class="h6 mt-3">Sitzungs- und Authentifizierungs-Cookies</h3>
                 <ul>
@@ -296,6 +313,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <ul>
                     <li><strong><code>cookie_consent</code>:</strong> Speichert die Bestätigung des Cookie-Hinweises. Gültig für 30&nbsp;Tage.</li>
                     <li><strong><code>location_consent</code>:</strong> Speichert Ihre Entscheidung zur Standortfreigabe (Zustimmung oder Ablehnung). Gültig für 365&nbsp;Tage. Es werden keine Standortkoordinaten im Cookie gespeichert.</li>
+                    <li><strong><code>analytics_optout</code>:</strong> Wird <strong>nur</strong> gesetzt, wenn Sie der Reichweitenmessung nach Abschnitt <a href="#reichweitenmessung" class="text-white">16e</a> widersprochen haben. Enthält ausschließlich den Vermerk des Widerspruchs. Gültig für 365&nbsp;Tage. HttpOnly, Secure, SameSite=Lax.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Präferenz-Cookies</h3>
@@ -381,6 +399,62 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Unterstützung bei der Planung eines Flugs am jeweiligen Spot.</p>
                 <p><strong>Hinweis:</strong> Die angezeigten Werte sind Messwerte und Modellprognosen. Sie enthalten <strong>keine Bewertung</strong>, ob ein Flug möglich, sinnvoll oder zulässig ist; diese Entscheidung treffen ausschließlich Sie als Pilot vor Ort.</p>
             </section>
+
+            <!-- 16e. Reichweitenmessung (Umami)
+                 Nummerierung als Unterpunkt von 16 wie bei 16b–16d:
+                 haelt die Sprungmarken der Folgeabschnitte stabil und
+                 stellt den Abschnitt sachlich zu den uebrigen
+                 Drittanbieter-Themen. -->
+            <section aria-labelledby="reichweitenmessung">
+                <h2 id="reichweitenmessung" class="h5 mt-4">16e. Reichweitenmessung mit Umami</h2>
+                <p>Um zu verstehen, welche Bereiche der Website genutzt werden und wo sie hakt, führen wir eine bewusst datensparsame Reichweitenmessung mit der Software <strong>Umami</strong> durch. Sie ersetzt keine Werbe- oder Marketinganalyse: es findet <strong>kein</strong> geräteübergreifendes Wiedererkennen, <strong>kein</strong> Profiling und <strong>keine</strong> Weitergabe zu Werbezwecken statt.</p>
+
+                <p><strong>Erhobene Daten:</strong> die aufgerufene Seite (ohne Parameter hinter dem Fragezeichen), die Verweisquelle, Bildschirmgröße, Spracheinstellung des Browsers, die aus dem User-Agent abgeleitete Browser-, Betriebssystem- und Gerätekategorie sowie das Land. Zusätzlich werden einzelne Ereignisse gezählt, etwa das Öffnen eines Spots oder das Einblenden der Geozonen. Diese Ereignisse enthalten ausschließlich Kategorien und öffentliche Spot-Nummern – <strong>keine</strong> Benutzernamen, Nutzer-Kennungen oder Koordinaten.</p>
+
+                <p><strong>Ihre IP-Adresse erreicht den Anbieter nicht:</strong> Wie bei den Geozonen (16c) und den Wetterdaten (16d) läuft die Messung über unseren eigenen Server. Sowohl das Mess-Skript als auch der Datenendpunkt liegen unter <code>fpv-spots-germany.de</code>; Ihr Browser baut <strong>keine</strong> Verbindung zu Umami auf. Ihre IP-Adresse wird auf unserem Server gekürzt (das letzte Zahlenfeld bei IPv4 bzw. der Geräteteil bei IPv6 wird auf null gesetzt), bevor sie zur Landeszuordnung weitergereicht wird.</p>
+
+                <p><strong>Keine Cookies:</strong> Die Messung setzt keine Cookies und liest keine Kennungen aus Ihrem Endgerät. Ein Zugriff auf Informationen in Ihrem Endgerät im Sinne des § 25 TDDDG findet daher nicht statt. Wiederkehrende Aufrufe innerhalb eines Tages werden über einen Hashwert zusammengefasst, der täglich wechselt und sich nicht zurückrechnen lässt.</p>
+
+                <p><strong>Empfänger:</strong> Umami Software, Inc., 2035 Sunset Lake Road, Suite B-2, Newark, DE 19702, USA. Der Anbieter verarbeitet die Daten als Auftragsverarbeiter nach Art. 28 DSGVO. Der Auftragsverarbeitungsvertrag gilt nach den Angaben des Anbieters automatisch mit der Nutzung des Kontos und ist ohne Unterschrift bindend; die Fassung vom 02.08.2026 ist unter <a href="https://umami.is/dpa" target="_blank" rel="noopener noreferrer" class="text-white">umami.is/dpa</a> abrufbar. Er enthält die EU-Standardvertragsklauseln (Modul&nbsp;Zwei, Verantwortlicher an Auftragsverarbeiter, irisches Recht).</p>
+
+                <p><strong>Speicherort und Drittlandbezug:</strong> Die Messdaten werden in der <strong>EU-Region</strong> des Anbieters gespeichert. Da das Unternehmen seinen Sitz in den USA hat und Unterauftragsverarbeiter in Drittländern einsetzt, ist ein Drittlandbezug gleichwohl zu benennen; Grundlage der Übermittlung sind die genannten Standardvertragsklauseln. Als Unterauftragsverarbeiter nennt der Anbieter unter <a href="https://umami.is/subprocessors" target="_blank" rel="noopener noreferrer" class="text-white">umami.is/subprocessors</a> Amazon Web Services, Cloudflare, Vercel und ClickHouse (USA) sowie Hetzner (EU).</p>
+
+                <p><strong>Speicherdauer:</strong> Die Messdaten werden beim Anbieter <strong>6&nbsp;Monate</strong> aufbewahrt und danach gelöscht.</p>
+
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) an einer datensparsamen Auswertung der Nutzung, um die Website zu verbessern und Fehler zu erkennen. Ihre gegenläufigen Interessen haben wir berücksichtigt, indem die Messung cookiefrei arbeitet, ohne Ihre IP-Adresse an den Anbieter auskommt und keine personenbezogenen Ereignisdaten erhebt.</p>
+
+                <p><strong>Widerspruchsrecht (Art. 21 DSGVO):</strong> Sie können der Messung jederzeit mit Wirkung für die Zukunft widersprechen. Nach dem Widerspruch wird das Mess-Skript <strong>gar nicht mehr an Ihren Browser ausgeliefert</strong>; es entsteht kein einziger Messvorgang mehr. Gespeichert wird dafür lediglich das Cookie <code>analytics_optout</code> in Ihrem Browser (365&nbsp;Tage, HttpOnly, Secure, SameSite=Lax) – es enthält nur den Vermerk des Widerspruchs. Löschen Sie Ihre Cookies, müssen Sie den Widerspruch erneut erklären.</p>
+
+                <p>Unabhängig davon respektieren wir die Einstellungen <strong>„Do Not Track"</strong> und <strong>„Global Privacy Control"</strong> Ihres Browsers: Ist eine davon aktiv, findet keine Messung statt, ohne dass Sie hier etwas tun müssen.</p>
+
+                <?php if ($analyticsFlash !== ''): ?>
+                    <div class="alert <?= $analyticsFlash === 'aus' ? 'alert-success' : 'alert-info' ?> py-2 px-3 small" role="status">
+                        <?= $analyticsFlash === 'aus'
+                            ? 'Ihr Widerspruch wurde gespeichert. Es findet keine Reichweitenmessung mehr statt.'
+                            : 'Ihr Widerspruch wurde zurückgenommen. Die Reichweitenmessung ist wieder aktiv.' ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="card bg-dark text-light p-3 mt-3">
+                    <p class="mb-2">
+                        <strong>Aktueller Stand:</strong>
+                        <?php if ($analyticsOptOut): ?>
+                            <span class="badge text-bg-success">Widerspruch aktiv – es wird nicht gemessen</span>
+                        <?php else: ?>
+                            <span class="badge text-bg-secondary">Kein Widerspruch – die Messung ist aktiv</span>
+                        <?php endif; ?>
+                    </p>
+                    <form method="POST" action="/private/php/legal/analytics_optout.php" class="mb-0">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="modus" value="<?= $analyticsOptOut ? 'ein' : 'aus' ?>">
+                        <button type="submit" class="btn btn-sm <?= $analyticsOptOut ? 'btn-outline-light' : 'btn-warning' ?>">
+                            <i class="bi <?= $analyticsOptOut ? 'bi-arrow-counterclockwise' : 'bi-slash-circle' ?> me-1" aria-hidden="true"></i>
+                            <?= $analyticsOptOut ? 'Widerspruch zurücknehmen' : 'Der Reichweitenmessung widersprechen' ?>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
             <!-- 17. Standortfreigabe -->
             <section aria-labelledby="standort">
                 <h2 id="standort" class="h5 mt-4">17. Standortfreigabe (Geolocation)</h2>

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /terms_accept.php');
@@ -31,5 +32,5 @@ $_SESSION['terms_ok'] = true;
 $logStmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'TERMS_ACCEPTED', ?)");
 $logStmt->execute([(int)$_SESSION['user_id'], client_ip()]);
 
-header('Location: /');
+header('Location: ' . umami_prg_marker('/', 'tos'));
 exit;

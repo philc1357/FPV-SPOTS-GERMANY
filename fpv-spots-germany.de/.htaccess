@@ -149,6 +149,12 @@ RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9_-]+\.php)$ [NC]
 RewriteCond %{DOCUMENT_ROOT}/public/php/legal/%1 -f
 RewriteRule ^([a-zA-Z0-9_-]+\.php)$ public/php/legal/$1 [L,QSA]
 
+# Umami-Sammelendpunkt: /api/send → public/php/api/umami_send.php
+# Eigene Regel, weil die allgemeine API-Regel unten eine .php-Endung
+# verlangt. Der Pfad muss genau so heißen: der Tracker hängt /api/send
+# selbst an data-host-url an, das ist im Script fest verdrahtet.
+RewriteRule ^api/send$ public/php/api/umami_send.php [L]
+
 # Clean URL: /api/X.php → public/php/api/X.php (intern)
 # Sonderfall gegenüber den Regeln oben: bei der API ist der Ordnername Teil der
 # öffentlichen URL, damit /api/spots.php nicht mit /spots.php kollidiert.

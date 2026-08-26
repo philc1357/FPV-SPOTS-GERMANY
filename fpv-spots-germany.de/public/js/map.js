@@ -19,6 +19,22 @@ const CSRF_TOKEN    = document.querySelector('meta[name="app-csrf-token"]').cont
 let PILOT_CLASS = (document.querySelector('meta[name="app-pilot-class"]') || {}).content || 'a3';
 
 // ---------------------------------------------------------------
+// Reichweitenmessung
+//
+// window.fpvTrack stammt aus public/js/analytics.js und existiert
+// nur, wenn ueberhaupt gemessen wird – bei Opt-out, DNT oder
+// Admin-Session rendert der Server das Script gar nicht erst.
+// Deshalb hier ein Wrapper statt direkter Aufrufe; die Karte darf
+// nicht davon abhaengen, ob Tracking aktiv ist.
+//
+// Es werden ausschliesslich Kategorien und oeffentliche Spot-IDs
+// gemeldet, nie Koordinaten oder Nutzerdaten.
+// ---------------------------------------------------------------
+function track(name, data) {
+    if (typeof window.fpvTrack === 'function') window.fpvTrack(name, data);
+}
+
+// ---------------------------------------------------------------
 // Karte initialisieren – Mittelpunkt Deutschland
 // ---------------------------------------------------------------
 const MAP_STATE_KEY   = 'fpv_map_state';
@@ -141,6 +157,7 @@ function selectBaseLayer(name) {
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-pressed', String(isActive));
     });
+    track('karte:layer', { layer: name });
 }
 
 const baseLayerSwitchBox = new BaseLayerSwitch().addTo(map).getContainer();
@@ -208,6 +225,13 @@ map.on('overlayadd overlayremove', () => {
         const active = Object.keys(overlayLayers).filter((name) => map.hasLayer(overlayLayers[name]));
         sessionStorage.setItem(OVERLAY_STATE_KEY, JSON.stringify(active));
     } catch (_) {}
+});
+
+// Nur das Einschalten melden: interessant ist, welches Geozonen-Bundel
+// ueberhaupt gebraucht wird. Das Ausschalten verdoppelt nur die Ereignisse
+// und damit den Verbrauch am Monatskontingent.
+map.on('overlayadd', (e) => {
+    track('karte:geozonen', { bundel: e.name });
 });
 
 // Faellt die DFS aus, antwortet der Proxy mit einer transparenten Kachel und
@@ -411,6 +435,17 @@ document.getElementById('spotDetailOffcanvas')
 // ---------------------------------------------------------------
 async function openSpotDetail(spot) {
     _activeSpot = spot;
+
+    // Kategorien und oeffentliche Spot-ID, bewusst ohne Koordinaten:
+    // die Position eines Spots ist zwar oeffentlich, gehoert aber nicht
+    // in die Ereignisdaten (siehe Datenschutzerklaerung).
+    track('spot:detail', {
+        spot:            spot.id,
+        typ:             spot.spot_type,
+        schwierigkeit:   spot.difficulty,
+        groesse:         spot.copter_size || 'unbekannt',
+        ansicht:         'karte',
+    });
 
     // Schwierigkeits-Farbe für Badge
     const diffColor = {
@@ -755,10 +790,26 @@ function saveLegendToSession() {
     }).catch(() => {});
 }
 
+// Der Filter wird beim Durchklicken der Legende schnell hintereinander
+// mehrfach ausgeloest. Ein Ereignis pro Haken wuerde das Monatskontingent
+// unnoetig belasten und misst ausserdem nur Zwischenstaende – deshalb erst
+// melden, wenn eine Sekunde lang nichts mehr passiert ist.
+let _filterTrackTimer = null;
+
+function trackFilterChange() {
+    clearTimeout(_filterTrackTimer);
+    _filterTrackTimer = setTimeout(() => {
+        const zahl = (dim) =>
+            document.querySelectorAll('.legend-cb[data-filter="' + dim + '"]:checked').length;
+        track('karte:filter', { typen: zahl('type'), schwierigkeit: zahl('diff'), groessen: zahl('size') });
+    }, 1000);
+}
+
 document.querySelectorAll('.legend-cb').forEach(cb => {
     cb.addEventListener('change', () => {
         filterMarkersByType();
         saveLegendToSession();
+        trackFilterChange();
     });
 });
 
@@ -859,12 +910,14 @@ function initLocationRequest() {
             setLocationCookie('granted');
             modal.hide();
             btn.removeEventListener('click', openModal);
+            track('karte:standort', { entscheidung: 'erlaubt' });
             showUserLocation();
         }, { once: true });
 
         document.getElementById('locationDenyBtn').addEventListener('click', () => {
             setLocationCookie('denied');
             modal.hide();
+            track('karte:standort', { entscheidung: 'abgelehnt' });
         }, { once: true });
 
         modal.show();

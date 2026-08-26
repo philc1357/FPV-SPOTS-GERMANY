@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /public/php/kritik.php');
@@ -29,12 +30,18 @@ if (strlen($body) < 3 || strlen($body) > 1000) {
     exit;
 }
 
+// Nur ein tatsaechlich gespeicherter Eintrag soll spaeter ein
+// Ereignis ausloesen – der Redirect ist im Fehlerfall derselbe.
+$erfolg = false;
+
 try {
     $stmt = $pdo->prepare("INSERT INTO suggestions (user_id, body) VALUES (?, ?)");
     $stmt->execute([$userId, $body]);
+    $erfolg = true;
 } catch (PDOException $e) {
     error_log('suggestion_submit.php error: ' . $e->getMessage());
 }
 
-header('Location: /public/php/kritik.php');
+$ziel = '/public/php/kritik.php';
+header('Location: ' . ($erfolg ? umami_prg_marker($ziel, 'vorschlag') : $ziel));
 exit;

@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
+require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /');
@@ -30,6 +31,10 @@ if ($spotId <= 0 || strlen($body) < 3 || strlen($body) > 1000) {
     exit;
 }
 
+// Nur ein tatsaechlich gespeicherter Eintrag soll spaeter ein
+// Ereignis ausloesen – der Redirect ist im Fehlerfall derselbe.
+$erfolg = false;
+
 try {
     $stmt = $pdo->prepare("INSERT INTO comments (spot_id, user_id, body) VALUES (?, ?, ?)");
     $stmt->execute([$spotId, $userId, $body]);
@@ -45,9 +50,11 @@ try {
         );
         $nStmt->execute([$ownerId, $commentId]);
     }
+    $erfolg = true;
 } catch (PDOException $e) {
     error_log('comment_submit.php error: ' . $e->getMessage());
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId");
+$ziel = "/public/php/spot_detail.php?id=$spotId";
+header('Location: ' . ($erfolg ? umami_prg_marker($ziel, 'kommentar') : $ziel));
 exit;
