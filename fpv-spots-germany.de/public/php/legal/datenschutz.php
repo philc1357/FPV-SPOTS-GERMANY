@@ -51,6 +51,48 @@ unset($_SESSION['analytics_flash']);
         <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
             <h1 class="h3 mb-4">Datenschutzerklärung</h1>
 
+            <!-- Inhaltsverzeichnis: Sprungmarken zu allen Abschnitten -->
+            <nav aria-label="Inhaltsverzeichnis" class="mb-4">
+                <p class="fw-bold mb-2">Inhaltsverzeichnis</p>
+                <ol class="ps-3">
+                    <li><a href="#verantwortlicher" class="text-white">Verantwortlicher</a></li>
+                    <li><a href="#uebersicht" class="text-white">Übersicht der Verarbeitungen</a></li>
+                    <li><a href="#rechtsgrundlagen" class="text-white">Maßgebliche Rechtsgrundlagen</a></li>
+                    <li><a href="#registrierung" class="text-white">Registrierung und Benutzerkonto</a></li>
+                    <li><a href="#remember-me" class="text-white">„Eingeloggt bleiben"-Funktion</a></li>
+                    <li><a href="#benutzerprofil" class="text-white">Öffentliches Benutzerprofil</a></li>
+                    <li><a href="#nutzerinhalte" class="text-white">Nutzergenerierte Inhalte</a></li>
+                    <li><a href="#direktnachrichten" class="text-white">Direktnachrichten</a></li>
+                    <li><a href="#verbesserungsvorschlaege" class="text-white">Verbesserungsvorschläge</a></li>
+                    <li><a href="#neuigkeiten" class="text-white">Community-Aktivitätsfeed („Neuigkeiten")</a></li>
+                    <li><a href="#forum" class="text-white">Forum</a></li>
+                    <li><a href="#spot-meldungen" class="text-white">Spot-Meldungen</a></li>
+                    <li><a href="#kontaktformular" class="text-white">Kontaktformular</a></li>
+                    <li><a href="#passwort-reset" class="text-white">Passwort zurücksetzen</a></li>
+                    <li><a href="#email-versand" class="text-white">E-Mail-Versand (SMTP-Dienstleister)</a></li>
+                    <li><a href="#protokollierung" class="text-white">Sicherheitsprotokollierung (Audit-Logs)</a></li>
+                    <li><a href="#cookies" class="text-white">Cookies, Session-Verwaltung und lokaler Speicher</a></li>
+                    <li>
+                        <a href="#kartendienst" class="text-white">Kartendienste</a>
+                        <ol type="a" class="ps-3">
+                            <li><a href="#youtube" class="text-white">YouTube-Videoeinbindung (Zwei-Klick-Lösung)</a></li>
+                            <li><a href="#geozonen-datenschutz" class="text-white">Geozonen für Drohnen (DIPUL)</a></li>
+                            <li><a href="#wetter-datenschutz" class="text-white">Wetterdaten (Open-Meteo, NOAA)</a></li>
+                            <li><a href="#reichweitenmessung" class="text-white">Reichweitenmessung mit Umami</a></li>
+                        </ol>
+                    </li>
+                    <li><a href="#standort" class="text-white">Standortfreigabe (Geolocation)</a></li>
+                    <li><a href="#cdn" class="text-white">Einbindung externer Ressourcen (CDN)</a></li>
+                    <li><a href="#pwa" class="text-white">Progressive Web App (PWA) und Service Worker</a></li>
+                    <li><a href="#betroffenenrechte" class="text-white">Ihre Rechte als betroffene Person</a></li>
+                    <li><a href="#datensicherheit" class="text-white">Datensicherheit</a></li>
+                    <li>
+                        <a href="#open-source" class="text-white">Open-Source-Veröffentlichung des Quellcodes</a>
+                    </li>
+                    <li><a href="#aktualitaet" class="text-white">Aktualität und Änderung dieser Datenschutzerklärung</a></li>
+                </ol>
+            </nav>
+
             <!-- 1. Verantwortlicher -->
             <section aria-labelledby="verantwortlicher">
                 <h2 id="verantwortlicher" class="h5">1. Verantwortlicher</h2>

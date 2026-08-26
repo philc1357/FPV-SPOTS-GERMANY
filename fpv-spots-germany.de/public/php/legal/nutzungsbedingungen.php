@@ -34,6 +34,22 @@ $csrfToken  = $_SESSION['csrf_token'];
         <h1 class="h3 mb-4">Nutzungsbedingungen &amp; Haftungsausschluss</h1>
         <p class="text-white-50 small">Stand: Mai 2026</p>
 
+        <!-- Inhaltsverzeichnis: Sprungmarken zu allen Abschnitten -->
+        <nav aria-label="Inhaltsverzeichnis" class="mb-4">
+            <p class="fw-bold mb-2">Inhaltsverzeichnis</p>
+            <ol class="ps-3">
+                <li><a href="#zweck" class="text-white">Zweck der Plattform</a></li>
+                <li><a href="#eigenverantwortung" class="text-white">Eigenverantwortung der Nutzer</a></li>
+                <li><a href="#haftung-inhalte" class="text-white">Haftungsausschluss für Inhalte</a></li>
+                <li><a href="#verhaltensregeln" class="text-white">Verhaltensregeln für Spot-Einreicher</a></li>
+                <li><a href="#forum-regeln" class="text-white">Verhaltensregeln im Forum</a></li>
+                <li><a href="#oeffentliche-inhalte" class="text-white">Öffentliche Sichtbarkeit von Beiträgen</a></li>
+                <li><a href="#open-source" class="text-white">Open Source</a></li>
+                <li><a href="#haftung-links" class="text-white">Haftung für externe Links</a></li>
+                <li><a href="#aenderungen" class="text-white">Änderungsvorbehalt</a></li>
+            </ol>
+        </nav>
+
         <section aria-labelledby="zweck" class="mb-4">
             <h2 id="zweck" class="h5">1. Zweck der Plattform</h2>
             <p>

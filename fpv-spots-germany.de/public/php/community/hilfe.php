@@ -37,6 +37,21 @@ $csrfToken  = $_SESSION['csrf_token'];
                 zur Bedienung wissen musst.
             </p>
 
+            <!-- Inhaltsverzeichnis: Sprungmarken zu allen Abschnitten -->
+            <nav aria-label="Inhaltsverzeichnis" class="mb-4">
+                <p class="fw-bold mb-2">Inhaltsverzeichnis</p>
+                <ol class="ps-3">
+                    <li><a href="#karte" class="text-white">Die Karte</a></li>
+                    <li><a href="#spot-detail" class="text-white">Die Spot-Seite</a></li>
+                    <li><a href="#spot-eintragen" class="text-white">Eigenen Spot eintragen</a></li>
+                    <li><a href="#konto" class="text-white">Konto &amp; Dashboard</a></li>
+                    <li><a href="#nachrichten" class="text-white">Nachrichten &amp; Benachrichtigungen</a></li>
+                    <li><a href="#community" class="text-white">Community</a></li>
+                    <li><a href="#app" class="text-white">Als App installieren</a></li>
+                    <li><a href="#verantwortung" class="text-white">Wichtig: deine Verantwortung</a></li>
+                </ol>
+            </nav>
+
             <!-- ============ Karte & Filter ============ -->
             <section aria-labelledby="karte" class="mb-4">
                 <h2 id="karte" class="h5"><i class="bi bi-map-fill me-1"></i> Die Karte</h2>

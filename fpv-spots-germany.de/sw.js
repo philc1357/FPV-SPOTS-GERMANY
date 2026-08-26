@@ -1,13 +1,13 @@
 // =============================================================
 // FPV Spots Germany – Service Worker
 // =============================================================
-const CACHE_VERSION = 'v20';
+const CACHE_VERSION = 'v21';
 
 // Muss mit ASSET_VERSION in private/php/core/assets.php uebereinstimmen:
 // die Seiten fordern CSS/JS als /pfad.css?v=N an, und caches.match()
 // vergleicht die Query mit. Ohne den Parameter liefe der Pre-Cache ins
 // Leere und offline fehlten genau diese Dateien.
-const ASSET_VERSION = '20';
+const ASSET_VERSION = '21';
 const v = (path) => path + '?v=' + ASSET_VERSION;
 const STATIC_CACHE  = 'fpv-static-' + CACHE_VERSION;
 const TILES_CACHE   = 'fpv-tiles-'  + CACHE_VERSION;
