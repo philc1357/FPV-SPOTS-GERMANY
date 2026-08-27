@@ -120,9 +120,15 @@ body.spot-placing #mapLegend { display: none; }
     cursor: pointer;
 }
 
-/* Layer-Wechsler: über der Attribution-Zeile */
+/* Layer-Wechsler: über der Attribution-Zeile.
+   z-index noetig, weil Leaflet der Attribution (leaflet-bottom.leaflet-right)
+   denselben Stacking-Kontext gibt und sie als spaeter im DOM angehaengtes
+   Element bei Gleichstand oben liegt. Auf schmalen Viewports wird die
+   Attribution mehrzeilig und wuechst dann ueber die Icon-Leiste. */
 .leaflet-bottom.leaflet-left .leaflet-control-layers,
 .leaflet-bottom.leaflet-left .layer-switch {
+    position: relative;
+    z-index: 1001;
     margin-bottom: 30px;
 }
 
