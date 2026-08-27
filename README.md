@@ -66,7 +66,7 @@ Sammel-Endpunkt vergleicht ihn gegen den Hostnamen im Messdatensatz.
 ### 4. Datenbank einrichten
 
 ```bash
-mysql -u root -p fpv_spots < database.sql
+mysql -u root -p fpv_spots < database_full.sql
 ```
 
 ### 5. Apache-Webroot
@@ -313,12 +313,12 @@ Direkte Aufrufe der internen Pfade (z. B. `/public/php/auth/login.php`) werden p
 
 ## Datenbankschema
 
-Das Schema (`database.sql`) enthält folgende Tabellen:
+Das Schema (`database_raw.sql`, mit Daten `database_full.sql`) enthält folgende Tabellen:
 
 | Tabelle | Beschreibung |
 |---------|-------------|
 | `users` | Benutzerkonten (username, email, password_hash, bio, admin-Flag, private-Flag, last_seen, terms_accepted_at) |
-| `spots` | FPV-Spots mit Koordinaten, Typ, Schwierigkeit, Coptergröße und Parkinformationen |
+| `spots` | FPV-Spots mit Koordinaten, Typ, Schwierigkeit, Coptergröße, Parkinformationen und automatisch ermitteltem `bundesland` |
 | `comments` | Kommentare zu Spots |
 | `ratings` | Sternebewertungen (1 Bewertung pro Nutzer pro Spot) |
 | `spot_images` | Hochgeladene Bilder, verknüpft mit Spot und Nutzer |
@@ -522,6 +522,54 @@ Es gibt bewusst **keine grüne Freigabe**. Die günstigste Aussage lautet „kei
 unseren Daten gefunden – bitte trotzdem auf dipul.de und im NOTAM prüfen". `zones_checked_at
 IS NULL` wird als „noch nicht geprüft" angezeigt, niemals als Entwarnung: eine
 Fehlentwarnung ist das einzige echte Haftungsrisiko dieses Features.
+
+---
+
+## Bundesland je Spot
+
+Jeder Spot bekommt beim Anlegen automatisch sein Bundesland zugeordnet – Grundlage für
+Landingpages je Bundesland. Reverse-Geocoding über **Nominatim** (OpenStreetMap, ODbL),
+dieselbe Datenbasis wie die Kartenkacheln, kein API-Key nötig.
+
+Modul: `private/php/core/bundesland.php`. Eingehängt in beide Wege, auf denen ein Spot
+entsteht: `private/php/spots/spot_submit.php` (Formular) und `public/php/api/spots.php`
+(`POST /api/spots.php`).
+
+**Warum der ISO-Code und nicht `address.state`:** Für die Stadtstaaten **Berlin und
+Hamburg** liefert Nominatim kein `state`-Feld, nur `city`. Ausgewertet wird deshalb
+`ISO3166-2-lvl4` (`DE-BE`, `DE-HH`, …) gegen eine feste 16er-Whitelist; `address.state`
+ist nur noch Rückfallebene. Vor jedem Request filtert die Deutschland-Bounding-Box aus
+`geozones.php` Auslandskoordinaten heraus.
+
+Drei Zustände, analog zum Zonencheck:
+
+| Zustand | Bedeutung |
+|---|---|
+| `bundesland` gesetzt | Zugeordnet |
+| `bundesland IS NULL`, `bundesland_checked_at` gesetzt | Geprüft, liegt außerhalb Deutschlands |
+| beide `NULL` | Nie geprüft – Nominatim war beim Anlegen nicht erreichbar |
+
+### Wartung
+
+```bash
+# Bundesland für Spots nachtragen, bei denen es noch fehlt
+docker compose exec web php fpv-spots-germany.de/private/php/maintenance/refresh_spot_bundesland.php
+docker compose exec web php fpv-spots-germany.de/private/php/maintenance/refresh_spot_bundesland.php --limit=5
+```
+
+Bewusst **kein Cron**: Anders als DIPUL-Zonen wechselt ein Spot nie das Bundesland – das
+Skript ist ein Nachtrag, keine Auffrischung. Pro Lauf 100 Spots (max. 200 per `--limit`),
+mit 1,1 s Pause dazwischen, weil Nominatims Nutzungsrichtlinie höchstens 1 Anfrage pro
+Sekunde erlaubt und einen identifizierenden User-Agent mit Kontakt verlangt.
+
+### Schema-Migration
+
+```sql
+ALTER TABLE `spots`
+  ADD COLUMN `bundesland` varchar(30) DEFAULT NULL AFTER `zones_checked_at`,
+  ADD COLUMN `bundesland_checked_at` datetime DEFAULT NULL AFTER `bundesland`,
+  ADD KEY `idx_spots_bundesland` (`bundesland`,`is_private`);
+```
 
 ---
 

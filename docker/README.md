@@ -11,7 +11,7 @@ docker compose up -d --build
 
 Beim ersten Start passieren zwei Dinge automatisch:
 
-1. `database.sql` wird in die Datenbank `d046b4e2` importiert.
+1. `database_full.sql` (Struktur + Daten) wird in die Datenbank `d046b4e2` importiert.
 2. Es wird ein selbstsigniertes Zertifikat nach `docker/certs/` erzeugt.
 
 ## URLs
@@ -67,13 +67,13 @@ docker compose down -v && docker compose up -d
 Alternativ ohne Volume-Reset:
 
 ```bash
-docker compose exec -T db mariadb -u root -proot d046b4e2 < database.sql
+docker compose exec -T db mariadb -u root -proot d046b4e2 < database_full.sql
 ```
 
 ### Neuen Dump ziehen
 
 ```bash
-docker compose exec db mariadb-dump -u root -proot d046b4e2 > database.sql
+docker compose exec db mariadb-dump -u root -proot d046b4e2 > database_full.sql
 ```
 
 ## Bekannte Einschränkung: Mailversand
@@ -106,7 +106,7 @@ docker/
 Gemountet wird der **Projekt-Root** nach `/var/www/html`, `DocumentRoot` ist das
 Unterverzeichnis `fpv-spots-germany.de/`. Das ist nötig, weil `db.php` und `mailer.php`
 `vendor/autoload.php` und die `.env` eine Ebene über dem Webroot erwarten – und es sorgt
-zugleich dafür, dass `vendor/`, `.env` und `database.sql` nicht über den Webserver
+zugleich dafür, dass `vendor/`, `.env` und die SQL-Dumps nicht über den Webserver
 erreichbar sind.
 
 Apache läuft mit UID/GID 1000, damit hochgeladene Dateien in
