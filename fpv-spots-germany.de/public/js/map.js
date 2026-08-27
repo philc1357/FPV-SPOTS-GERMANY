@@ -787,6 +787,7 @@ function saveLegendToSession() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ types, diffs, sizes }),
+        keepalive: true,
     }).catch(() => {});
 }
 
