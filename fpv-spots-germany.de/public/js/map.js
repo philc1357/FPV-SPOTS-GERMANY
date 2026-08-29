@@ -779,7 +779,27 @@ function filterMarkersByType() {
     }
 }
 
+// Wird bei jedem einzelnen Checkbox-Klick ausgeloest. Mehrere schnell
+// hintereinander gesendete Requests koennen in unbestimmter Reihenfolge
+// beim Server ankommen; ein AbortController hilft hier NICHT, weil Chrome
+// eine bereits als keepalive markierte Anfrage trotz abort() weiter an den
+// Server sendet und deren Set-Cookie trotzdem uebernimmt. Deshalb wird
+// stattdessen debounct: waehrend eines Bursts wird nur EIN Request nach
+// kurzer Ruhezeit verschickt. Damit ein Klick direkt vor dem Verlassen der
+// Seite nicht verloren geht, wird ein noch ausstehender Request beim
+// Verstecken der Seite sofort (mit keepalive) nachgeholt.
+let _legendSaveTimer = null;
+let _legendSavePending = false;
+
 function saveLegendToSession() {
+    _legendSavePending = true;
+    clearTimeout(_legendSaveTimer);
+    _legendSaveTimer = setTimeout(sendLegendToSession, 300);
+}
+
+function sendLegendToSession() {
+    clearTimeout(_legendSaveTimer);
+    _legendSavePending = false;
     const types = Array.from(document.querySelectorAll('.legend-cb[data-filter="type"]:checked')).map(cb => cb.value);
     const diffs = Array.from(document.querySelectorAll('.legend-cb[data-filter="diff"]:checked')).map(cb => cb.value);
     const sizes = Array.from(document.querySelectorAll('.legend-cb[data-filter="size"]:checked')).map(cb => cb.value);
@@ -790,6 +810,12 @@ function saveLegendToSession() {
         keepalive: true,
     }).catch(() => {});
 }
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && _legendSavePending) {
+        sendLegendToSession();
+    }
+});
 
 // Der Filter wird beim Durchklicken der Legende schnell hintereinander
 // mehrfach ausgeloest. Ein Ereignis pro Haken wuerde das Monatskontingent

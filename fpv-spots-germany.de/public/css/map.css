@@ -121,14 +121,20 @@ body.spot-placing #mapLegend { display: none; }
 }
 
 /* Layer-Wechsler: über der Attribution-Zeile.
-   z-index noetig, weil Leaflet der Attribution (leaflet-bottom.leaflet-right)
-   denselben Stacking-Kontext gibt und sie als spaeter im DOM angehaengtes
-   Element bei Gleichstand oben liegt. Auf schmalen Viewports wird die
-   Attribution mehrzeilig und wuechst dann ueber die Icon-Leiste. */
+   z-index auf dem CONTAINER noetig, nicht auf den Kindern: Leaflet gibt
+   leaflet-bottom.leaflet-left und leaflet-bottom.leaflet-right je einen
+   eigenen Stacking-Kontext (beide z-index:1000). Ein z-index auf einem
+   Kindelement wirkt nur innerhalb seines eigenen Elternkontexts und hat
+   keinen Einfluss auf den Vergleich zwischen den beiden Containern - dort
+   entscheidet bei Gleichstand die DOM-Reihenfolge, und die Attribution
+   liegt spaeter im DOM. Auf schmalen Viewports wird die Attribution
+   mehrzeilig und wuechst dann ueber die Icon-Leiste. */
+.leaflet-bottom.leaflet-left {
+    z-index: 1001;
+}
 .leaflet-bottom.leaflet-left .leaflet-control-layers,
 .leaflet-bottom.leaflet-left .layer-switch {
     position: relative;
-    z-index: 1001;
     margin-bottom: 30px;
 }
 
