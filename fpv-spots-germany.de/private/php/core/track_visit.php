@@ -10,7 +10,9 @@ declare(strict_types=1);
 // Datenschutz: Es werden AUSSCHLIESSLICH zwei Zähler pro Tag
 // gespeichert – keine IP, kein User-Agent, keine User-ID, kein
 // Zeitstempel einzelner Aufrufe. Die Unterscheidung "neuer
-// Besucher" passiert allein über ein Flag in der PHP-Session.
+// Besucher" passiert über einen Tages-Cookie (fpv_counted_today,
+// verfällt zum Tagesende) statt über die PHP-Session, die beim
+// Browser-Neustart am selben Tag sonst verlorenginge.
 //
 // Robustheit: Das Tracking darf niemals eine Seite kaputtmachen.
 // Jeder Fehler (DB weg, Tabelle fehlt, .env unlesbar) führt zu
@@ -30,21 +32,34 @@ if (!function_exists('track_visit')) {
         // als neuer "Besucher" gezählt – das verfälscht die Statistik.
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
         if ($userAgent === ''
-            || preg_match('/bot|crawl|spider|slurp|preview|monitor|curl|wget|headless/i', $userAgent)
+            || preg_match('/bot|crawl|spider|slurp|preview|monitor|curl|wget|headless|facebookexternalhit|claude-user|inspectiontool|archiver|omgili|externalagent/i', $userAgent)
         ) {
             return;
         }
 
-        // Ohne Session keine Unique-Erkennung möglich → gar nicht zählen
+        // Ohne Session ist der Admin-Ausschluss unten nicht prüfbar → gar
+        // nicht zählen (Unique-Erkennung selbst hängt nur noch am Cookie).
         if (session_status() !== PHP_SESSION_ACTIVE) {
             return;
         }
 
-        // --- Unique-Erkennung über Session-Flag -------------------------
-        // Läuft eine Session über Mitternacht, zählt sie am neuen Tag
-        // korrekt erneut als Besucher.
-        $today  = date('Y-m-d');
-        $isNew  = (($_SESSION['visit_counted_date'] ?? '') === $today) ? 0 : 1;
+        // --- Admin-Ausschluss --------------------------------------------
+        // Wie beim Umami-Tracking (analytics.php::umami_enabled()) soll der
+        // eigene Traffic als eingeloggter Admin nicht in die Statistik
+        // einfließen.
+        if (!empty($_SESSION['is_admin'])) {
+            return;
+        }
+
+        // --- Unique-Erkennung über Tages-Cookie --------------------------
+        // Eigener, von PHPSESSID entkoppelter Cookie mit Ablauf zum
+        // Tagesende: verhindert Doppelzählung bei Browser-Neustarts am
+        // selben Tag (Session-Cookie verfällt sonst beim Schließen), ohne
+        // über den Tag hinaus wiederzuerkennen. Reiner Flag-Wert ("1"),
+        // keine Zufalls-ID – dient nicht der Wiedererkennung einzelner
+        // Personen, nur der Tages-Deduplizierung. Kein Consent nach
+        // TTDSG §25 nötig, da kein mehrtägiges Profil entsteht.
+        $isNew = empty($_COOKIE['fpv_counted_today']) ? 1 : 0;
 
         // --- DB-Verbindung ----------------------------------------------
         // Bewusst NICHT db.php einbinden: dessen Fehlerpfad ruft die()
@@ -83,10 +98,16 @@ if (!function_exists('track_visit')) {
             );
             $stmt->execute([':is_new' => $isNew]);
 
-            // Flag erst nach erfolgreichem Schreiben setzen, damit ein
+            // Cookie erst nach erfolgreichem Schreiben setzen, damit ein
             // Fehlschlag den Besucher nicht dauerhaft "verschluckt".
             if ($isNew === 1) {
-                $_SESSION['visit_counted_date'] = $today;
+                setcookie('fpv_counted_today', '1', [
+                    'expires'  => strtotime('tomorrow'),
+                    'path'     => '/',
+                    'secure'   => true,
+                    'httponly' => true,
+                    'samesite' => 'Lax',
+                ]);
             }
         } catch (PDOException $e) {
             error_log('track_visit.php insert failed: ' . $e->getMessage());

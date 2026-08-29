@@ -358,6 +358,11 @@ unset($_SESSION['analytics_flash']);
                     <li><strong><code>analytics_optout</code>:</strong> Wird <strong>nur</strong> gesetzt, wenn Sie der Reichweitenmessung nach Abschnitt <a href="#reichweitenmessung" class="text-white">16e</a> widersprochen haben. Enthält ausschließlich den Vermerk des Widerspruchs. Gültig für 365&nbsp;Tage. HttpOnly, Secure, SameSite=Lax.</li>
                 </ul>
 
+                <h3 class="h6 mt-3">Statistik-Cookie</h3>
+                <ul>
+                    <li><strong><code>fpv_counted_today</code>:</strong> Dient unserer eigenen, anonymen serverseitigen Besucherzählung (unabhängig von der in Abschnitt <a href="#reichweitenmessung" class="text-white">16e</a> beschriebenen Reichweitenmessung). Verhindert, dass ein Browser-Neustart am selben Tag doppelt als neuer Besuch gezählt wird. Enthält ausschließlich den Wert „1", keine Kennung Ihrer Person oder Ihres Geräts. Läuft <strong>zum Ende des jeweiligen Tages</strong> ab – es entsteht kein mehrtägiges Profil. HttpOnly, Secure, SameSite=Lax.</li>
+                </ul>
+
                 <h3 class="h6 mt-3">Präferenz-Cookies</h3>
                 <ul>
                     <li><strong><code>legend_types</code>, <code>legend_diffs</code> und <code>legend_sizes</code>:</strong> Speichern Ihre gewählten Kartenfilter (Spot-Typen, Schwierigkeitsgrade und Kopter-Größen). Gültig für 30&nbsp;Tage bei aktiver „Eingeloggt bleiben"-Funktion, andernfalls als Session-Cookie.</li>
