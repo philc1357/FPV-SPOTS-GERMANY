@@ -18,11 +18,9 @@ if (empty($_SESSION['csrf_token'])) {
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 
-$isLoggedIn = true;
-$userId     = (int)$_SESSION['user_id'];
-$username   = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');
-$csrfToken  = $_SESSION['csrf_token'];
-$isAdmin    = !empty($_SESSION['is_admin']);
+$userId    = (int)$_SESSION['user_id'];
+$username  = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');$csrfToken = $_SESSION['csrf_token'];
+$isAdmin   = !empty($_SESSION['is_admin']);
 
 // Spot-ID aus URL
 $spotId = (int)($_GET['id'] ?? 0);

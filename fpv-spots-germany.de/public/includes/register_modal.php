@@ -84,23 +84,4 @@ if (!$isLoggedIn):
     }
 })();
 </script>
-
-<!-- ============================================================
-     Reichweitenmessung: Beginn des Registrierungs-Trichters
-
-     Am Modal statt am Link, weil es mehrere Einstiege gibt (Header,
-     "Jetzt registrieren" im Login-Modal, ?showRegister=1). Das
-     Gegenstueck konto:registrierung_ok meldet register_submit.php
-     ueber den PRG-Marker. Aus beiden Zahlen ergibt sich die
-     Abbruchquote – ohne dass ein einzelner Nutzer erkennbar waere.
-============================================================ -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var el = document.getElementById('registerModal');
-    if (!el) return;
-    el.addEventListener('show.bs.modal', function () {
-        if (typeof window.fpvTrack === 'function') window.fpvTrack('konto:registrierung_start');
-    });
-});
-</script>
 <?php endif; ?>

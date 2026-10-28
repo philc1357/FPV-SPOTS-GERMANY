@@ -6,7 +6,6 @@ declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
-require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /public/php/kontakt.php');
@@ -73,5 +72,5 @@ try {
     // E-Mail-Fehler soll den Nutzer nicht blockieren – Anfrage wurde bereits gespeichert
 }
 
-header('Location: ' . umami_prg_marker('/public/php/kontakt_erfolg.php', 'kontakt'));
+header('Location: /public/php/kontakt_erfolg.php');
 exit;

@@ -1284,45 +1284,8 @@ if (starRating) {
         });
     }
 
-    // ── Reichweitenmessung ───────────────────────────────────
-    // Einmal je Seitenaufruf melden, dass der Wetterbereich
-    // geoeffnet wurde – wiederholtes Auf-/Zuklappen zaehlt nicht.
-    // window.fpvTrack fehlt, wenn nicht gemessen wird.
-    var wetterGemeldet = false;
-
-    box.addEventListener('shown.bs.collapse', function () {
-        if (!wetterGemeldet && typeof window.fpvTrack === 'function') {
-            wetterGemeldet = true;
-            window.fpvTrack('karte:wetter', { spot: Number(box.dataset.spotId) });
-        }
-        laden();
-    });
+    box.addEventListener('shown.bs.collapse', laden);
 })();
-</script>
-
-<!-- ============================================================
-     Reichweitenmessung: Aufruf der Detailseite
-
-     Gegenstueck zu track('spot:detail') in map.js, das dasselbe
-     Ereignis fuer das Offcanvas auf der Karte meldet – der Wert
-     von "ansicht" trennt beide Wege im Bericht.
-
-     Gemeldet werden nur Kategorien und die oeffentliche Spot-ID,
-     nie Koordinaten oder Nutzerdaten.
-============================================================ -->
-<script>
-// analytics.js laedt mit defer und ist waehrend des Parsens noch
-// nicht ausgefuehrt – deshalb erst nach DOMContentLoaded melden.
-document.addEventListener('DOMContentLoaded', function () {
-    if (typeof window.fpvTrack !== 'function') return;
-    window.fpvTrack('spot:detail', {
-        spot:          <?= (int)$spotId ?>,
-        typ:           <?= json_encode($spot['spot_type'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-        schwierigkeit: <?= json_encode($spot['difficulty'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-        groesse:       <?= json_encode($spot['copter_size'] !== '' ? $spot['copter_size'] : 'unbekannt', JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-        ansicht:       'seite'
-    });
-});
 </script>
 
 </body>

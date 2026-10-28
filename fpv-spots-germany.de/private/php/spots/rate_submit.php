@@ -6,7 +6,6 @@ declare(strict_types=1);
 require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
-require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /');
@@ -30,10 +29,6 @@ if ($spotId <= 0 || $stars < 1 || $stars > 5) {
     header("Location: /public/php/spot_detail.php?id=$spotId");
     exit;
 }
-
-// Nur ein tatsaechlich gespeicherter Eintrag soll spaeter ein
-// Ereignis ausloesen – der Redirect ist im Fehlerfall derselbe.
-$erfolg = false;
 
 try {
     // Vorab prüfen ob bereits eine Bewertung existiert (nur dann benachrichtigen wenn neu)
@@ -61,11 +56,9 @@ try {
             $nStmt->execute([$ownerId, $ratingId]);
         }
     }
-    $erfolg = true;
 } catch (PDOException $e) {
     error_log('rate_submit.php error: ' . $e->getMessage());
 }
 
-$ziel = "/public/php/spot_detail.php?id=$spotId";
-header('Location: ' . ($erfolg ? umami_prg_marker($ziel, 'bewertung') : $ziel));
+header("Location: /public/php/spot_detail.php?id=$spotId");
 exit;

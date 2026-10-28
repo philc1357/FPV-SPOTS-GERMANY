@@ -5,9 +5,6 @@ declare(strict_types=1);
     //Datenbankverbindungsdatei holen
     require_once __DIR__ . '/../core/db.php';
 
-    // PRG-Marker fuer die Reichweitenmessung
-    require_once __DIR__ . '/../core/analytics.php';
-
     //Formulardaten holen
     $usernameInput = trim($_POST['username'] ?? '');
     $passwordInput = $_POST['password'] ?? '';
@@ -112,7 +109,7 @@ declare(strict_types=1);
                 $redirect = '';
             }
 
-            header('Location: ' . umami_prg_marker($redirect !== '' ? $redirect : '/', 'login'));
+            header('Location: ' . ($redirect !== '' ? $redirect : '/'));
             exit;
 
         } else {

@@ -8,8 +8,6 @@ require_once __DIR__ . "/../../../private/php/core/session_init.php";
 
 // Datenbankverbindung (von public/php/api/ → 3 Ebenen hoch → ressources/ → private/php/)
 require_once __DIR__ . '/../../../private/php/core/db.php';
-require_once __DIR__ . '/../../../private/php/core/geozones.php';
-require_once __DIR__ . '/../../../private/php/core/bundesland.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -130,21 +128,6 @@ if ($method === 'POST') {
         $stmt->execute([$userId, $name, $description, $lat, $lng, $spotType, $difficulty]);
 
         $spotId = (int)$pdo->lastInsertId();
-
-        // -------------------------------------------------------------
-        // DIPUL-Zonencheck und Bundesland fuer den neuen Spot
-        //
-        // Derselbe Block wie in private/php/spots/spot_submit.php: dieser
-        // Endpunkt ist der zweite Weg, auf dem ein Spot entsteht, und
-        // muss dieselben Daten erzeugen. Sonst haetten ueber die API
-        // angelegte Spots dauerhaft weder Zonen noch Bundesland.
-        // Faellt ein Dienst aus, bleibt der jeweilige Zeitstempel NULL
-        // und die Wartungsskripte tragen es nach.
-        // -------------------------------------------------------------
-        if ($spotId > 0) {
-            refresh_spot_zones($pdo, $spotId, $lat, $lng);
-            refresh_spot_bundesland($pdo, $spotId, $lat, $lng);
-        }
 
         // Neu angelegten Spot mit Username zurückgeben
         $stmt = $pdo->prepare(

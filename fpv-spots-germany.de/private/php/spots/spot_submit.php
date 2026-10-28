@@ -8,8 +8,6 @@ require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/youtube_helper.php';
 require_once __DIR__ . '/../core/geozones.php';
-require_once __DIR__ . '/../core/bundesland.php';
-require_once __DIR__ . '/../core/analytics.php';   // PRG-Marker fuer die Reichweitenmessung
 
 // Nur POST akzeptieren
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -179,24 +177,18 @@ try {
     setcookie('legend_diffs', implode(',', $legendDiffs), $legendCookieOpts);
 
     // -------------------------------------------------------------
-    // DIPUL-Zonencheck und Bundesland fuer den neuen Spot
+    // DIPUL-Zonencheck fuer den neuen Spot
     //
     // Synchron, weil der Ersteller das Ergebnis sofort sehen soll.
     // Faellt die DFS aus, bleibt zones_checked_at NULL – die Detailseite
     // zeigt dann "noch nicht geprueft" (bewusst KEINE Entwarnung) und
     // refresh_spot_zones.php holt den Check per Cron nach.
-    //
-    // Dasselbe fuer das Bundesland: ist Nominatim nicht erreichbar,
-    // bleibt bundesland_checked_at NULL und refresh_spot_bundesland.php
-    // traegt es nach. Beide Funktionen fangen ihre Fehler selbst ab –
-    // ein Ausfall darf das Anlegen des Spots nicht scheitern lassen.
     // -------------------------------------------------------------
     if ($newSpotId > 0) {
         refresh_spot_zones($pdo, $newSpotId, (float)$lat, (float)$lng);
-        refresh_spot_bundesland($pdo, $newSpotId, (float)$lat, (float)$lng);
     }
 
-    header('Location: ' . umami_prg_marker('/', 'spot'));
+    header('Location: /');
     exit;
 
 } catch (PDOException $e) {

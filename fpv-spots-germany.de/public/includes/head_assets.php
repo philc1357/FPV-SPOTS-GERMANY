@@ -23,17 +23,3 @@ require_once __DIR__ . '/../../private/php/core/assets.php';
 <link rel="stylesheet" href="<?= asset('/public/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
 <link rel="stylesheet" href="<?= asset('/public/css/theme.css') ?>">
 <link rel="stylesheet" href="<?= asset('/public/css/banners.css') ?>">
-
-<?php
-/* ============================================================
-   Reichweitenmessung (Umami)
-   Das Tag wird serverseitig gerendert – bei Opt-out, DNT,
-   Admin-Session oder abgeschalteter Messung entsteht gar kein
-   Script-Element. Script und Datenendpunkt liegen auf der
-   eigenen Domain, die CSP bleibt deshalb bei 'self'.
-   Logik: private/php/core/analytics.php
-   ============================================================ */
-require_once __DIR__ . '/../../private/php/core/analytics.php';
-?>
-<?= umami_script_tag() ?>
-<?= umami_event_tag() ?>
