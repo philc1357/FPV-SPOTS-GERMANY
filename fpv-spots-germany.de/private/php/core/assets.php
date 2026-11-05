@@ -15,7 +15,7 @@
    sonst liefert der Service Worker weiter die alten Dateien.
    ============================================================ */
 
-const ASSET_VERSION = '25';
+const ASSET_VERSION = '27';
 
 /**
  * Haengt den Versionsparameter an einen absoluten Asset-Pfad.

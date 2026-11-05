@@ -591,6 +591,10 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                     <div class="alert alert-success py-2" role="alert">Foto erfolgreich gelöscht.</div>
                 <?php endif; ?>
 
+                <?php if (!empty($_GET['photo_rotated'])): ?>
+                    <div class="alert alert-success py-2" role="alert">Foto gedreht.</div>
+                <?php endif; ?>
+
                 <?php if ($isLoggedIn): ?>
                     <form method="POST" action="/private/php/spots/upload_submit.php" enctype="multipart/form-data" class="mb-4">
                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
@@ -642,17 +646,33 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                     <?= htmlspecialchars($img['username']) ?> &bull; <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
                                 </small>
                                 <?php if ($canDeleteImg): ?>
-                                    <form method="POST" action="/private/php/spots/photo_delete_submit.php"
-                                          onsubmit="return confirm('Foto wirklich löschen?')">
-                                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                                        <input type="hidden" name="spot_id" value="<?= (int)$spotId ?>">
-                                        <input type="hidden" name="image_id" value="<?= (int)$img['id'] ?>">
-                                        <input type="hidden" name="redirect" value="detail">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 mt-1"
-                                                title="Foto löschen">
-                                            <i class="bi bi-trash3"></i> Löschen
-                                        </button>
-                                    </form>
+                                    <div class="d-flex gap-1 mt-1">
+                                        <?php foreach (['left' => ['counterclockwise', 'Foto nach links drehen'], 'right' => ['clockwise', 'Foto nach rechts drehen']] as $dir => [$icon, $label]): ?>
+                                            <form method="POST" action="/private/php/spots/photo_rotate_submit.php">
+                                                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                                <input type="hidden" name="spot_id" value="<?= (int)$spotId ?>">
+                                                <input type="hidden" name="image_id" value="<?= (int)$img['id'] ?>">
+                                                <input type="hidden" name="direction" value="<?= $dir ?>">
+                                                <input type="hidden" name="redirect" value="detail">
+                                                <button type="submit" class="btn btn-outline-secondary btn-sm"
+                                                        title="<?= $label ?>" aria-label="<?= $label ?>">
+                                                    <i class="bi bi-arrow-<?= $icon ?>"></i>
+                                                </button>
+                                            </form>
+                                        <?php endforeach; ?>
+                                        <form method="POST" action="/private/php/spots/photo_delete_submit.php"
+                                              class="flex-grow-1"
+                                              onsubmit="return confirm('Foto wirklich löschen?')">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                                            <input type="hidden" name="spot_id" value="<?= (int)$spotId ?>">
+                                            <input type="hidden" name="image_id" value="<?= (int)$img['id'] ?>">
+                                            <input type="hidden" name="redirect" value="detail">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                                                    title="Foto löschen">
+                                                <i class="bi bi-trash3"></i> Löschen
+                                            </button>
+                                        </form>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>

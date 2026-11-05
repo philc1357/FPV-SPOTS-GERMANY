@@ -307,6 +307,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <ul>
                     <li><strong><code>legend_types</code>, <code>legend_diffs</code> und <code>legend_sizes</code>:</strong> Speichern Ihre gewählten Kartenfilter (Spot-Typen, Schwierigkeitsgrade und Kopter-Größen). Gültig für 30&nbsp;Tage bei aktiver „Eingeloggt bleiben"-Funktion, andernfalls als Session-Cookie.</li>
                     <li><strong><code>pilot_class</code>:</strong> Speichert die von Ihnen gewählte Betriebsklasse Ihres Kopters (unter 250&nbsp;g, C1/C2 oder ab 250&nbsp;g Eigenbau), damit die Geozonen-Hinweise dazu passen. Enthält ausschließlich einen dieser drei Kennwerte, keine Angaben zu Ihrer Person oder Ihrem Gerät. Gültig für 30&nbsp;Tage bei aktiver „Eingeloggt bleiben"-Funktion, andernfalls als Session-Cookie. HttpOnly, Secure, SameSite=Lax.</li>
+                    <li><strong><code>discordbanner-seen</code>:</strong> Speichert, ob Sie den Hinweis auf unseren Discord-Server bereits gesehen haben, damit er nicht bei jedem Seitenaufruf erneut erscheint. Enthält nur den Wert <code>joined</code> (Klick auf „Zum Discord-Server“, gültig für 365&nbsp;Tage) oder <code>dismissed</code> (Hinweis geschlossen, gültig für 30&nbsp;Tage), keine personenbezogenen Daten. Eine Verbindung zu Discord wird erst hergestellt, wenn Sie selbst auf den Link klicken.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Benachrichtigungs-Cookies</h3>

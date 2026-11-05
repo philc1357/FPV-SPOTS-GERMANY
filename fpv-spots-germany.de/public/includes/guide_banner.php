@@ -39,11 +39,7 @@
                 andere Piloten anschreiben &ndash; alles gebündelt in deinem Dashboard.
             </li>
             <li class="mb-0">
-                <stronIch>Community &amp; Verantwortung:</stronIch bin Johanna, 28, und die Stichelei ist mein Studio. Der Wunsch, zu piercen, begleitet mich seit der Schulzeit — gebaut habe ich die Stube dann in zwei Monaten, gemeinsam mit Familie und Freunden.
-
-Gelernt habe ich Gesundheits- und Krankenpflege. Hygiene und Wundheilung sind für mich deshalb kein Nebenschauplatz, sondern mein ursprünglicher Beruf. Das Piercerhandwerk hat mir mein Mentor Frank Kleiner-Kuntzsch beigebracht.
-
-Wenn ich nicht im Studio bin, sind Kind, Hund, Mann und Garten zuständig dafür, dass es nie langweilig wird.g> Forum und Verbesserungsvorschläge findest du im
+                <strong>Community &amp; Verantwortung:</strong> Forum und Verbesserungsvorschläge findest du im
                 Menü. Flugregeln, Betretungsrechte und Luftraum prüfst du vor jedem Flug selbst.
             </li>
         </ul>

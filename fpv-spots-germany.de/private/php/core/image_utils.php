@@ -1,9 +1,112 @@
 <?php
 declare(strict_types=1);
 
+// =============================================================
+// EXIF-Ausrichtung
+//
+// Handykameras speichern die Pixel meist im Querformat und legen
+// die tatsaechliche Ausrichtung nur im EXIF-Tag "Orientation" ab.
+// Weil strip_exif_and_save() alle EXIF-Daten verwirft, muss die
+// Drehung VORHER fest in die Pixel uebernommen werden – sonst
+// erscheinen Hochkant-Fotos um 90 Grad gekippt.
+// =============================================================
+
+/**
+ * Dreht/spiegelt ein GD-Bild gemaess EXIF-Orientation der Quelldatei.
+ * Ohne exif-Extension oder ohne Tag wird das Bild unveraendert geliefert.
+ *
+ * @param \GdImage $img  aus $path geladenes Bild
+ * @param string   $path Quelldatei mit EXIF-Daten
+ * @return \GdImage      korrekt ausgerichtetes Bild (ggf. neue Instanz)
+ */
+function apply_exif_orientation(\GdImage $img, string $path): \GdImage
+{
+    if (!function_exists('exif_read_data')) {
+        return $img;
+    }
+    $exif = @exif_read_data($path);
+    $orientation = is_array($exif) ? (int)($exif['Orientation'] ?? 1) : 1;
+    if ($orientation < 2 || $orientation > 8) {
+        return $img;
+    }
+
+    // Spiegelung (Werte 2, 4, 5, 7)
+    if (in_array($orientation, [2, 5, 7], true)) {
+        imageflip($img, IMG_FLIP_HORIZONTAL);
+    } elseif ($orientation === 4) {
+        imageflip($img, IMG_FLIP_VERTICAL);
+    }
+
+    // Drehung – GD dreht positive Winkel gegen den Uhrzeigersinn
+    $angle = match ($orientation) {
+        3       => 180,
+        5, 8    => 90,
+        6, 7    => -90,
+        default => 0,
+    };
+    if ($angle !== 0) {
+        $rotated = imagerotate($img, $angle, 0);
+        if ($rotated !== false) {
+            imagedestroy($img);
+            $img = $rotated;
+        }
+    }
+    return $img;
+}
+
+/**
+ * Dreht eine gespeicherte Bilddatei (JPEG/PNG) und schreibt sie nach $destPath.
+ * Fuer bereits hochgeladene Bilder, deren Ausrichtung verloren ging.
+ *
+ * @param int $degrees 90 = im Uhrzeigersinn, -90 = gegen den Uhrzeigersinn, 180
+ */
+function rotate_image_file(string $srcPath, string $destPath, int $degrees): bool
+{
+    if (!in_array($degrees, [90, -90, 180], true)) {
+        return false;
+    }
+    $info = @getimagesize($srcPath);
+    if ($info === false) {
+        return false;
+    }
+    $isPng = $info[2] === IMAGETYPE_PNG;
+    if ($info[2] === IMAGETYPE_JPEG) {
+        $img = @imagecreatefromjpeg($srcPath);
+    } elseif ($isPng) {
+        $img = @imagecreatefrompng($srcPath);
+    } else {
+        return false;
+    }
+    if ($img === false) {
+        return false;
+    }
+
+    // GD-Winkel ist gegen den Uhrzeigersinn, daher Vorzeichen umdrehen
+    $bg = $isPng ? imagecolorallocatealpha($img, 0, 0, 0, 127) : 0;
+    $rotated = imagerotate($img, -$degrees, $bg);
+    imagedestroy($img);
+    if ($rotated === false) {
+        return false;
+    }
+
+    if ($isPng) {
+        imagealphablending($rotated, false);
+        imagesavealpha($rotated, true);
+        $ok = imagepng($rotated, $destPath, 6);
+    } else {
+        $ok = imagejpeg($rotated, $destPath, 90);
+    }
+    imagedestroy($rotated);
+    if (!$ok) {
+        @unlink($destPath);
+    }
+    return $ok;
+}
+
 /**
  * Speichert ein hochgeladenes Bild ohne EXIF-Metadaten (GPS, Gerätedaten, Timestamps).
  * GD liest die Pixel-Daten ein und schreibt eine saubere Datei – EXIF wird dabei verworfen.
+ * Die EXIF-Ausrichtung wird vorher in die Pixel uebernommen (apply_exif_orientation).
  *
  * @param string $tmpPath  Pfad zur temporären Upload-Datei ($_FILES[...]['tmp_name'])
  * @param string $destPath Zielpfad inkl. Dateiname
@@ -17,6 +120,7 @@ function strip_exif_and_save(string $tmpPath, string $destPath, string $mimeType
         if ($img === false) {
             return false;
         }
+        $img = apply_exif_orientation($img, $tmpPath);
         $ok = imagejpeg($img, $destPath, 85);
         imagedestroy($img);
         return $ok;

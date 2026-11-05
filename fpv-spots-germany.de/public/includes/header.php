@@ -161,6 +161,7 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
 </header>
 
 <?php include __DIR__ . '/cookie_banner.php'; ?>
+<?php include __DIR__ . '/discord_banner.php'; ?>
 <script src="<?= asset('/public/js/banners.js') ?>" defer></script>
 
 <?php
