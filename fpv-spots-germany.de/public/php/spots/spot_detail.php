@@ -136,6 +136,16 @@ $images = array_values(array_filter($images, fn($img) => is_file($uploadDir . $i
 $uploadError = $_SESSION['upload_error'] ?? null;
 unset($_SESSION['upload_error']);
 
+// Ergebnis eines (Mehrfach-)Uploads – nur für diesen Spot, einmalig anzeigen
+$uploadReport = null;
+if (is_array($_SESSION['upload_report'] ?? null)) {
+    if ((int)($_SESSION['upload_report']['spot_id'] ?? 0) === $spotId) {
+        $uploadReport = $_SESSION['upload_report'];
+    }
+    unset($_SESSION['upload_report']);
+}
+$uploadMaxFiles = !empty($_SESSION['is_admin']) ? 0 : 10; // 0 = unbegrenzt (Admin)
+
 // YouTube-Videos laden
 $stmt = $pdo->prepare(
     "SELECT title, youtube_id FROM spot_videos WHERE spot_id = ? ORDER BY position ASC, id ASC"
@@ -587,6 +597,25 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                     <div class="alert alert-danger py-2"><?= htmlspecialchars($uploadError) ?></div>
                 <?php endif; ?>
 
+                <!-- Ergebnis des letzten Uploads -->
+                <div id="uploadReport">
+                    <?php if ($uploadReport && (int)$uploadReport['saved'] > 0): ?>
+                        <div class="alert alert-success py-2" role="status">
+                            <?= (int)$uploadReport['saved'] === 1 ? '1 Foto hochgeladen.' : (int)$uploadReport['saved'] . ' Fotos hochgeladen.' ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($uploadReport && !empty($uploadReport['skipped'])): ?>
+                        <div class="alert alert-warning py-2" role="alert" id="uploadSkippedAlert">
+                            <strong>Nicht hochgeladen:</strong>
+                            <ul class="mb-0 small" id="uploadSkippedList">
+                                <?php foreach ($uploadReport['skipped'] as $sk): ?>
+                                    <li><?= htmlspecialchars((string)($sk['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?> – <?= htmlspecialchars((string)($sk['reason'] ?? ''), ENT_QUOTES, 'UTF-8') ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <?php if (!empty($_GET['photo_deleted'])): ?>
                     <div class="alert alert-success py-2" role="alert">Foto erfolgreich gelöscht.</div>
                 <?php endif; ?>
@@ -596,15 +625,29 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                 <?php endif; ?>
 
                 <?php if ($isLoggedIn): ?>
-                    <form method="POST" action="/private/php/spots/upload_submit.php" enctype="multipart/form-data" class="mb-4">
+                    <form method="POST" action="/private/php/spots/upload_submit.php" enctype="multipart/form-data" class="mb-4"
+                          id="photoUploadForm"
+                          data-max-files="<?= (int)$uploadMaxFiles ?>"
+                          data-max-size="<?= 10 * 1024 * 1024 ?>">
                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                         <input type="hidden" name="spot_id" value="<?= $spotId ?>">
                         <div class="d-flex align-items-center gap-2">
-                            <input type="file" name="photo" accept=".jpg,.jpeg,.png"
+                            <label for="photoInput" class="visually-hidden">Fotos auswählen</label>
+                            <input type="file" name="photos[]" id="photoInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple
                                    class="form-control form-control-sm bg-secondary text-light border-0" required>
-                            <button type="submit" class="btn btn-success btn-sm text-nowrap">Foto hochladen</button>
+                            <button type="submit" class="btn btn-success btn-sm text-nowrap" id="photoUploadBtn">Fotos hochladen</button>
                         </div>
-                        <small class="text-secondary">JPG/PNG, max. 10 MB</small>
+                        <small class="text-secondary">
+                            JPG/PNG, max. 10 MB pro Bild<?= $uploadMaxFiles > 0 ? ', bis zu ' . (int)$uploadMaxFiles . ' Bilder auf einmal' : '' ?>
+                        </small>
+                        <div id="photoSelectionInfo" class="small mt-2" aria-live="polite"></div>
+                        <ul id="photoSelectionList" class="list-unstyled small mt-1 mb-0"></ul>
+                        <div id="photoUploadProgress" class="mt-2 d-none">
+                            <div class="progress" role="progressbar" aria-label="Upload-Fortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                <div class="progress-bar bg-success" style="width: 0%"></div>
+                            </div>
+                            <small class="text-secondary" id="photoUploadStatus" aria-live="polite"></small>
+                        </div>
                     </form>
                 <?php else: ?>
                     <p class="text-secondary small mb-3">
@@ -995,6 +1038,198 @@ if (starRating) {
         });
     });
 }
+</script>
+
+<!-- ============================================================
+     Mehrfach-Foto-Upload
+
+     Auswahl wird im Browser vorgeprüft (Typ, max. 10 MB, max. 10
+     Dateien für Nicht-Admins). Gültige Bilder gehen einzeln
+     nacheinander an upload_submit.php (ajax=1) – so greift das
+     Gesamtlimit post_max_size nie, egal wie viele Bilder.
+     Der Server prüft jede Datei erneut und sammelt das Ergebnis in
+     der Session; nach dem letzten Bild lädt die Seite neu.
+     Im Browser aussortierte Dateien werden per sessionStorage über
+     den Reload gerettet. Dateinamen nur über textContent ausgeben.
+============================================================ -->
+<script>
+(function () {
+    var form = document.getElementById('photoUploadForm');
+    if (!form || !window.fetch || !window.FormData) return; // ohne JS/fetch: normaler Formular-Post
+
+    var input    = document.getElementById('photoInput');
+    var btn      = document.getElementById('photoUploadBtn');
+    var info     = document.getElementById('photoSelectionInfo');
+    var list     = document.getElementById('photoSelectionList');
+    var progress = document.getElementById('photoUploadProgress');
+    var bar      = progress.querySelector('.progress-bar');
+    var barWrap  = progress.querySelector('.progress');
+    var status   = document.getElementById('photoUploadStatus');
+
+    var maxFiles = parseInt(form.dataset.maxFiles, 10) || 0;   // 0 = unbegrenzt
+    var maxSize  = parseInt(form.dataset.maxSize, 10) || 10485760;
+    var STORE_KEY = 'fpvUploadSkipped_' + form.querySelector('[name="spot_id"]').value;
+
+    var valid = [];    // File-Objekte, die hochgeladen werden
+    var skipped = [];  // {name, reason} – im Browser aussortiert
+    var busy = false;
+
+    // ── Vorprüfung einer Datei ───────────────────────────────
+    function checkFile(f) {
+        var ext = (f.name.split('.').pop() || '').toLowerCase();
+        var typeOk = ['jpg', 'jpeg', 'png'].indexOf(ext) !== -1 &&
+                     (f.type === '' || f.type === 'image/jpeg' || f.type === 'image/png');
+        if (!typeOk) return 'Kein erlaubtes Format (nur JPG/PNG)';
+        if (f.size > maxSize) return 'Datei zu groß (max. 10 MB)';
+        return null;
+    }
+
+    function addItem(text, cls) {
+        var li = document.createElement('li');
+        li.className = cls;
+        li.textContent = text;
+        list.appendChild(li);
+    }
+
+    // ── Auswahl geändert: Liste aufbauen ─────────────────────
+    input.addEventListener('change', function () {
+        valid = [];
+        skipped = [];
+        list.textContent = '';
+        info.textContent = '';
+        info.className = 'small mt-2';
+
+        var files = Array.prototype.slice.call(input.files || []);
+        if (maxFiles > 0 && files.length > maxFiles) {
+            info.textContent = 'Es sind maximal ' + maxFiles + ' Bilder auf einmal möglich – nur die ersten ' + maxFiles + ' werden übernommen.';
+            info.className = 'small mt-2 text-warning';
+            files.slice(maxFiles).forEach(function (f) {
+                skipped.push({ name: f.name, reason: 'Mehr als ' + maxFiles + ' Bilder ausgewählt' });
+            });
+            files = files.slice(0, maxFiles);
+        }
+
+        files.forEach(function (f) {
+            var err = checkFile(f);
+            if (err) {
+                skipped.push({ name: f.name, reason: err });
+                addItem('✗ ' + f.name + ' – wird übersprungen: ' + err, 'text-danger');
+            } else {
+                valid.push(f);
+                addItem('✓ ' + f.name, 'text-success');
+            }
+        });
+        btn.disabled = valid.length === 0;
+    });
+
+    // ── Fortschritt anzeigen ─────────────────────────────────
+    function setProgress(done, total) {
+        var pct = total ? Math.round(done / total * 100) : 0;
+        bar.style.width = pct + '%';
+        barWrap.setAttribute('aria-valuenow', String(pct));
+        status.textContent = done + ' / ' + total + ' hochgeladen';
+    }
+
+    function finish() {
+        try {
+            if (skipped.length) sessionStorage.setItem(STORE_KEY, JSON.stringify(skipped.slice(0, 50)));
+        } catch (e) { /* ohne Storage fehlt nur der Zusatz-Hinweis */ }
+        window.location.reload();
+    }
+
+    // ── Absenden: Bilder einzeln nacheinander senden ─────────
+    form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        if (busy) return;
+        if (!valid.length) {
+            if (skipped.length) finish();
+            return;
+        }
+        busy = true;
+        btn.disabled = true;
+        input.disabled = true;
+        progress.classList.remove('d-none');
+
+        var csrf = form.querySelector('[name="csrf_token"]').value;
+        var spotId = form.querySelector('[name="spot_id"]').value;
+        var total = valid.length;
+        var i = 0;
+        setProgress(0, total);
+
+        function next() {
+            if (i >= total) return finish();
+            var f = valid[i];
+            var fd = new FormData();
+            fd.append('csrf_token', csrf);
+            fd.append('spot_id', spotId);
+            fd.append('ajax', '1');
+            fd.append('photos[]', f, f.name);
+
+            fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin' })
+                .then(function (r) { return r.json().catch(function () { return { ok: false, error: 'Serverfehler' }; }); })
+                .then(function (res) {
+                    i++;
+                    setProgress(i, total);
+                    if (!res.ok) {
+                        // Harter Fehler (Sitzung, Login …): Rest nicht mehr versuchen
+                        valid.slice(i - 1).forEach(function (rf) {
+                            skipped.push({ name: rf.name, reason: res.error || 'Upload-Fehler' });
+                        });
+                        return finish();
+                    }
+                    if (res.rate_limited) {
+                        // Stundenlimit: übrige Dateien direkt als übersprungen melden
+                        valid.slice(i).forEach(function (rf) {
+                            skipped.push({ name: rf.name, reason: 'Stundenlimit erreicht (50 Bilder pro Stunde)' });
+                        });
+                        return finish();
+                    }
+                    next();
+                })
+                .catch(function () {
+                    i++;
+                    skipped.push({ name: f.name, reason: 'Netzwerkfehler' });
+                    setProgress(i, total);
+                    next();
+                });
+        }
+        next();
+    });
+})();
+
+// ── Nach dem Reload: im Browser aussortierte Dateien anhängen ──
+(function () {
+    var form = document.getElementById('photoUploadForm');
+    var box  = document.getElementById('uploadReport');
+    if (!form || !box) return;
+    var key = 'fpvUploadSkipped_' + form.querySelector('[name="spot_id"]').value;
+    var items;
+    try {
+        items = JSON.parse(sessionStorage.getItem(key) || '[]');
+        sessionStorage.removeItem(key);
+    } catch (e) { return; }
+    if (!Array.isArray(items) || !items.length) return;
+
+    var ul = document.getElementById('uploadSkippedList');
+    if (!ul) {
+        var alertBox = document.createElement('div');
+        alertBox.className = 'alert alert-warning py-2';
+        alertBox.setAttribute('role', 'alert');
+        var strong = document.createElement('strong');
+        strong.textContent = 'Nicht hochgeladen:';
+        ul = document.createElement('ul');
+        ul.className = 'mb-0 small';
+        alertBox.appendChild(strong);
+        alertBox.appendChild(ul);
+        box.appendChild(alertBox);
+    }
+    items.slice(0, 50).forEach(function (it) {
+        if (!it || typeof it.name !== 'string' || typeof it.reason !== 'string') return;
+        var li = document.createElement('li');
+        li.textContent = it.name.slice(0, 100) + ' – ' + it.reason.slice(0, 100);
+        ul.appendChild(li);
+    });
+})();
 </script>
 
 <!-- ============================================================

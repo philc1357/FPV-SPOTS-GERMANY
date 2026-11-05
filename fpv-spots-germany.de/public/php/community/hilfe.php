@@ -75,7 +75,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <ul>
                     <li>den Spot mit <strong>1 bis 5 Sternen bewerten</strong>,</li>
                     <li><strong>Kommentare</strong> schreiben, bearbeiten und löschen,</li>
-                    <li><strong>Fotos hochladen</strong> (JPG oder PNG, max. 10 MB, bis zu 30 Bilder pro Spot –
+                    <li><strong>Fotos hochladen</strong> (JPG oder PNG, max. 10 MB pro Bild, bis zu 10 Bilder auf einmal –
                         EXIF-Daten werden beim Upload automatisch entfernt),</li>
                     <li><strong>Parkinformationen ergänzen</strong> – diese pflegt die Community gemeinsam,</li>
                     <li>den Spot als <strong>Favorit merken</strong> und im Dashboard wiederfinden,</li>

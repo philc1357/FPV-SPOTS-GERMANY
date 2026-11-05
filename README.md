@@ -102,7 +102,7 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Spot-Detailansicht mit Fotos, Bewertungen und Kommentaren
 - Spot-Bearbeitung und -Löschung durch Eigentümer oder Admin
 - Sternebewertungen (1–5) und Kommentarsystem (bearbeiten/löschen)
-- Foto-Upload (JPG/PNG, max. 10 MB, bis zu 30 Bilder pro Spot) pro Spot — EXIF-Metadaten werden serverseitig entfernt
+- Foto-Upload (JPG/PNG, max. 10 MB pro Bild, bis zu 10 Bilder auf einmal; ungültige Dateien werden einzeln übersprungen) — EXIF-Metadaten werden serverseitig entfernt
 - Einzel-Foto-Löschung durch Uploader, Spot-Eigentümer oder Admin
 - Community-pflegbare Parkinformationen je Spot (jeder angemeldete Nutzer kann bearbeiten)
 - Spot-Meldungen (Inhaltsverstöße an Admins melden: Kommentar, Foto, Spot-Info, Spot-Allgemein)
@@ -789,11 +789,10 @@ Beim Registrieren, beim Passwort-Reset und beim Passwort-Ändern wird das gewäh
 | MIME-Type | `finfo()` (liest tatsächlichen Dateiinhalt / Magic Bytes) |
 | Dateiendung | Whitelist: jpg, jpeg, png |
 | Bildvalidierung | `getimagesize()` |
-| Dateigröße | Max. 10 MB |
+| Dateigröße | Max. 10 MB pro Bild |
 | Dateiname | Randomisiert: `bin2hex(random_bytes(16))` |
 | EXIF-Metadaten | Werden via GD beim Upload entfernt (`image_utils.php`) |
-| Upload-Rate | Max. 20 Uploads pro Nutzer pro Stunde |
-| Bilder pro Spot | Hard-Cap: 30 Bilder |
+| Upload-Rate | Max. 10 Bilder pro Auswahl, 50 Uploads pro Nutzer pro Stunde (Admins ohne Zähl-Limits) |
 | Bilder pro Forenbeitrag | Hard-Cap: 4 Bilder |
 
 ### Eingabevalidierung
@@ -824,7 +823,7 @@ Alle Rate-Limits werden über Abfragen in der `audit_logs`- bzw. Aktions-Tabelle
 | Registrierung | 5 Versuche | 15 Minuten | IP |
 | Passwort-Reset-Anfrage | 3 Anfragen | 5 Minuten | IP |
 | Kontaktformular | 5 Einreichungen | 1 Stunde | IP + E-Mail |
-| Foto-Upload | 20 Uploads | 1 Stunde | Nutzer |
+| Foto-Upload | 50 Uploads (Admins frei) | 1 Stunde | Nutzer |
 | Nachrichten senden | 30 Nachrichten | 1 Minute | Nutzer |
 | Spot-Meldungen | 10 Meldungen | 1 Stunde | Nutzer |
 | Spot-Meldungen (Duplikat) | 1 Meldung | 1 Tag | Nutzer + Spot + Typ |
