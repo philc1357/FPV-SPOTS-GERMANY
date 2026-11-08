@@ -37,8 +37,8 @@ $csrfToken  = $_SESSION['csrf_token'];
 
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
-<main class="container mt-5 mb-5">
-    <div class="card bg-secondary text-white p-4" style="max-width: 600px; margin: auto;">
+<main class="container my-5">
+    <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
 
         <div class="alert alert-warning" role="alert">
             <i class="bi bi-shield-exclamation me-2"></i>
@@ -90,7 +90,7 @@ $csrfToken  = $_SESSION['csrf_token'];
             </button>
         </form>
 
-    </div>
+    </article>
 </main>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>

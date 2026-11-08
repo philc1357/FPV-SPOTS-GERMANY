@@ -29,8 +29,8 @@ $csrfToken  = $_SESSION['csrf_token'];
 <?php include __DIR__ . '/../../includes/login_modal.php'; ?>
 <?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
-<main class="container mt-5 mb-5">
-    <div class="card bg-secondary text-white p-4" style="max-width: 700px; margin: auto;">
+<main class="container my-5">
+    <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
         <h1 class="h3 mb-4">Nutzungsbedingungen &amp; Haftungsausschluss</h1>
         <p class="text-white-50 small">Stand: Mai 2026</p>
 
@@ -195,7 +195,7 @@ $csrfToken  = $_SESSION['csrf_token'];
         </section>
 
         <a href="/"><button class="btn btn-primary w-100 mb-2">Zur Karte</button></a>
-    </div>
+    </article>
 </main>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
