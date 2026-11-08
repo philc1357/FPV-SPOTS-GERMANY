@@ -91,6 +91,11 @@
     <FilesMatch "\.(css|js)$">
         Header set Cache-Control "public, max-age=604800"
     </FilesMatch>
+    # ES-Module der Karte werden per import ohne ?v= geladen (siehe
+    # public/js/map/main.js) – daher immer revalidieren (ETag, 304).
+    <If "%{REQUEST_URI} =~ m#^/public/js/map/#">
+        Header set Cache-Control "no-cache"
+    </If>
 </IfModule>
 
 # Service Worker: kein Cache, damit Updates sofort greifen

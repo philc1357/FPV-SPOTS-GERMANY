@@ -3,6 +3,11 @@ declare(strict_types=1);
 // =============================================================
 // API: GET /api/spots.php   – Alle Spots laden
 //      POST /api/spots.php  – Neuen Spot erstellen
+//
+// GET-Parameter (optional):
+//   user_id=N                         nur Spots eines Nutzers
+//   bbox=minLon,minLat,maxLon,maxLat  nur Spots im Kartenausschnitt
+//                                     (ungueltig → 400, max. 2000 Treffer)
 // =============================================================
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
 require_once __DIR__ . "/../../../private/php/core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
@@ -28,6 +33,35 @@ if ($method === 'GET') {
     // header.php, neuigkeiten.php und benachrichtigungen.php.
     $viewerId = (int)($_SESSION['user_id'] ?? 0);
 
+    // ── Bounding-Box validieren (nie dem Client vertrauen) ──────
+    $bboxSql    = '';
+    $bboxParams = [];
+    $limitSql   = '';
+    if (isset($_GET['bbox'])) {
+        $raw   = is_string($_GET['bbox']) ? $_GET['bbox'] : '';
+        $parts = explode(',', $raw);
+        $valid = count($parts) === 4;
+        if ($valid) {
+            foreach ($parts as $i => $part) {
+                $valid = $valid && preg_match('/^-?\d{1,3}(\.\d{1,10})?$/', $part) === 1;
+                $parts[$i] = (float)$part;
+            }
+        }
+        if ($valid) {
+            [$minLng, $minLat, $maxLng, $maxLat] = $parts;
+            $valid = $minLat >= -90 && $maxLat <= 90 && $minLng >= -180 && $maxLng <= 180
+                  && $minLat <= $maxLat && $minLng <= $maxLng;
+        }
+        if (!$valid) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Ungültige bbox.']);
+            exit;
+        }
+        $bboxSql    = ' AND s.latitude BETWEEN ? AND ? AND s.longitude BETWEEN ? AND ?';
+        $bboxParams = [$minLat, $maxLat, $minLng, $maxLng];
+        $limitSql   = ' LIMIT 2000';
+    }
+
     if ($filterUserId) {
         $stmt = $pdo->prepare(
             "SELECT s.id, s.user_id, s.name, s.description,
@@ -36,10 +70,10 @@ if ($method === 'GET') {
              FROM spots s
              JOIN users u ON s.user_id = u.id
              WHERE s.user_id = ?
-               AND (s.is_private = 0 OR s.user_id = ?)
-             ORDER BY s.created_at DESC"
+               AND (s.is_private = 0 OR s.user_id = ?)" . $bboxSql . "
+             ORDER BY s.created_at DESC" . $limitSql
         );
-        $stmt->execute([$filterUserId, $viewerId]);
+        $stmt->execute(array_merge([$filterUserId, $viewerId], $bboxParams));
     } else {
         $stmt = $pdo->prepare(
             "SELECT s.id, s.user_id, s.name, s.description,
@@ -47,10 +81,10 @@ if ($method === 'GET') {
                     s.copter_size, s.parking_info, s.created_at, u.username
              FROM spots s
              JOIN users u ON s.user_id = u.id
-             WHERE s.is_private = 0 OR s.user_id = ?
-             ORDER BY s.created_at DESC"
+             WHERE (s.is_private = 0 OR s.user_id = ?)" . $bboxSql . "
+             ORDER BY s.created_at DESC" . $limitSql
         );
-        $stmt->execute([$viewerId]);
+        $stmt->execute(array_merge([$viewerId], $bboxParams));
     }
 
     echo json_encode($stmt->fetchAll(), JSON_UNESCAPED_UNICODE);

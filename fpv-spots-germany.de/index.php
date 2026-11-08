@@ -415,7 +415,7 @@ if (!empty($_SESSION['spot_error'])) {
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 
-<script src="<?= asset('/public/js/map.js') ?>"></script>
+<script type="module" src="<?= asset('/public/js/map/main.js') ?>"></script>
 <script src="<?= asset('/public/js/pwa.js') ?>"></script>
 <script src="<?= asset('/public/js/pages/index.js') ?>"></script>
 

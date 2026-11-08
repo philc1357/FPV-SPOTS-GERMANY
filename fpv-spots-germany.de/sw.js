@@ -1,13 +1,13 @@
 // =============================================================
 // FPV Spots Germany – Service Worker
 // =============================================================
-const CACHE_VERSION = 'v30';
+const CACHE_VERSION = 'v39';
 
 // Muss mit ASSET_VERSION in private/php/core/assets.php uebereinstimmen:
 // die Seiten fordern CSS/JS als /pfad.css?v=N an, und caches.match()
 // vergleicht die Query mit. Ohne den Parameter liefe der Pre-Cache ins
 // Leere und offline fehlten genau diese Dateien.
-const ASSET_VERSION = '29';
+const ASSET_VERSION = '38';
 const v = (path) => path + '?v=' + ASSET_VERSION;
 const STATIC_CACHE  = 'fpv-static-' + CACHE_VERSION;
 const TILES_CACHE   = 'fpv-tiles-'  + CACHE_VERSION;
@@ -21,7 +21,22 @@ const STATIC_ASSETS = [
     v('/public/css/theme.css'),
     v('/public/css/banners.css'),
     v('/public/css/map.css'),
-    v('/public/js/map.js'),
+    v('/public/js/map/main.js'),
+    // Import-Module tragen kein ?v= (siehe main.js)
+    '/public/js/map/core.js',
+    '/public/js/map/features/placing.js',
+    '/public/js/map/features/legend.js',
+    '/public/js/map/features/location.js',
+    '/public/js/map/features/pilot_class.js',
+    '/public/js/map/state.js',
+    '/public/js/map/util.js',
+    '/public/js/map/baselayers.js',
+    '/public/js/map/layers/registry.js',
+    '/public/js/map/layers/dipul.js',
+    '/public/js/map/layers/spots.js',
+    '/public/js/map/spot_style.js',
+    '/public/js/map/features/a3_circle.js',
+    '/public/js/map/features/spot_panel.js',
     v('/public/js/pwa.js'),
     // Seit der CSP-Haertung ausgelagerte Skripte der Startseite
     v('/public/js/ui_actions.js'),
