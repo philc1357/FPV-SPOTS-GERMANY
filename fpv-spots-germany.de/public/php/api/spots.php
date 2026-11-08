@@ -70,7 +70,7 @@ if ($method === 'POST') {
     }
 
     // CSRF-Token prüfen
-    $csrfToken = $_POST['csrf_token'] ?? '';
+    $csrfToken = post_str('csrf_token');
     if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
         http_response_code(403);
         echo json_encode(['error' => 'Ungültiger CSRF-Token.']);
@@ -78,12 +78,12 @@ if ($method === 'POST') {
     }
 
     // Eingaben holen und bereinigen
-    $name        = trim($_POST['name']        ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $spotType    = trim($_POST['spot_type']   ?? '');
-    $difficulty  = trim($_POST['difficulty']  ?? '');
-    $latitude    = $_POST['latitude']  ?? '';
-    $longitude   = $_POST['longitude'] ?? '';
+    $name        = trimpost_str('name');
+    $description = trimpost_str('description');
+    $spotType    = trimpost_str('spot_type');
+    $difficulty  = trimpost_str('difficulty');
+    $latitude    = post_str('latitude');
+    $longitude   = post_str('longitude');
 
     // Erlaubte Enum-Werte (serverseitige Validierung – nie nur Client vertrauen!)
     $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];

@@ -176,7 +176,7 @@ if (!empty($posts)) {
                                 <?php if ($isLoggedIn && ($userId === (int)$p['user_id'] || !empty($_SESSION['is_admin']))): ?>
                                     <form method="POST" action="/private/php/forum/forum_post_delete_submit.php"
                                           class="d-inline"
-                                          onsubmit="return confirm('Beitrag wirklich löschen? Alle Kommentare und Bilder werden mitgelöscht.')">
+                                          data-confirm="Beitrag wirklich löschen? Alle Kommentare und Bilder werden mitgelöscht.">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                                         <input type="hidden" name="post_id" value="<?= $pid ?>">
                                         <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
@@ -246,7 +246,7 @@ if (!empty($posts)) {
                                         <?php if (!empty($_SESSION['is_admin'])): ?>
                                             <form method="POST" action="/private/php/forum/forum_comment_delete_submit.php"
                                                   class="d-inline"
-                                                  onsubmit="return confirm('Kommentar (und ggf. Antworten) wirklich löschen?')">
+                                                  data-confirm="Kommentar (und ggf. Antworten) wirklich löschen?">
                                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                                                 <input type="hidden" name="comment_id" value="<?= $cId ?>">
                                                 <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
@@ -280,7 +280,7 @@ if (!empty($posts)) {
                                                         <?php if (!empty($_SESSION['is_admin'])): ?>
                                                             <form method="POST" action="/private/php/forum/forum_comment_delete_submit.php"
                                                                   class="d-inline"
-                                                                  onsubmit="return confirm('Antwort wirklich löschen?')">
+                                                                  data-confirm="Antwort wirklich löschen?">
                                                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                                                                 <input type="hidden" name="comment_id" value="<?= $rId ?>">
                                                                 <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
@@ -365,36 +365,6 @@ if (!empty($posts)) {
 </div>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
-<script>
-(function () {
-    var modal = document.getElementById('photoModal');
-    if (!modal) return;
-    var imgEl = document.getElementById('photoModalImg');
-    modal.addEventListener('show.bs.modal', function (event) {
-        var trigger = event.relatedTarget;
-        if (!trigger) return;
-        imgEl.src = trigger.getAttribute('data-img-src') || '';
-        imgEl.alt = trigger.getAttribute('data-img-alt') || '';
-    });
-    modal.addEventListener('hidden.bs.modal', function () {
-        imgEl.src = '';
-        imgEl.alt = '';
-    });
-})();
-
-document.addEventListener('click', function (e) {
-    var btn = e.target.closest('.forum-reply-toggle');
-    if (!btn) return;
-    var formId = btn.getAttribute('data-reply-target');
-    if (!formId) return;
-    var form = document.getElementById(formId);
-    if (!form) return;
-    form.classList.toggle('d-none');
-    if (!form.classList.contains('d-none')) {
-        var ta = form.querySelector('textarea');
-        if (ta) ta.focus();
-    }
-});
-</script>
+<script src="<?= asset('/public/js/pages/forum.js') ?>"></script>
 </body>
 </html>

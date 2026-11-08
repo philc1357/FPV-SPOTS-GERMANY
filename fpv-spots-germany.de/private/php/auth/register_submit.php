@@ -36,14 +36,14 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $redirectRaw = $_POST['redirect'] ?? '/';
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     register_flash_redirect('danger', 'Sicherheits-Token ungültig. Bitte Seite neu laden.', $redirectRaw, true);
 }
 
-$username = trim($_POST['username'] ?? '');
-$email    = trim($_POST['email'] ?? '');
-$pass1    = $_POST['password_field1'] ?? '';
-$pass2    = $_POST['password'] ?? '';
+$username = trimpost_str('username');
+$email    = trimpost_str('email');
+$pass1    = post_str('password_field1');
+$pass2    = post_str('password');
 
 $ip = client_ip();
 $rlStmt = $pdo->prepare(
@@ -73,7 +73,7 @@ if (empty($username) || empty($email) || empty($pass1) || empty($pass2)) {
     register_flash_redirect('danger', 'Das Passwort darf maximal 50 Zeichen lang sein.', $redirectRaw, true);
 } elseif (is_blacklisted_password($pass1)) {
     register_flash_redirect('danger', 'Dieses Passwort ist zu häufig verwendet. Bitte wähle ein sichereres.', $redirectRaw, true);
-} elseif (($_POST['terms'] ?? '') !== '1') {
+} elseif (post_str('terms') !== '1') {
     register_flash_redirect('danger', 'Bitte akzeptiere die Nutzungsbedingungen.', $redirectRaw, true);
 }
 

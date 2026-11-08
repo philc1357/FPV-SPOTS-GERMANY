@@ -103,6 +103,35 @@ function rotate_image_file(string $srcPath, string $destPath, int $degrees): boo
     return $ok;
 }
 
+// =============================================================
+// Pixel-Obergrenze (Schutz vor Decompression-Bombs)
+//
+// Eine kleine PNG-Datei kann riesige Abmessungen haben; GD würde sie
+// beim Einlesen komplett entpacken und das memory_limit sprengen.
+// getimagesize() liest nur den Header, daher wird VOR dem Dekodieren
+// geprüft.
+// =============================================================
+const IMAGE_MAX_EDGE   = 12000;      // max. Kantenlänge in Pixel
+const IMAGE_MAX_PIXELS = 40000000;   // max. 40 Megapixel
+
+/**
+ * Prüft, ob die Bildabmessungen innerhalb der erlaubten Grenzen liegen.
+ *
+ * @param string $path Pfad zur Bilddatei
+ * @return bool        false bei unlesbarem Header oder zu großem Bild
+ */
+function image_dimensions_ok(string $path): bool
+{
+    $info = @getimagesize($path);
+    if ($info === false) {
+        return false;
+    }
+    [$w, $h] = $info;
+    return $w > 0 && $h > 0
+        && $w <= IMAGE_MAX_EDGE && $h <= IMAGE_MAX_EDGE
+        && $w * $h <= IMAGE_MAX_PIXELS;
+}
+
 /**
  * Speichert ein hochgeladenes Bild ohne EXIF-Metadaten (GPS, Gerätedaten, Timestamps).
  * GD liest die Pixel-Daten ein und schreibt eine saubere Datei – EXIF wird dabei verworfen.

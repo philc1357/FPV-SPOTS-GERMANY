@@ -16,7 +16,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
@@ -24,8 +24,8 @@ require_once __DIR__ . '/../core/db.php';
 
 $spotId     = (int)($_POST['spot_id'] ?? 0);
 $userId     = (int)$_SESSION['user_id'];
-$reportType = trim($_POST['report_type'] ?? '');
-$body       = trim($_POST['body'] ?? '');
+$reportType = trimpost_str('report_type');
+$body       = trimpost_str('body');
 
 $allowedTypes = ['Kommentar', 'Foto', 'Spot-Info', 'Spot-Allgemein'];
 

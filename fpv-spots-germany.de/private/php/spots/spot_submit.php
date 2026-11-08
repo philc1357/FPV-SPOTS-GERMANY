@@ -23,18 +23,18 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // CSRF-Token pruefen
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
 // Eingaben holen und bereinigen
-$name        = trim($_POST['name']        ?? '');
-$description = trim($_POST['description'] ?? '');
-$spotType    = trim($_POST['spot_type']   ?? '');
-$difficulty   = trim($_POST['difficulty']  ?? '');
-$parkingInfo  = trim($_POST['parking_info'] ?? '');
-$latitude     = $_POST['latitude']  ?? '';
-$longitude    = $_POST['longitude'] ?? '';
+$name        = trimpost_str('name');
+$description = trimpost_str('description');
+$spotType    = trimpost_str('spot_type');
+$difficulty   = trimpost_str('difficulty');
+$parkingInfo  = trimpost_str('parking_info');
+$latitude     = post_str('latitude');
+$longitude    = post_str('longitude');
 
 // Parkinfo: leer oder nicht gesendet => "Unbekannt"
 if ($parkingInfo === '') {

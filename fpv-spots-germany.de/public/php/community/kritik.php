@@ -165,7 +165,7 @@ if (!empty($suggestions)) {
                                         <button type="button"
                                                 class="btn btn-outline-secondary btn-sm d-block w-100"
                                                 title="Für diesen Vorschlag voten"
-                                                onclick="openVoteConfirm(this.form)"><i class="bi bi-hand-thumbs-up-fill"></i></button>
+                                                data-action="open-vote-confirm"><i class="bi bi-hand-thumbs-up-fill"></i></button>
                                     </form>
                                 <?php else: ?>
                                     <button class="btn btn-sm d-block w-100 <?= $voted ? 'btn-success' : 'btn-outline-secondary' ?>"
@@ -185,7 +185,7 @@ if (!empty($suggestions)) {
                                     <?php if (!empty($_SESSION['is_admin'])): ?>
                                         <form method="POST" action="/private/php/suggestions/suggestion_delete_submit.php"
                                               class="d-inline"
-                                              onsubmit="return confirm('Vorschlag wirklich löschen?')">
+                                              data-confirm="Vorschlag wirklich löschen?">
                                             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                             <input type="hidden" name="suggestion_id" value="<?= $s['id'] ?>">
                                             <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
@@ -205,7 +205,7 @@ if (!empty($suggestions)) {
                                                 <?php if (!empty($_SESSION['is_admin'])): ?>
                                                     <form method="POST" action="/private/php/suggestions/suggestion_comment_delete_submit.php"
                                                           class="d-inline"
-                                                          onsubmit="return confirm('Kommentar wirklich löschen?')">
+                                                          data-confirm="Kommentar wirklich löschen?">
                                                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                                         <input type="hidden" name="comment_id" value="<?= $c['id'] ?>">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
@@ -268,18 +268,7 @@ if (!empty($suggestions)) {
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 
-<script>
-let pendingVoteForm = null;
-
-function openVoteConfirm(form) {
-    pendingVoteForm = form;
-    new bootstrap.Modal(document.getElementById('voteConfirmModal')).show();
-}
-
-document.getElementById('voteConfirmBtn').addEventListener('click', () => {
-    if (pendingVoteForm) pendingVoteForm.submit();
-});
-</script>
+<script src="<?= asset('/public/js/pages/kritik.js') ?>"></script>
 
 </body>
 </html>

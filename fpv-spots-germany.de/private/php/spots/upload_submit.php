@@ -21,7 +21,7 @@ const UPLOAD_MAX_PER_HOUR          = 50;
 const UPLOAD_MAX_SIZE              = 10 * 1024 * 1024; // 10 MB
 const UPLOAD_REPORT_MAX_SKIPPED    = 50;
 
-$isAjax = ($_POST['ajax'] ?? '') === '1';
+$isAjax = post_str('ajax') === '1';
 
 // =============================================================
 // Antwort-Helfer: JSON oder Redirect
@@ -71,7 +71,7 @@ if (!isset($_SESSION['user_id'])) {
     upload_fail($isAjax, 0, 'Nicht angemeldet.', 401);
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', (string)($_POST['csrf_token'] ?? ''))) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     if ($isAjax) {
         upload_fail(true, 0, 'Sitzung abgelaufen. Bitte Seite neu laden.', 403);
     }
@@ -190,6 +190,10 @@ foreach ($files as $file) {
     // --- Bild tatsächlich lesbar? ---
     if (getimagesize($file['tmp_name']) === false) {
         $skip('Keine gültige Bilddatei');
+        continue;
+    }
+    if (!image_dimensions_ok($file['tmp_name'])) {
+        $skip('Bild zu groß (Auflösung)');
         continue;
     }
 

@@ -23,7 +23,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
@@ -31,7 +31,7 @@ $imageId   = (int)($_POST['image_id'] ?? 0);
 $spotId    = (int)($_POST['spot_id']  ?? 0);
 $userId    = (int)$_SESSION['user_id'];
 $isAdmin   = !empty($_SESSION['is_admin']);
-$direction = (string)($_POST['direction'] ?? '');
+$direction = post_str('direction');
 
 // Richtung per Whitelist: rechts = im Uhrzeigersinn
 $degreesMap = ['right' => 90, 'left' => -90];
@@ -41,7 +41,7 @@ if ($imageId <= 0 || $spotId <= 0 || !isset($degreesMap[$direction])) {
 }
 
 // Redirect-Ziel via Whitelist
-$redirectBase = ($_POST['redirect'] ?? '') === 'detail'
+$redirectBase = post_str('redirect') === 'detail'
     ? '/spot_detail.php?id=' . $spotId
     : '/edit_spot.php?id=' . $spotId;
 

@@ -475,14 +475,14 @@ function renderSpotPhotos(spotId, images, hasMore) {
         const thumb = thumbSrc(filename);
         // Erster Fehler: auf das Original zurueckfallen (Thumbnail fehlt).
         // Zweiter Fehler: die Kachel ausblenden, das Bild gibt es nicht mehr.
-        const onErr = `if(!this.dataset.fb){this.dataset.fb='1';this.src='${src}';}`
-                    + `else{this.closest('.col-6').style.display='none';}`;
+        // Umsetzung per data-Attribut in public/js/ui_actions.js (CSP: keine Inline-Handler).
         html += `<div class="col-6">
             <div style="aspect-ratio:16/9;overflow:hidden;border-radius:.375rem;">
                 <img src="${thumb}" alt="${esc(filename)}"
                      style="width:100%;height:100%;object-fit:cover;"
                      loading="lazy"
-                     onerror="${onErr}">
+                     data-fallback-src="${esc(src)}"
+                     data-hide-on-error=".col-6">
             </div>
         </div>`;
     });

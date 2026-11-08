@@ -73,7 +73,7 @@ if ($isJson) {
 // fremde Hosts ("//boese.example", "https://…") ausgeschlossen.
 // -------------------------------------------------------------
 $target = '/';
-$wanted = (string) ($_POST['redirect'] ?? '');
+$wanted = post_str('redirect');
 if ($wanted !== '' && str_starts_with($wanted, '/') && !str_starts_with($wanted, '//')) {
     $path  = parse_url($wanted, PHP_URL_PATH) ?: '/';
     $query = parse_url($wanted, PHP_URL_QUERY);

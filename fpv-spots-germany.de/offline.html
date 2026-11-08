@@ -22,7 +22,9 @@
         img { max-width: 120px; margin-bottom: 1.5rem; }
         h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
         p { color: #adb5bd; margin-bottom: 2rem; max-width: 320px; }
-        button {
+        .retry {
+            display: inline-block;
+            text-decoration: none;
             background: #198754;
             color: #fff;
             border: none;
@@ -31,7 +33,7 @@
             font-size: 1rem;
             cursor: pointer;
         }
-        button:active { background: #146c43; }
+        .retry:active { background: #146c43; }
     </style>
 </head>
 <body>
@@ -39,7 +41,8 @@
         <img src="/public/imgs/logo.png" alt="FPV Spots Germany Logo" width="120" height="120">
         <h1>Du bist offline</h1>
         <p>Bitte überprüfe deine Internetverbindung und versuche es erneut.</p>
-        <button type="button" onclick="location.reload()">Erneut versuchen</button>
+        <!-- Link auf die aktuelle Adresse = Neu laden (CSP: kein onclick) -->
+        <a class="retry" href="">Erneut versuchen</a>
     </main>
 </body>
 </html>

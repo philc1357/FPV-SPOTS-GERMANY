@@ -74,14 +74,14 @@ if ($method === 'POST') {
     }
 
     // CSRF-Token prüfen
-    $csrfToken = $_POST['csrf_token'] ?? '';
+    $csrfToken = post_str('csrf_token');
     if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
         http_response_code(403);
         echo json_encode(['error' => 'Ungültiger CSRF-Token.']);
         exit;
     }
 
-    $override = strtoupper(trim($_POST['_method'] ?? ''));
+    $override = strtoupper(trimpost_str('_method'));
 
     $isAdmin = !empty($_SESSION['is_admin']);
 
@@ -107,10 +107,10 @@ if ($method === 'POST') {
         }
 
         // Eingaben holen
-        $name        = trim($_POST['name']        ?? '');
-        $description = trim($_POST['description'] ?? '');
-        $spotType    = trim($_POST['spot_type']   ?? '');
-        $difficulty  = trim($_POST['difficulty']  ?? '');
+        $name        = trimpost_str('name');
+        $description = trimpost_str('description');
+        $spotType    = trimpost_str('spot_type');
+        $difficulty  = trimpost_str('difficulty');
 
         $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
         $allowedDiff  = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];

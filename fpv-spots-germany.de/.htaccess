@@ -12,7 +12,14 @@
     # sw.js cached die OSM-Tiles per tileStrategy() selbst und braucht den
     # Host deshalb hier; alle uebrigen Cross-Origin-Requests laesst sw.js
     # durch, sodass fuer sie img-src bzw. frame-src greift.
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com img.youtube.com i.ytimg.com; font-src 'self'; connect-src 'self' https://*.tile.openstreetmap.org; frame-src https://www.youtube-nocookie.com"
+    #
+    # script-src ohne 'unsafe-inline': keine Inline-Skripte und keine
+    # onclick=/onsubmit=/onerror=-Attribute. Seiten-JS liegt unter
+    # /public/js/pages/, Bestaetigungen u. a. laufen ueber data-Attribute
+    # (public/js/ui_actions.js). JSON-LD (type="application/ld+json") ist
+    # davon nicht betroffen. object-src/base-uri sperren Plugin- und
+    # <base>-Tricks als zusaetzliche XSS-Bremse.
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: *.tile.openstreetmap.org server.arcgisonline.com img.youtube.com i.ytimg.com; font-src 'self'; connect-src 'self' https://*.tile.openstreetmap.org; frame-src https://www.youtube-nocookie.com"
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"

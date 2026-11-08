@@ -18,12 +18,12 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
 $spotId      = (int)($_POST['spot_id'] ?? 0);
-$parkingInfo = trim($_POST['parking_info'] ?? '');
+$parkingInfo = trimpost_str('parking_info');
 
 if ($spotId <= 0) {
     header('Location: /');

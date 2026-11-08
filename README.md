@@ -157,7 +157,9 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │   │   └── forum.css
 │   ├── js/
 │   │   ├── map.js              ← Karten- und AJAX-Logik
-│   │   └── pwa.js              ← PWA Install-Banner, Update-Trigger
+│   │   ├── pwa.js              ← PWA Install-Banner, Update-Trigger
+│   │   ├── ui_actions.js       ← data-confirm / data-action / Bildfehler (Ersatz für Inline-Handler)
+│   │   └── pages/              ← Seiten-JS (früher Inline-<script>, CSP ohne 'unsafe-inline')
 │   ├── imgs/
 │   │   ├── icons/              ← PWA-Icons (72px–512px)
 │   │   └── logo.png
@@ -719,13 +721,28 @@ Alle Antworten enthalten folgende Sicherheitsheader (gesetzt via `.htaccess`):
 | Header | Wert |
 |--------|------|
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` (HSTS, 1 Jahr) |
-| `Content-Security-Policy` | `default-src 'self'`; Scripts/Styles ausschließlich `'self'` (keine CDNs); Bilder von OSM, Esri und YouTube-Thumbnails |
+| `Content-Security-Policy` | `default-src 'self'`; `script-src 'self'` **ohne** `'unsafe-inline'` (keine Inline-Skripte/-Handler); `object-src 'none'`, `base-uri 'self'`; Styles `'self'` + inline; Bilder von OSM, Esri und YouTube-Thumbnails |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `SAMEORIGIN` |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(self), payment=()` |
 
+**Keine Inline-Skripte:** Seitenspezifisches JS liegt unter `public/js/pages/` und wird an derselben Stelle wie früher der Inline-Block per `<script src="<?= asset(...) ?>">` geladen. Statt `onclick=`/`onsubmit=`/`onerror=` gibt es data-Attribute, die `public/js/ui_actions.js` (über `foot_assets.php` auf jeder Seite) auswertet:
+
+| Attribut | Wirkung |
+|---|---|
+| `data-confirm="Text"` | Formular/Button/Link erst nach Bestätigung |
+| `data-action="name"` | ruft eine per `UiActions.register('name', fn)` angemeldete Funktion auf |
+| `data-fallback-src="url"` | Bild lädt nicht → einmalig auf diese URL ausweichen |
+| `data-hide-on-error="self\|.selektor"` | Bild bzw. Container bei Ladefehler ausblenden |
+
+PHP-Werte für Seiten-JS kommen als data-Attribut am `<script>`-Tag (z. B. `data-profile-id`, gelesen über `document.currentScript`).
+
 Bootstrap und Leaflet liegen lokal unter `public/vendor/` – bewusst nicht über ein CDN: Der Service Worker unterliegt der Direktive `connect-src 'self'`, wodurch CDN-Ressourcen stumm blockiert wurden. Auch die DIPUL-Kacheln kommen deshalb über den eigenen Proxy `/api/dipul_wms.php` statt direkt von der DFS.
+
+### Zugriffssperren für `private/`
+
+`private/` liegt im Webroot. Ordner, die nie direkt per URL aufgerufen werden, sperrt je eine `.htaccess` mit `Require all denied`: `private/data/` (Caches, Passwortliste), `private/php/core/`, `private/php/cli/`, `private/php/maintenance/`. `require_once` über das Dateisystem ist davon nicht betroffen. Offen bleiben `private/js/` (per `<script src>` geladen) und die Bereichsordner mit Submit-Handlern (POST-Ziele).
 
 ### Session-Härtung
 
@@ -754,13 +771,15 @@ $stmt->execute([$id]);
 
 - **Serverseitig:** Alle Benutzerdaten werden vor der Ausgabe mit `htmlspecialchars($var, ENT_QUOTES, 'UTF-8')` escaped.
 - **Clientseitig:** Eine eigene `esc()`-Funktion in `map.js` erzeugt Textknoten statt `innerHTML`, um DOM-basiertes XSS zu verhindern.
-- **CDN-Ressourcen:** Bootstrap und Leaflet werden mit Subresource Integrity (SRI) eingebunden.
+- **CSP als Zweitschutz:** Ohne `'unsafe-inline'` führt der Browser eingeschleuste Skripte und Event-Attribute nicht aus, selbst wenn irgendwo ein Escaping fehlen sollte.
 
 ### Authentifizierung und Sitzungsverwaltung
 
 - Passwort-Hashing mit `password_hash()` / `password_verify()` (Argon2id)
 - Session-ID-Regeneration nach erfolgreichem Login (`session_regenerate_id()`)
-- Vollständige Session-Zerstörung nach Passwortänderung (erzwingt Re-Login)
+- Passwortänderung beendet Sessions auf **allen** Geräten: `users.password_changed_at` wird mit `$_SESSION['auth_time']` verglichen (`enforce_session_freshness()` in `session_guard.php`), Remember-Me-Tokens werden gelöscht
+- `auth_check.php` läuft in **jeder** Seite, jedem Submit-Handler und jeder API mit Login-Bezug (Remember-Me, Session-Freshness, ToS-Wall). Dabei wird der Admin-Status bei jedem Request frisch aus der DB gelesen – entzogene Rechte und gelöschte Konten wirken sofort
+- API- und AJAX-Aufrufe (`/api/…` bzw. Feld `ajax=1`) bekommen bei abgelaufener Session `401`-JSON statt eines Redirects
 - Passwortanforderungen: 8–50 Zeichen (Obergrenze verhindert BCrypt-Trunkierung)
 - „Angemeldet bleiben": Selector/Validator-Token-Paar, Validator nur als SHA-256-Hash gespeichert, Token-Rotation bei jeder Verwendung (atomar via Transaktion)
 
@@ -789,6 +808,7 @@ Beim Registrieren, beim Passwort-Reset und beim Passwort-Ändern wird das gewäh
 | MIME-Type | `finfo()` (liest tatsächlichen Dateiinhalt / Magic Bytes) |
 | Dateiendung | Whitelist: jpg, jpeg, png |
 | Bildvalidierung | `getimagesize()` |
+| Auflösung | Max. 12 000 px Kantenlänge und 40 Megapixel (`image_dimensions_ok()`, Schutz vor Decompression-Bombs) |
 | Dateigröße | Max. 10 MB pro Bild |
 | Dateiname | Randomisiert: `bin2hex(random_bytes(16))` |
 | EXIF-Metadaten | Werden via GD beim Upload entfernt (`image_utils.php`) |
@@ -803,13 +823,15 @@ Beim Registrieren, beim Passwort-Reset und beim Passwort-Ändern wird das gewäh
 - Username-Regex: `/^[a-zA-Z0-9_\-]+$/`, 5–50 Zeichen
 - E-Mail-Validierung via `FILTER_VALIDATE_EMAIL`
 - Serverseitige Validierung auf allen Endpunkten (Client-Validierung wird nicht vertraut)
+- String-Felder werden über `post_str('feld')` gelesen (`private/php/core/input.php`, geladen von `session_init.php`): Arrays wie `feld[]=x` gelten als leer, statt unter `strict_types` einen `TypeError`/500 auszulösen
 
 ### Redirect-Validierung
 
-Post-Login-Redirects werden gegen eine Whitelist-Regex geprüft, um Open-Redirect-Angriffe zu verhindern:
+Post-Login-Redirects werden gegen eine Whitelist-Regex geprüft; protokoll-relative Ziele (`//host/…`) werden zusätzlich verworfen, um Open-Redirect-Angriffe zu verhindern:
 
 ```php
-preg_match('#^(\.\./)*public/php/[a-zA-Z0-9_]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)
+!str_starts_with($redirect, '//')
+    && preg_match('#^/[a-zA-Z0-9_/]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)
 ```
 
 ### Rate-Limiting
@@ -822,7 +844,8 @@ Alle Rate-Limits werden über Abfragen in der `audit_logs`- bzw. Aktions-Tabelle
 | Login fehlgeschlagen | 10 Versuche | 15 Minuten | Konto |
 | Registrierung | 5 Versuche | 15 Minuten | IP |
 | Passwort-Reset-Anfrage | 3 Anfragen | 5 Minuten | IP |
-| Kontaktformular | 5 Einreichungen | 1 Stunde | IP + E-Mail |
+| Kontaktformular | 5 Einreichungen | 1 Stunde | E-Mail bzw. Nutzer |
+| Kontaktformular | 5 Einreichungen | 1 Stunde | IP (`CONTACT_SUBMITTED`) |
 | Foto-Upload | 50 Uploads (Admins frei) | 1 Stunde | Nutzer |
 | Nachrichten senden | 30 Nachrichten | 1 Minute | Nutzer |
 | Spot-Meldungen | 10 Meldungen | 1 Stunde | Nutzer |
@@ -858,6 +881,7 @@ Sicherheitsrelevante Aktionen werden mit User-ID, IP-Adresse und Zeitstempel pro
 | `PASSWORD_CHANGED` | Passwort geändert |
 | `PASSWORD_CHANGE_REAUTH_FAILED` | Re-Auth beim Passwort-Ändern fehlgeschlagen |
 | `SPOT_CREATED` | Neuer Spot erstellt |
+| `CONTACT_SUBMITTED` | Kontaktformular abgeschickt (IP-Rate-Limit) |
 | `SPOT_EDITED` | Spot bearbeitet |
 | `IMAGE_UPLOADED` | Bild hochgeladen |
 | `IMAGE_DELETED` | Spot-Bild durch Uploader, Spot-Eigentümer oder Admin gelöscht |

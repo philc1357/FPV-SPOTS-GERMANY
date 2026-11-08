@@ -13,12 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
-$email   = trim($_POST['email'] ?? '');
-$message = trim($_POST['contact_field'] ?? '');
+$email   = trimpost_str('email');
+$message = trimpost_str('contact_field');
 $userId  = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 $ip      = client_ip();
 
@@ -36,7 +36,20 @@ $rl = $pdo->prepare(
        AND (email = ? OR (? IS NOT NULL AND user_id = ?))"
 );
 $rl->execute([$email, $userId, $userId]);
-if ((int)$rl->fetchColumn() >= 5) {
+$byEmailOrUser = (int)$rl->fetchColumn();
+
+// Zusätzliches IP-Limit über audit_logs: verhindert, dass anonyme Nutzer
+// das E-Mail-Limit mit ständig wechselnden Adressen umgehen.
+$rlIp = $pdo->prepare(
+    "SELECT COUNT(*) FROM audit_logs
+     WHERE action = 'CONTACT_SUBMITTED'
+       AND ip_address = ?
+       AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)"
+);
+$rlIp->execute([$ip]);
+$byIp = (int)$rlIp->fetchColumn();
+
+if ($byEmailOrUser >= 5 || $byIp >= 5) {
     http_response_code(429);
     header('Location: /public/php/kontakt_error.php?rl=1');
     exit;
@@ -47,6 +60,9 @@ try {
         "INSERT INTO contact_requests (user_id, email, message) VALUES (?, ?, ?)"
     );
     $stmt->execute([$userId, $email, $message]);
+
+    $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'CONTACT_SUBMITTED', ?)")
+        ->execute([$userId, $ip]);
 } catch (PDOException $e) {
     error_log('kontakt_submit.php DB error: ' . $e->getMessage());
     header('Location: /public/php/kontakt_error.php');

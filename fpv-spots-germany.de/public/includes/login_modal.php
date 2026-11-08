@@ -52,21 +52,5 @@ if (!$isLoggedIn):
         </div>
     </div>
 </div>
-<script>
-(function () {
-    var params = new URLSearchParams(window.location.search);
-    if (params.get('showLogin') === '1') {
-        document.addEventListener('DOMContentLoaded', function () {
-            var el = document.getElementById('loginModal');
-            if (el && window.bootstrap) {
-                new bootstrap.Modal(el).show();
-            }
-            params.delete('showLogin');
-            var qs = params.toString();
-            var url = window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
-            window.history.replaceState({}, '', url);
-        });
-    }
-})();
-</script>
+<script src="<?= asset('/public/js/pages/login_modal.js') ?>"></script>
 <?php endif; ?>

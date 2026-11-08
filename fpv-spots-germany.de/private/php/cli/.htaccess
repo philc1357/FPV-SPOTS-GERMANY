@@ -1,0 +1,6 @@
+# =============================================================
+# Zugriffssperre
+# Dieser Ordner enthält nur Laufzeitdaten bzw. Dateien, die per
+# require_once oder CLI genutzt werden – niemals direkt per URL.
+# =============================================================
+Require all denied

@@ -14,12 +14,12 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     http_response_code(403);
     die('CSRF-Fehler');
 }
 
-if (($_POST['terms'] ?? '') !== '1') {
+if (post_str('terms') !== '1') {
     header('Location: /terms_accept.php');
     exit;
 }

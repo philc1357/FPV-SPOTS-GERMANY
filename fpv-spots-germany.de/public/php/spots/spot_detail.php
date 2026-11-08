@@ -278,13 +278,13 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <button class="dropdown-item" onclick="copySpotLink(this)">
+                                    <button class="dropdown-item" data-action="copy-spot-link">
                                         <i class="bi bi-share me-2"></i>Spot teilen
                                     </button>
                                 </li>
                                 <?php if ($spot['latitude'] !== null && $spot['longitude'] !== null): ?>
                                     <li>
-                                        <button class="dropdown-item" onclick="copySpotCoords(this)"
+                                        <button class="dropdown-item" data-action="copy-spot-coords"
                                                 data-lat="<?= htmlspecialchars(number_format((float)$spot['latitude'], 6, '.', ''), ENT_QUOTES, 'UTF-8') ?>"
                                                 data-lng="<?= htmlspecialchars(number_format((float)$spot['longitude'], 6, '.', ''), ENT_QUOTES, 'UTF-8') ?>">
                                             <i class="bi bi-crosshair me-2"></i>Koordinaten kopieren
@@ -307,7 +307,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                     </li>
                                     <li>
                                         <form method="POST" action="/private/php/spots/delete_spot_submit.php"
-                                              onsubmit="return confirm('Spot wirklich löschen? Alle Kommentare, Bewertungen und Fotos werden ebenfalls gelöscht.')">
+                                              data-confirm="Spot wirklich löschen? Alle Kommentare, Bewertungen und Fotos werden ebenfalls gelöscht.">
                                             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                             <input type="hidden" name="spot_id" value="<?= $spotId ?>">
                                             <button type="submit" class="dropdown-item text-danger">
@@ -338,7 +338,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                         <strong>Parkmöglichkeit:</strong>
                         <?php if ($isLoggedIn): ?>
                             <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1"
-                                    onclick="toggleEditParking()" title="Parkmöglichkeit bearbeiten"><i class="bi bi-pencil"></i></button>
+                                    data-action="toggle-edit-parking" title="Parkmöglichkeit bearbeiten"><i class="bi bi-pencil"></i></button>
                         <?php endif; ?>
                     </div>
 
@@ -368,7 +368,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                       <?= ($spot['parking_info'] ?: 'Unbekannt') === 'Unbekannt' ? 'disabled' : '' ?>><?= ($spot['parking_info'] ?: 'Unbekannt') !== 'Unbekannt' ? htmlspecialchars($spot['parking_info'], ENT_QUOTES, 'UTF-8') : '' ?></textarea>
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-primary btn-sm">Speichern</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleEditParking()">Abbrechen</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="toggle-edit-parking">Abbrechen</button>
                             </div>
                         </form>
                     </div>
@@ -683,7 +683,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                          class="img-fluid rounded"
                                          loading="lazy"
                                          style="width:100%; height:160px; object-fit:cover; cursor:zoom-in;"
-                                         onerror="this.closest('.col-6').style.display='none'">
+                                         data-hide-on-error=".col-6">
                                 </button>
                                 <small class="text-secondary d-block mt-1">
                                     <?= htmlspecialchars($img['username']) ?> &bull; <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
@@ -705,7 +705,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                         <?php endforeach; ?>
                                         <form method="POST" action="/private/php/spots/photo_delete_submit.php"
                                               class="flex-grow-1"
-                                              onsubmit="return confirm('Foto wirklich löschen?')">
+                                              data-confirm="Foto wirklich löschen?">
                                             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                             <input type="hidden" name="spot_id" value="<?= (int)$spotId ?>">
                                             <input type="hidden" name="image_id" value="<?= (int)$img['id'] ?>">
@@ -749,7 +749,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                              alt="Vorschaubild: <?= $title ?>"
                                              loading="lazy"
                                              class="yt-thumb"
-                                             onerror="this.style.visibility='hidden'">
+                                             data-hide-on-error="self">
                                         <span class="yt-play" aria-hidden="true"><i class="bi bi-play-fill"></i></span>
                                     </button>
                                 </div>
@@ -846,13 +846,13 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                 <span class="text-secondary small"><?= $commentDate ?></span>
                                 <?php if ($isCommentOwner): ?>
                                     <button class="btn btn-outline-primary btn-sm py-0 px-1"
-                                            onclick="toggleEditComment(<?= $comment['id'] ?>)"
+                                            data-action="toggle-edit-comment" data-comment-id="<?= $comment['id'] ?>"
                                             title="Bearbeiten"><i class="bi bi-pencil"></i></button>
                                 <?php endif; ?>
                                 <?php if ($canDelete): ?>
                                     <form method="POST" action="/private/php/comments/comment_delete_submit.php"
                                           class="d-inline"
-                                          onsubmit="return confirm('Kommentar wirklich löschen?')">
+                                          data-confirm="Kommentar wirklich löschen?">
                                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                         <input type="hidden" name="comment_id" value="<?= $comment['id'] ?>">
                                         <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
@@ -878,7 +878,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-primary btn-sm">Speichern</button>
                                     <button type="button" class="btn btn-outline-secondary btn-sm"
-                                            onclick="toggleEditComment(<?= $comment['id'] ?>)">Abbrechen</button>
+                                            data-action="toggle-edit-comment" data-comment-id="<?= $comment['id'] ?>">Abbrechen</button>
                                 </div>
                             </form>
                         </div>
@@ -894,151 +894,7 @@ $createdDate = $spot['created_at'] ? date('d.m.Y', strtotime((string)$spot['crea
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 
-<script>
-// Spot-Link in Zwischenablage kopieren
-function copySpotLink(btn) {
-    const url = window.location.href;
-    const original = btn.innerHTML;
-    const done = () => {
-        btn.innerHTML = '<i class="bi bi-check2"></i> Kopiert!';
-        btn.disabled = true;
-        setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
-    };
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(done).catch(() => { fallbackCopy(url); done(); });
-    } else {
-        fallbackCopy(url); done();
-    }
-}
-// Spot-Koordinaten in Zwischenablage kopieren
-function copySpotCoords(btn) {
-    const text = btn.dataset.lat + ', ' + btn.dataset.lng;
-    const original = btn.innerHTML;
-    const done = () => {
-        btn.innerHTML = '<i class="bi bi-check2"></i> Kopiert!';
-        btn.disabled = true;
-        setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
-    };
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(text); done(); });
-    } else {
-        fallbackCopy(text); done();
-    }
-}
-function fallbackCopy(text) {
-    const el = document.createElement('textarea');
-    el.value = text;
-    el.style.position = 'fixed';
-    el.style.opacity = '0';
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-}
-
-// Kommentar-Bearbeitung ein-/ausblenden
-function toggleEditComment(id) {
-    document.getElementById('comment-display-' + id).classList.toggle('d-none');
-    document.getElementById('comment-edit-' + id).classList.toggle('d-none');
-}
-
-// ---------------------------------------------------------------
-// Betriebsklassen-Umschalter
-//
-// Die Rechtstexte werden serverseitig gerendert, deshalb muss die
-// Seite nach dem Wechsel neu laden. Mit JS uebernimmt das Formular
-// das beim Anklicken selbst, der "Übernehmen"-Knopf entfaellt.
-// ---------------------------------------------------------------
-(function () {
-    var form = document.getElementById('pilotClassForm');
-    if (!form) return;
-    var submitBtn = document.getElementById('pilotClassSubmit');
-    if (submitBtn) submitBtn.classList.add('d-none');
-
-    form.querySelectorAll('.pilot-class-cb').forEach(function (radio) {
-        radio.addEventListener('change', function () {
-            if (radio.checked) form.submit();
-        });
-    });
-})();
-
-// Parkmöglichkeit bearbeiten ein-/ausblenden
-function toggleEditParking() {
-    document.getElementById('parking-display').classList.toggle('d-none');
-    document.getElementById('parking-edit').classList.toggle('d-none');
-}
-(function () {
-    var cb = document.getElementById('detailParkingUnknown');
-    if (!cb) return;
-    cb.addEventListener('change', function () {
-        var ta = document.getElementById('detailParkingInfo');
-        if (this.checked) {
-            ta.disabled = true;
-            ta.value = '';
-        } else {
-            ta.disabled = false;
-            ta.focus();
-        }
-    });
-})();
-
-// ============================================================
-// YouTube-Einbettung (Zwei-Klick-Loesung)
-// Beim Seitenaufruf wird nur das Vorschaubild geladen. Erst wenn
-// der Nutzer auf den Play-Button klickt, wird der Player von
-// youtube-nocookie.com nachgeladen und ersetzt das Vorschaubild.
-// ============================================================
-(function () {
-    var grid = document.getElementById('videoGrid');
-    if (!grid) return;
-
-    var YT_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
-
-    grid.addEventListener('click', function (event) {
-        var facade = event.target.closest('.yt-facade');
-        if (!facade) return;
-
-        var wrapper = facade.closest('.yt-embed');
-        if (!wrapper) return;
-
-        // Video-ID clientseitig erneut gegen Whitelist pruefen
-        var videoId = wrapper.dataset.ytId || '';
-        if (!YT_ID_PATTERN.test(videoId)) return;
-
-        var iframe = document.createElement('iframe');
-        iframe.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0';
-        iframe.title = wrapper.dataset.ytTitle || 'YouTube-Video';
-        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-        iframe.allowFullscreen = true;
-        iframe.setAttribute('frameborder', '0');
-
-        wrapper.replaceChildren(iframe);
-    });
-})();
-
-// Stern-Hover-Effekt
-document.querySelectorAll('#starRating .star').forEach(label => {
-    label.addEventListener('mouseenter', () => {
-        const val = parseInt(label.getAttribute('for').replace('star', ''));
-        document.querySelectorAll('#starRating .star').forEach(s => {
-            const sv = parseInt(s.getAttribute('for').replace('star', ''));
-            s.classList.toggle('active', sv <= val);
-        });
-    });
-});
-const starRating = document.getElementById('starRating');
-if (starRating) {
-    starRating.addEventListener('mouseleave', () => {
-        const checked = starRating.querySelector('input:checked');
-        const val = checked ? parseInt(checked.value) : 0;
-        document.querySelectorAll('#starRating .star').forEach(s => {
-            const sv = parseInt(s.getAttribute('for').replace('star', ''));
-            s.classList.toggle('active', sv <= val);
-        });
-    });
-}
-</script>
+<script src="<?= asset('/public/js/pages/spot_detail.js') ?>"></script>
 
 <!-- ============================================================
      Mehrfach-Foto-Upload
@@ -1052,185 +908,7 @@ if (starRating) {
      Im Browser aussortierte Dateien werden per sessionStorage über
      den Reload gerettet. Dateinamen nur über textContent ausgeben.
 ============================================================ -->
-<script>
-(function () {
-    var form = document.getElementById('photoUploadForm');
-    if (!form || !window.fetch || !window.FormData) return; // ohne JS/fetch: normaler Formular-Post
-
-    var input    = document.getElementById('photoInput');
-    var btn      = document.getElementById('photoUploadBtn');
-    var info     = document.getElementById('photoSelectionInfo');
-    var list     = document.getElementById('photoSelectionList');
-    var progress = document.getElementById('photoUploadProgress');
-    var bar      = progress.querySelector('.progress-bar');
-    var barWrap  = progress.querySelector('.progress');
-    var status   = document.getElementById('photoUploadStatus');
-
-    var maxFiles = parseInt(form.dataset.maxFiles, 10) || 0;   // 0 = unbegrenzt
-    var maxSize  = parseInt(form.dataset.maxSize, 10) || 10485760;
-    var STORE_KEY = 'fpvUploadSkipped_' + form.querySelector('[name="spot_id"]').value;
-
-    var valid = [];    // File-Objekte, die hochgeladen werden
-    var skipped = [];  // {name, reason} – im Browser aussortiert
-    var busy = false;
-
-    // ── Vorprüfung einer Datei ───────────────────────────────
-    function checkFile(f) {
-        var ext = (f.name.split('.').pop() || '').toLowerCase();
-        var typeOk = ['jpg', 'jpeg', 'png'].indexOf(ext) !== -1 &&
-                     (f.type === '' || f.type === 'image/jpeg' || f.type === 'image/png');
-        if (!typeOk) return 'Kein erlaubtes Format (nur JPG/PNG)';
-        if (f.size > maxSize) return 'Datei zu groß (max. 10 MB)';
-        return null;
-    }
-
-    function addItem(text, cls) {
-        var li = document.createElement('li');
-        li.className = cls;
-        li.textContent = text;
-        list.appendChild(li);
-    }
-
-    // ── Auswahl geändert: Liste aufbauen ─────────────────────
-    input.addEventListener('change', function () {
-        valid = [];
-        skipped = [];
-        list.textContent = '';
-        info.textContent = '';
-        info.className = 'small mt-2';
-
-        var files = Array.prototype.slice.call(input.files || []);
-        if (maxFiles > 0 && files.length > maxFiles) {
-            info.textContent = 'Es sind maximal ' + maxFiles + ' Bilder auf einmal möglich – nur die ersten ' + maxFiles + ' werden übernommen.';
-            info.className = 'small mt-2 text-warning';
-            files.slice(maxFiles).forEach(function (f) {
-                skipped.push({ name: f.name, reason: 'Mehr als ' + maxFiles + ' Bilder ausgewählt' });
-            });
-            files = files.slice(0, maxFiles);
-        }
-
-        files.forEach(function (f) {
-            var err = checkFile(f);
-            if (err) {
-                skipped.push({ name: f.name, reason: err });
-                addItem('✗ ' + f.name + ' – wird übersprungen: ' + err, 'text-danger');
-            } else {
-                valid.push(f);
-                addItem('✓ ' + f.name, 'text-success');
-            }
-        });
-        btn.disabled = valid.length === 0;
-    });
-
-    // ── Fortschritt anzeigen ─────────────────────────────────
-    function setProgress(done, total) {
-        var pct = total ? Math.round(done / total * 100) : 0;
-        bar.style.width = pct + '%';
-        barWrap.setAttribute('aria-valuenow', String(pct));
-        status.textContent = done + ' / ' + total + ' hochgeladen';
-    }
-
-    function finish() {
-        try {
-            if (skipped.length) sessionStorage.setItem(STORE_KEY, JSON.stringify(skipped.slice(0, 50)));
-        } catch (e) { /* ohne Storage fehlt nur der Zusatz-Hinweis */ }
-        window.location.reload();
-    }
-
-    // ── Absenden: Bilder einzeln nacheinander senden ─────────
-    form.addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        if (busy) return;
-        if (!valid.length) {
-            if (skipped.length) finish();
-            return;
-        }
-        busy = true;
-        btn.disabled = true;
-        input.disabled = true;
-        progress.classList.remove('d-none');
-
-        var csrf = form.querySelector('[name="csrf_token"]').value;
-        var spotId = form.querySelector('[name="spot_id"]').value;
-        var total = valid.length;
-        var i = 0;
-        setProgress(0, total);
-
-        function next() {
-            if (i >= total) return finish();
-            var f = valid[i];
-            var fd = new FormData();
-            fd.append('csrf_token', csrf);
-            fd.append('spot_id', spotId);
-            fd.append('ajax', '1');
-            fd.append('photos[]', f, f.name);
-
-            fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin' })
-                .then(function (r) { return r.json().catch(function () { return { ok: false, error: 'Serverfehler' }; }); })
-                .then(function (res) {
-                    i++;
-                    setProgress(i, total);
-                    if (!res.ok) {
-                        // Harter Fehler (Sitzung, Login …): Rest nicht mehr versuchen
-                        valid.slice(i - 1).forEach(function (rf) {
-                            skipped.push({ name: rf.name, reason: res.error || 'Upload-Fehler' });
-                        });
-                        return finish();
-                    }
-                    if (res.rate_limited) {
-                        // Stundenlimit: übrige Dateien direkt als übersprungen melden
-                        valid.slice(i).forEach(function (rf) {
-                            skipped.push({ name: rf.name, reason: 'Stundenlimit erreicht (50 Bilder pro Stunde)' });
-                        });
-                        return finish();
-                    }
-                    next();
-                })
-                .catch(function () {
-                    i++;
-                    skipped.push({ name: f.name, reason: 'Netzwerkfehler' });
-                    setProgress(i, total);
-                    next();
-                });
-        }
-        next();
-    });
-})();
-
-// ── Nach dem Reload: im Browser aussortierte Dateien anhängen ──
-(function () {
-    var form = document.getElementById('photoUploadForm');
-    var box  = document.getElementById('uploadReport');
-    if (!form || !box) return;
-    var key = 'fpvUploadSkipped_' + form.querySelector('[name="spot_id"]').value;
-    var items;
-    try {
-        items = JSON.parse(sessionStorage.getItem(key) || '[]');
-        sessionStorage.removeItem(key);
-    } catch (e) { return; }
-    if (!Array.isArray(items) || !items.length) return;
-
-    var ul = document.getElementById('uploadSkippedList');
-    if (!ul) {
-        var alertBox = document.createElement('div');
-        alertBox.className = 'alert alert-warning py-2';
-        alertBox.setAttribute('role', 'alert');
-        var strong = document.createElement('strong');
-        strong.textContent = 'Nicht hochgeladen:';
-        ul = document.createElement('ul');
-        ul.className = 'mb-0 small';
-        alertBox.appendChild(strong);
-        alertBox.appendChild(ul);
-        box.appendChild(alertBox);
-    }
-    items.slice(0, 50).forEach(function (it) {
-        if (!it || typeof it.name !== 'string' || typeof it.reason !== 'string') return;
-        var li = document.createElement('li');
-        li.textContent = it.name.slice(0, 100) + ' – ' + it.reason.slice(0, 100);
-        ul.appendChild(li);
-    });
-})();
-</script>
+<script src="<?= asset('/public/js/pages/spot_detail_upload.js') ?>"></script>
 
 <!-- ============================================================
      Foto-Popup-Modal (Lightbox)
@@ -1251,23 +929,7 @@ if (starRating) {
         </div>
     </div>
 </div>
-<script>
-(function () {
-    var modal = document.getElementById('photoModal');
-    if (!modal) return;
-    var imgEl = document.getElementById('photoModalImg');
-    modal.addEventListener('show.bs.modal', function (event) {
-        var trigger = event.relatedTarget;
-        if (!trigger) return;
-        imgEl.src = trigger.getAttribute('data-img-src') || '';
-        imgEl.alt = trigger.getAttribute('data-img-alt') || '';
-    });
-    modal.addEventListener('hidden.bs.modal', function () {
-        imgEl.src = '';
-        imgEl.alt = '';
-    });
-})();
-</script>
+<script src="<?= asset('/public/js/pages/spot_detail_photo_modal.js') ?>"></script>
 
 <?php if ($isLoggedIn): ?>
 <!-- ============================================================
@@ -1310,16 +972,7 @@ if (starRating) {
         </div>
     </div>
 </div>
-<script>
-(function () {
-    var ta = document.getElementById('reportBody');
-    var counter = document.getElementById('reportCharCount');
-    if (!ta || !counter) return;
-    ta.addEventListener('input', function () {
-        counter.textContent = ta.value.length;
-    });
-})();
-</script>
+<script src="<?= asset('/public/js/pages/spot_detail_report.js') ?>"></script>
 <?php endif; ?>
 
 <!-- ============================================================
@@ -1338,210 +991,7 @@ if (starRating) {
      Aussage darueber, ob sich ein Flug lohnt. Nur Zahlen und der
      amtliche Wetter-Klartext.
 ============================================================ -->
-<script>
-(function () {
-    var box = document.getElementById('wetterCollapse');
-    if (!box) return;
-
-    var body  = document.getElementById('wetterBody');
-    var stand = document.getElementById('wetterStand');
-    var laeuft = false;   // schuetzt vor schnellem Auf/Zu/Auf
-
-    // ── Hilfsfunktionen ──────────────────────────────────────
-
-    function esc(str) {
-        var d = document.createElement('div');
-        d.appendChild(document.createTextNode(str === null || str === undefined ? '' : str));
-        return d.innerHTML;
-    }
-
-    // Icon-Klassen kommen aus einer festen Tabelle auf dem Server.
-    // Die Pruefung ist zweite Verteidigungslinie, kein Ersatz dafuer.
-    function icon(name) {
-        return /^bi-[a-z0-9-]+$/.test(name || '') ? name : 'bi-cloud';
-    }
-
-    // Zahl mit deutschem Dezimalkomma; fehlende Werte als Gedankenstrich.
-    function num(wert, einheit, stellen) {
-        if (wert === null || wert === undefined || isNaN(wert)) return '–';
-        var s = Number(wert).toLocaleString('de-DE', {
-            minimumFractionDigits: stellen || 0,
-            maximumFractionDigits: stellen || 0
-        });
-        if (!einheit) return s;
-        // Nach DIN 5008 steht vor einer Einheit ein Leerzeichen ("14,8 °C").
-        // Das blosse Gradzeichen als Kurzform in den Streifen bildet die
-        // Ausnahme – dort waere "15 °" typografisch falsch getrennt.
-        return einheit === '\u00b0' ? s + einheit : s + ' ' + einheit;
-    }
-
-    // Windpfeil: Open-Meteo nennt die Richtung, AUS DER der Wind weht.
-    // Fuer einen Pfeil in Bewegungsrichtung sind das +180 Grad.
-    function pfeil(grad, kuerzel) {
-        if (grad === null || grad === undefined || isNaN(grad)) return '';
-        return '<i class="bi bi-arrow-up wx-arrow" aria-hidden="true" style="transform:rotate('
-             + (Number(grad) + 180) % 360 + 'deg)"></i> ' + esc(kuerzel || '');
-    }
-
-    function kachel(bi, titel, inhalt) {
-        return '<div class="col-6 col-md-4"><div class="wx-tile h-100">'
-             + '<div class="wx-tile-label"><i class="bi ' + icon(bi) + ' me-1" aria-hidden="true"></i>'
-             + esc(titel) + '</div>'
-             + '<div class="wx-tile-value">' + inhalt + '</div>'
-             + '</div></div>';
-    }
-
-    // ── Rendern ──────────────────────────────────────────────
-
-    function render(d) {
-        var a = d.aktuell || {};
-        var h = '';
-
-        // Aktueller Zustand
-        h += '<div class="d-flex align-items-center gap-3 mb-3">'
-           +   '<i class="bi ' + icon(a.icon) + ' wx-now-icon" aria-hidden="true"></i>'
-           +   '<div>'
-           +     '<div class="wx-now-temp">' + num(a.temp, '°C', 1) + '</div>'
-           +     '<div class="text-secondary small">' + esc(a.text)
-           +       ' &middot; gefühlt ' + num(a.gefuehlt, '°C', 1) + '</div>'
-           +   '</div>'
-           + '</div>';
-
-        // Messwert-Kacheln
-        h += '<div class="row g-2 mb-3">'
-           + kachel('bi-wind',            'Wind',       num(a.wind, 'km/h') + ' ' + pfeil(a.richtung, a.richtung_text))
-           + kachel('bi-wind',            'Böen',       num(a.boeen, 'km/h'))
-           + kachel('bi-umbrella',        'Niederschlag', num(a.niederschlag, 'mm', 1))
-           + kachel('bi-clouds',          'Bewölkung',  num(a.bewoelkung, '%'))
-           + kachel('bi-eye',             'Sicht',      num(a.sicht_km, 'km', 1))
-           + kachel('bi-droplet-half',    'Luftfeuchte', num(a.feuchte, '%'))
-           + '</div>';
-
-        // Sonnenzeiten
-        var s = d.sonne || {};
-        if (s.aufgang || s.untergang) {
-            h += '<p class="small text-secondary mb-2">'
-               + '<i class="bi bi-sunrise me-1" aria-hidden="true"></i>' + esc(s.aufgang) + ' Uhr'
-               + '<span class="mx-2">&middot;</span>'
-               + '<i class="bi bi-sunset me-1" aria-hidden="true"></i>' + esc(s.untergang) + ' Uhr'
-               + '</p>';
-        }
-
-        // Kp-Index – entfaellt still, wenn die NOAA nicht erreichbar war
-        if (d.kp) {
-            h += '<p class="small text-secondary mb-3">'
-               + '<i class="bi bi-activity me-1" aria-hidden="true"></i>'
-               + 'Kp-Index ' + num(d.kp.wert, '', 1) + ' (' + esc(d.kp.text) + ') '
-               + '<span class="text-secondary">– geomagnetische Aktivität, '
-               + 'hohe Werte können die GPS-Genauigkeit verringern.</span>'
-               + '</p>';
-        }
-
-        // Naechste 24 Stunden – horizontal scrollbarer Streifen
-        if (d.stunden && d.stunden.length) {
-            h += '<h3 class="h6 mt-4 mb-2">Nächste 24 Stunden</h3><div class="wx-hours">';
-            d.stunden.forEach(function (x) {
-                h += '<div class="wx-hour">'
-                   +   '<div class="wx-hour-time">' + esc(x.zeit) + '</div>'
-                   +   '<i class="bi ' + icon(x.icon) + '" title="' + esc(x.text) + '"></i>'
-                   +   '<div class="wx-hour-temp">' + num(x.temp, '°') + '</div>'
-                   +   '<div class="wx-hour-wind">' + num(x.wind) + '<span class="text-secondary">/</span>'
-                   +     num(x.boeen) + '</div>'
-                   +   '<div class="wx-hour-dir">' + esc(x.richtung_text || '') + '</div>'
-                   +   '<div class="wx-hour-rain">' + num(x.regen_prozent, '%') + '</div>'
-                   + '</div>';
-            });
-            h += '</div><p class="wx-legend">Zeit &middot; Wetter &middot; Temperatur &middot; '
-               + 'Wind/Böen in km/h &middot; Richtung &middot; Regenwahrscheinlichkeit</p>';
-        }
-
-        // 7-Tage-Uebersicht
-        if (d.tage && d.tage.length) {
-            h += '<h3 class="h6 mt-4 mb-2">7 Tage</h3><div class="wx-days">';
-            d.tage.forEach(function (x) {
-                h += '<div class="wx-day">'
-                   +   '<div class="wx-day-name">' + (x.heute ? 'Heute' : esc(x.wochentag))
-                   +     '<span class="wx-day-date">' + esc(x.datum) + '</span></div>'
-                   +   '<i class="bi ' + icon(x.icon) + '" title="' + esc(x.text) + '"></i>'
-                   +   '<div class="wx-day-temp">' + num(x.tmax, '°') + '<span class="text-secondary"> / '
-                   +     num(x.tmin, '°') + '</span></div>'
-                   +   '<div class="wx-day-wind"><i class="bi bi-wind me-1" aria-hidden="true"></i>'
-                   +     num(x.boeen, 'km/h') + '</div>'
-                   +   '<div class="wx-day-rain"><i class="bi bi-umbrella me-1" aria-hidden="true"></i>'
-                   +     num(x.regen_prozent, '%') + '</div>'
-                   + '</div>';
-            });
-            h += '</div><p class="wx-legend">Wetter &middot; Höchst-/Tiefsttemperatur &middot; '
-               + 'stärkste Böen &middot; Regenwahrscheinlichkeit</p>';
-        }
-
-        // Quellenangabe – Open-Meteo steht unter CC BY 4.0 und verlangt sie
-        h += '<p class="small text-secondary border-top border-secondary pt-3 mt-4 mb-0">'
-           + '<i class="bi bi-info-circle me-1" aria-hidden="true"></i>'
-           + 'Prognosen sind Modellrechnungen und keine Zusage. Ob ein Flug möglich und '
-           + 'zulässig ist, entscheidest du vor Ort.'
-           + '<br>Wetterdaten: <a href="https://open-meteo.com/" target="_blank" rel="noopener" '
-           + 'class="text-info">Open-Meteo.com</a> (CC BY 4.0), für Deutschland auf Basis von DWD ICON. '
-           + 'Kp-Index: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener" '
-           + 'class="text-info">NOAA SWPC</a>.'
-           + '</p>';
-
-        body.innerHTML = h;
-
-        if (stand && d.stand_text) {
-            stand.textContent = 'Stand: ' + d.stand_text;
-        }
-    }
-
-    function renderFehler(meldung) {
-        body.innerHTML =
-            '<div class="alert alert-secondary mb-0">'
-          +   '<p class="mb-2"><i class="bi bi-cloud-slash me-1" aria-hidden="true"></i>' + esc(meldung) + '</p>'
-          +   '<button type="button" class="btn btn-outline-secondary btn-sm" id="wetterRetry">'
-          +     'Erneut versuchen</button>'
-          + '</div>';
-        if (stand) stand.textContent = '';
-
-        var btn = document.getElementById('wetterRetry');
-        if (btn) btn.addEventListener('click', function () {
-            body.innerHTML = '<div class="wx-skeleton" style="height:5.5rem"></div>'
-                           + '<div class="wx-skeleton mt-2" style="height:5rem"></div>';
-            laden();
-        });
-    }
-
-    // ── Laden ────────────────────────────────────────────────
-
-    function laden() {
-        if (box.dataset.loaded === '1' || laeuft) return;
-        laeuft = true;
-        body.setAttribute('aria-busy', 'true');
-
-        fetch('/api/weather.php?spot_id=' + encodeURIComponent(box.dataset.spotId), {
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(function (res) {
-            return res.json().then(function (daten) {
-                if (!res.ok) throw new Error(daten && daten.error ? daten.error : 'HTTP ' + res.status);
-                return daten;
-            });
-        })
-        .then(function (daten) {
-            render(daten);
-            box.dataset.loaded = '1';
-        })
-        .catch(function (e) {
-            renderFehler(e && e.message ? e.message : 'Wetterdaten konnten nicht geladen werden.');
-        })
-        .finally(function () {
-            laeuft = false;
-            body.setAttribute('aria-busy', 'false');
-        });
-    }
-
-    box.addEventListener('shown.bs.collapse', laden);
-})();
-</script>
+<script src="<?= asset('/public/js/pages/spot_detail_weather.js') ?>"></script>
 
 </body>
 </html>

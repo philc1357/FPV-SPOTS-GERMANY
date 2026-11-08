@@ -22,12 +22,12 @@ declare(strict_types=1);
 
     // 3. Eingaben holen (KEIN trim() bei Passwörtern – Leerzeichen können gewollt sein)
     $userId    = $_SESSION['user_id'];
-    $currentPw = $_POST['current_password'] ?? '';
-    $newPass1  = $_POST['password_field1']  ?? '';
-    $newPass2  = $_POST['password']         ?? '';
+    $currentPw = post_str('current_password');
+    $newPass1  = post_str('password_field1');
+    $newPass2  = post_str('password');
 
     // 4. Server-seitige Validierung
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
         die("CSRF-Fehler");
     }
 

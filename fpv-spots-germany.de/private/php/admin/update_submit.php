@@ -23,12 +23,12 @@ if (empty($_SESSION['is_admin'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
-$title       = trim($_POST['title']       ?? '');
-$description = trim($_POST['description'] ?? '');
+$title       = trimpost_str('title');
+$description = trimpost_str('description');
 $userId      = (int)$_SESSION['user_id'];
 
 if ($title === '' || mb_strlen($title) > 255) {

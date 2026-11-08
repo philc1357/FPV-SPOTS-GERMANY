@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
@@ -27,7 +27,7 @@ if (!empty($_COOKIE['remember_me'])) {
 destroy_current_session();
 
 // Redirect-Ziel: nur relative Pfade innerhalb der eigenen Seite erlauben
-$redirect = $_POST['redirect'] ?? '';
+$redirect = post_str('redirect');
 if ($redirect !== '' && !preg_match('#^/[a-zA-Z0-9_]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)) {
     $redirect = '';
 }

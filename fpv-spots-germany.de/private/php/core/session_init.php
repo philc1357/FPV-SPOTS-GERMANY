@@ -10,3 +10,6 @@ if (session_status() === PHP_SESSION_NONE) {
     ]);
     session_start();
 }
+
+// Eingabe-Helfer (post_str) für alle Seiten und Submit-Handler bereitstellen
+require_once __DIR__ . '/input.php';

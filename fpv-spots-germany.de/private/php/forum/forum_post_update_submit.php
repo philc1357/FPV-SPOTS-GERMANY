@@ -18,14 +18,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
 $userId = (int)$_SESSION['user_id'];
 $postId = (int)($_POST['post_id'] ?? 0);
-$title  = trim((string)($_POST['title'] ?? ''));
-$body   = trim((string)($_POST['body']  ?? ''));
+$title  = trimpost_str('title');
+$body   = trimpost_str('body');
 
 if ($postId <= 0) {
     header('Location: /forum.php');
@@ -147,6 +147,11 @@ foreach ($uploadedFiles as &$f) {
     }
     if (getimagesize($f['tmp_name']) === false) {
         $_SESSION['forum_error'] = 'Eine Datei ist kein gültiges Bild.';
+        header('Location: ' . $editUrl);
+        exit;
+    }
+    if (!image_dimensions_ok($f['tmp_name'])) {
+        $_SESSION['forum_error'] = 'Ein Bild ist zu groß (max. 12 000 Pixel Kantenlänge / 40 Megapixel).';
         header('Location: ' . $editUrl);
         exit;
     }

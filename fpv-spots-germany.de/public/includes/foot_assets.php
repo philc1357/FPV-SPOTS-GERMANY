@@ -8,3 +8,6 @@ require_once __DIR__ . '/../../private/php/core/assets.php';
    ============================================================ */
 ?>
 <script src="<?= asset('/public/vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
+<?php /* Delegierte UI-Aktionen (data-confirm, data-action, data-hide-on-error)
+         – Ersatz für Inline-Handler, die die CSP blockiert */ ?>
+<script src="<?= asset('/public/js/ui_actions.js') ?>"></script>

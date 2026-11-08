@@ -67,21 +67,5 @@ if (!$isLoggedIn):
     </div>
 </div>
 <script src="<?= asset('/private/js/password_confirm.js') ?>"></script>
-<script>
-(function () {
-    var params = new URLSearchParams(window.location.search);
-    if (params.get('showRegister') === '1') {
-        document.addEventListener('DOMContentLoaded', function () {
-            var el = document.getElementById('registerModal');
-            if (el && window.bootstrap) {
-                new bootstrap.Modal(el).show();
-            }
-            params.delete('showRegister');
-            var qs = params.toString();
-            var url = window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
-            window.history.replaceState({}, '', url);
-        });
-    }
-})();
-</script>
+<script src="<?= asset('/public/js/pages/register_modal.js') ?>"></script>
 <?php endif; ?>

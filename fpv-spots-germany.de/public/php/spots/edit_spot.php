@@ -260,7 +260,7 @@ $videoError = isset($_GET['video_error']);
                                          class="img-fluid rounded"
                                          loading="lazy"
                                          style="width:100%; height:140px; object-fit:cover;"
-                                         onerror="this.closest('.col-6').style.display='none'">
+                                         data-hide-on-error=".col-6">
                                     <small class="text-secondary d-block mt-1">
                                         <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
                                     </small>
@@ -279,7 +279,7 @@ $videoError = isset($_GET['video_error']);
                                         <?php endforeach; ?>
                                         <form method="POST" action="/private/php/spots/photo_delete_submit.php"
                                               class="flex-grow-1"
-                                              onsubmit="return confirm('Foto wirklich löschen?')">
+                                              data-confirm="Foto wirklich löschen?">
                                             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                                             <input type="hidden" name="spot_id" value="<?= (int)$spot['id'] ?>">
                                             <input type="hidden" name="image_id" value="<?= (int)$img['id'] ?>">
@@ -302,67 +302,7 @@ $videoError = isset($_GET['video_error']);
 </main>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
-<script>
-(function () {
-    var checks = document.querySelectorAll('.edit-copter-check');
-    var btn = document.getElementById('editCopterBtn');
-    if (!btn) return;
-    checks.forEach(function (cb) {
-        cb.addEventListener('change', function () {
-            var selected = Array.from(checks).filter(c => c.checked).map(c => c.value);
-            btn.textContent = selected.length ? selected.join(', ') : 'Alle Größen wählen…';
-        });
-    });
-})();
-// =============================================================
-// Dynamisches Hinzufügen/Entfernen von YouTube-Video-Zeilen
-// =============================================================
-(function () {
-    var MAX_VIDEOS = 10;
-    var container = document.getElementById('videoLinksContainer');
-    var addBtn    = document.getElementById('addVideoLinkBtn');
-    if (!container || !addBtn) return;
-
-    function rowCount() {
-        return container.querySelectorAll('.video-link-row').length;
-    }
-    function updateAddBtn() {
-        addBtn.disabled = rowCount() >= MAX_VIDEOS;
-    }
-    addBtn.addEventListener('click', function () {
-        if (rowCount() >= MAX_VIDEOS) return;
-        var template = container.querySelector('.video-link-row');
-        var clone = template.cloneNode(true);
-        clone.querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
-        container.appendChild(clone);
-        updateAddBtn();
-    });
-    container.addEventListener('click', function (e) {
-        var btn = e.target.closest('.video-remove');
-        if (!btn) return;
-        var row = btn.closest('.video-link-row');
-        if (!row) return;
-        if (rowCount() > 1) {
-            row.remove();
-        } else {
-            row.querySelectorAll('input').forEach(function (inp) { inp.value = ''; });
-        }
-        updateAddBtn();
-    });
-    updateAddBtn();
-})();
-
-document.getElementById('editParkingUnknown').addEventListener('change', function () {
-    var ta = document.getElementById('editParkingInfo');
-    if (this.checked) {
-        ta.disabled = true;
-        ta.value = '';
-    } else {
-        ta.disabled = false;
-        ta.focus();
-    }
-});
-</script>
+<script src="<?= asset('/public/js/pages/edit_spot.js') ?>"></script>
 
 </body>
 </html>

@@ -18,7 +18,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
@@ -71,7 +71,7 @@ $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'IMAG
 $pdo->prepare($logSql)->execute([$userId, $_SERVER['REMOTE_ADDR'] ?? '']);
 
 // Redirect-Ziel via Whitelist
-$redirect = $_POST['redirect'] ?? '';
+$redirect = post_str('redirect');
 if ($redirect === 'detail') {
     header('Location: /spot_detail.php?id=' . $spotId . '&photo_deleted=1#photos');
 } else {

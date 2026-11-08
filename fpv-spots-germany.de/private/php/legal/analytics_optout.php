@@ -33,14 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     http_response_code(403);
     die('CSRF-Fehler');
 }
 
 // Zwei Richtungen: Widerspruch einlegen und wieder zuruecknehmen.
 // Alles andere ist ein manipuliertes Formular und wird ignoriert.
-$modus = $_POST['modus'] ?? '';
+$modus = post_str('modus');
 if (!in_array($modus, ['aus', 'ein'], true)) {
     header('Location: ' . ANALYTICS_OPTOUT_ZIEL);
     exit;

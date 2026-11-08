@@ -14,14 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
-$selector  = $_POST['selector'] ?? '';
-$validator = $_POST['validator'] ?? '';
-$newPass1  = $_POST['password_field1'] ?? '';
-$newPass2  = $_POST['password'] ?? '';
+$selector  = post_str('selector');
+$validator = post_str('validator');
+$newPass1  = post_str('password_field1');
+$newPass2  = post_str('password');
 
 // Passwort-Validierung (gleiche Regeln wie change_password_submit.php)
 if (empty($newPass1) || empty($newPass2)) {

@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
@@ -30,7 +30,7 @@ if ((int)$stmt->fetchColumn() >= 3) {
     $rateLimited = true;
 }
 
-$email = trim($_POST['email'] ?? '');
+$email = trimpost_str('email');
 
 if (!isset($rateLimited) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
     // User suchen

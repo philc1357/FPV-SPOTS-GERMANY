@@ -18,11 +18,11 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
-$body   = trim($_POST['body'] ?? '');
+$body   = trimpost_str('body');
 $userId = (int)$_SESSION['user_id'];
 
 if (strlen($body) < 3 || strlen($body) > 1000) {

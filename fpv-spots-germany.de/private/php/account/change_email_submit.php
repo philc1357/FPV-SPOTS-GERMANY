@@ -24,11 +24,11 @@ declare(strict_types=1);
 
     // 3. Eingabe holen & bereinigen
     $userId    = $_SESSION['user_id'];
-    $newEmail  = trim($_POST['new_email'] ?? '');
-    $currentPw = $_POST['current_password'] ?? '';
+    $newEmail  = trimpost_str('new_email');
+    $currentPw = post_str('current_password');
 
     // 4. Server-seitige Validierung
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
         die("CSRF-Fehler");
     }
 

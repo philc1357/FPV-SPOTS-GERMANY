@@ -17,14 +17,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
 $userId   = (int)$_SESSION['user_id'];
 $postId   = (int)($_POST['post_id'] ?? 0);
 $parentId = (int)($_POST['parent_id'] ?? 0);
-$body     = trim((string)($_POST['body'] ?? ''));
+$body     = trimpost_str('body');
 
 if ($postId <= 0) {
     header('Location: /forum.php');

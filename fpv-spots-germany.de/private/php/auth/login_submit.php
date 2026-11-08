@@ -6,12 +6,12 @@ declare(strict_types=1);
     require_once __DIR__ . '/../core/db.php';
 
     //Formulardaten holen
-    $usernameInput = trim($_POST['username'] ?? '');
-    $passwordInput = $_POST['password'] ?? '';
+    $usernameInput = trimpost_str('username');
+    $passwordInput = post_str('password');
 
     // 3. Validierung
     // Im Submit-Handler prüfen:
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'] ?? '')) {
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
         die("CSRF-Fehler");
     }
     
@@ -104,8 +104,12 @@ declare(strict_types=1);
             $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$user['id']]);
 
             // Redirect-Ziel: nur relative Pfade innerhalb der eigenen Seite erlauben
-            $redirect = $_POST['redirect'] ?? '';
-            if ($redirect !== '' && !preg_match('#^/[a-zA-Z0-9_/]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)) {
+            // (kein protokoll-relatives "//host/..." → wäre ein Open Redirect)
+            $redirect = is_string($_POST['redirect'] ?? null) ? $_POST['redirect'] : '';
+            if ($redirect !== '' && (
+                str_starts_with($redirect, '//')
+                || !preg_match('#^/[a-zA-Z0-9_/]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)
+            )) {
                 $redirect = '';
             }
 

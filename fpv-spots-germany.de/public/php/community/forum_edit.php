@@ -140,13 +140,6 @@ unset($_SESSION['forum_error']);
 </main>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
-<script>
-document.querySelectorAll('.forum-edit-image-tile input[type="checkbox"]').forEach(function (cb) {
-    var tile = cb.closest('.forum-edit-image-tile');
-    cb.addEventListener('change', function () {
-        tile.classList.toggle('is-removing', cb.checked);
-    });
-});
-</script>
+<script src="<?= asset('/public/js/pages/forum_edit.js') ?>"></script>
 </body>
 </html>
