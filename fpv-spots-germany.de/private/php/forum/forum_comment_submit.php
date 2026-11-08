@@ -24,7 +24,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 $userId   = (int)$_SESSION['user_id'];
 $postId   = (int)($_POST['post_id'] ?? 0);
 $parentId = (int)($_POST['parent_id'] ?? 0);
-$body     = trimpost_str('body');
+$body     = trim(post_str('body'));
 
 if ($postId <= 0) {
     header('Location: /forum.php');

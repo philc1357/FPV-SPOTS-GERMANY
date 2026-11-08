@@ -81,7 +81,7 @@ if ($method === 'POST') {
         exit;
     }
 
-    $override = strtoupper(trimpost_str('_method'));
+    $override = strtoupper(trim(post_str('_method')));
 
     $isAdmin = !empty($_SESSION['is_admin']);
 
@@ -107,10 +107,10 @@ if ($method === 'POST') {
         }
 
         // Eingaben holen
-        $name        = trimpost_str('name');
-        $description = trimpost_str('description');
-        $spotType    = trimpost_str('spot_type');
-        $difficulty  = trimpost_str('difficulty');
+        $name        = trim(post_str('name'));
+        $description = trim(post_str('description'));
+        $spotType    = trim(post_str('spot_type'));
+        $difficulty  = trim(post_str('difficulty'));
 
         $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
         $allowedDiff  = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];

@@ -30,7 +30,7 @@ if ((int)$stmt->fetchColumn() >= 3) {
     $rateLimited = true;
 }
 
-$email = trimpost_str('email');
+$email = trim(post_str('email'));
 
 if (!isset($rateLimited) && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
     // User suchen

@@ -23,7 +23,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 }
 
 $spotId = (int)($_POST['spot_id'] ?? 0);
-$body   = trimpost_str('body');
+$body   = trim(post_str('body'));
 $userId = (int)$_SESSION['user_id'];
 
 if ($spotId <= 0 || strlen($body) < 3 || strlen($body) > 1000) {

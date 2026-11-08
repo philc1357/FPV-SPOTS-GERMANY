@@ -22,7 +22,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
-$body   = trimpost_str('body');
+$body   = trim(post_str('body'));
 $userId = (int)$_SESSION['user_id'];
 
 if (strlen($body) < 3 || strlen($body) > 1000) {

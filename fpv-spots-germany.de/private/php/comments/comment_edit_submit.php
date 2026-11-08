@@ -23,7 +23,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 }
 
 $commentId = (int)($_POST['comment_id'] ?? 0);
-$body      = trimpost_str('body');
+$body      = trim(post_str('body'));
 $userId    = (int)$_SESSION['user_id'];
 
 // Kommentar laden und Besitzer pruefen

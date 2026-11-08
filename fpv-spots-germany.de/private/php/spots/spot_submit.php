@@ -28,11 +28,11 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 }
 
 // Eingaben holen und bereinigen
-$name        = trimpost_str('name');
-$description = trimpost_str('description');
-$spotType    = trimpost_str('spot_type');
-$difficulty   = trimpost_str('difficulty');
-$parkingInfo  = trimpost_str('parking_info');
+$name        = trim(post_str('name'));
+$description = trim(post_str('description'));
+$spotType    = trim(post_str('spot_type'));
+$difficulty   = trim(post_str('difficulty'));
+$parkingInfo  = trim(post_str('parking_info'));
 $latitude     = post_str('latitude');
 $longitude    = post_str('longitude');
 

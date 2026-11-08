@@ -40,8 +40,8 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     register_flash_redirect('danger', 'Sicherheits-Token ungültig. Bitte Seite neu laden.', $redirectRaw, true);
 }
 
-$username = trimpost_str('username');
-$email    = trimpost_str('email');
+$username = trim(post_str('username'));
+$email    = trim(post_str('email'));
 $pass1    = post_str('password_field1');
 $pass2    = post_str('password');
 

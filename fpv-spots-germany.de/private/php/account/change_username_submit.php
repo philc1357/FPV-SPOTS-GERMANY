@@ -24,7 +24,7 @@ declare(strict_types=1);
 
     // 3. Eingabe holen & bereinigen
     $userId      = $_SESSION['user_id'];
-    $newUsername = trimpost_str('new_username');
+    $newUsername = trim(post_str('new_username'));
     $currentPw   = post_str('current_password');
 
     // 4. Server-seitige Validierung

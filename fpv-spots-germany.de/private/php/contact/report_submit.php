@@ -24,8 +24,8 @@ require_once __DIR__ . '/../core/db.php';
 
 $spotId     = (int)($_POST['spot_id'] ?? 0);
 $userId     = (int)$_SESSION['user_id'];
-$reportType = trimpost_str('report_type');
-$body       = trimpost_str('body');
+$reportType = trim(post_str('report_type'));
+$body       = trim(post_str('body'));
 
 $allowedTypes = ['Kommentar', 'Foto', 'Spot-Info', 'Spot-Allgemein'];
 

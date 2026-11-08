@@ -17,8 +17,8 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 
-$email   = trimpost_str('email');
-$message = trimpost_str('contact_field');
+$email   = trim(post_str('email'));
+$message = trim(post_str('contact_field'));
 $userId  = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 $ip      = client_ip();
 

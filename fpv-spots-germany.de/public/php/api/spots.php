@@ -78,10 +78,10 @@ if ($method === 'POST') {
     }
 
     // Eingaben holen und bereinigen
-    $name        = trimpost_str('name');
-    $description = trimpost_str('description');
-    $spotType    = trimpost_str('spot_type');
-    $difficulty  = trimpost_str('difficulty');
+    $name        = trim(post_str('name'));
+    $description = trim(post_str('description'));
+    $spotType    = trim(post_str('spot_type'));
+    $difficulty  = trim(post_str('difficulty'));
     $latitude    = post_str('latitude');
     $longitude   = post_str('longitude');
 

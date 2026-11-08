@@ -23,8 +23,8 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 }
 
 $userId = (int)$_SESSION['user_id'];
-$title  = trimpost_str('title');
-$body   = trimpost_str('body');
+$title  = trim(post_str('title'));
+$body   = trim(post_str('body'));
 
 $titleLen = mb_strlen($title);
 $bodyLen  = mb_strlen($body);

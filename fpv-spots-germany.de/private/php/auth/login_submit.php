@@ -6,7 +6,7 @@ declare(strict_types=1);
     require_once __DIR__ . '/../core/db.php';
 
     //Formulardaten holen
-    $usernameInput = trimpost_str('username');
+    $usernameInput = trim(post_str('username'));
     $passwordInput = post_str('password');
 
     // 3. Validierung

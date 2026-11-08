@@ -23,7 +23,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 }
 
 $spotId      = (int)($_POST['spot_id'] ?? 0);
-$parkingInfo = trimpost_str('parking_info');
+$parkingInfo = trim(post_str('parking_info'));
 
 if ($spotId <= 0) {
     header('Location: /');
