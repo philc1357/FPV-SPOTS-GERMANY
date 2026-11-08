@@ -11,6 +11,7 @@ declare(strict_types=1);
 // Limits (nicht für Admins): 10 Dateien pro Request, 50 pro Stunde.
 // =============================================================
 require_once __DIR__ . "/../core/session_init.php";
+require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/image_utils.php';

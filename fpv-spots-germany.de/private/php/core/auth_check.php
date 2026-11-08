@@ -123,7 +123,7 @@ if (isset($_SESSION['user_id'])) {
 
         if ($_SESSION['terms_ok'] === false) {
             // API-Endpunkte: JSON-Fehler statt Redirect
-            if (str_contains($requestUri, '/api/')) {
+            if (wants_json_response()) {
                 header('Content-Type: application/json; charset=utf-8');
                 http_response_code(403);
                 echo json_encode(['error' => 'terms_not_accepted', 'redirect' => '/terms_accept.php']);

@@ -37,6 +37,19 @@ if (!function_exists('clear_remember_cookie')) {
 }
 
 // -------------------------------------------------------------
+// Erwartet der Aufrufer JSON statt eines Redirects?
+// API-Endpunkte unter /api/ und AJAX-Uploads (Feld ajax=1)
+// bekommen Fehler als JSON, damit das Frontend sie anzeigen kann.
+// -------------------------------------------------------------
+if (!function_exists('wants_json_response')) {
+    function wants_json_response(): bool
+    {
+        return str_contains($_SERVER['REQUEST_URI'] ?? '', '/api/')
+            || ($_POST['ajax'] ?? '') === '1';
+    }
+}
+
+// -------------------------------------------------------------
 // Aktuelle Session sauber beenden
 // 1. Session-Daten leeren
 // 2. Session-Cookie im Browser loeschen (macht session_destroy nicht)
@@ -103,30 +116,40 @@ if (!function_exists('enforce_session_freshness')) {
         // laeuft in UTC, PHP in Europe/Berlin – ein strtotime() auf den
         // rohen DB-Wert waere um den Zeitzonen-Versatz falsch. Der Epoch-Wert
         // ist dagegen zeitzonenunabhaengig.
-        $stmt = $pdo->prepare("SELECT UNIX_TIMESTAMP(password_changed_at) FROM users WHERE id = ? LIMIT 1");
+        //
+        // In derselben Abfrage wird der Admin-Status frisch gelesen: er
+        // stand bisher nur einmal beim Login in der Session, entzogene
+        // Rechte wirkten dadurch bis zum Logout weiter.
+        $stmt = $pdo->prepare(
+            "SELECT UNIX_TIMESTAMP(password_changed_at) AS changed_ts, admin
+             FROM users WHERE id = ? LIMIT 1"
+        );
         $stmt->execute([(int)$_SESSION['user_id']]);
-        $changedTs = $stmt->fetchColumn();
+        $row = $stmt->fetch();
 
-        // Nie geaendert -> nichts zu tun (Bestandsnutzer bleiben eingeloggt)
-        if (empty($changedTs)) {
-            return;
+        // Konto existiert nicht mehr -> Session sofort beenden
+        $sessionValid = $row !== false;
+
+        if ($sessionValid) {
+            $_SESSION['is_admin'] = (int)$row['admin'] === 1;
+
+            // Nie geaendert -> gueltig (Bestandsnutzer bleiben eingeloggt).
+            // Sonst muss die Session juenger als die Passwortaenderung sein
+            // (authTime === 0 -> Session ohne Zeitstempel, gilt als veraltet).
+            if (!empty($row['changed_ts'])) {
+                $authTime     = isset($_SESSION['auth_time']) ? (int)$_SESSION['auth_time'] : 0;
+                $sessionValid = $authTime >= (int)$row['changed_ts'];
+            }
         }
 
-        $changedTs = (int)$changedTs;
-        $authTime  = isset($_SESSION['auth_time']) ? (int)$_SESSION['auth_time'] : 0;
-
-        // Session ist juenger als die Passwortaenderung -> gueltig.
-        // (authTime === 0 -> Session ohne Zeitstempel, gilt als veraltet)
-        if ($authTime >= $changedTs) {
+        if ($sessionValid) {
             return;
         }
 
         clear_remember_cookie();
         destroy_current_session();
 
-        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
-
-        if (str_contains($requestUri, '/api/')) {
+        if (wants_json_response()) {
             header('Content-Type: application/json; charset=utf-8');
             http_response_code(401);
             echo json_encode(['error' => 'session_expired', 'redirect' => '/login.php']);

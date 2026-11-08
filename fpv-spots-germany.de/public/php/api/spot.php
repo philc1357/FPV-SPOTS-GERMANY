@@ -9,6 +9,7 @@ declare(strict_types=1);
 // Wir nutzen das _method-Override-Muster über POST.
 // =============================================================
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
+require_once __DIR__ . "/../../../private/php/core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';

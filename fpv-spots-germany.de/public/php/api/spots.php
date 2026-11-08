@@ -5,6 +5,7 @@ declare(strict_types=1);
 //      POST /api/spots.php  – Neuen Spot erstellen
 // =============================================================
 require_once __DIR__ . "/../../../private/php/core/session_init.php";
+require_once __DIR__ . "/../../../private/php/core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
 
 // Datenbankverbindung (von public/php/api/ → 3 Ebenen hoch → ressources/ → private/php/)
 require_once __DIR__ . '/../../../private/php/core/db.php';

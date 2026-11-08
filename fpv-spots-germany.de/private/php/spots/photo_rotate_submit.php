@@ -9,6 +9,7 @@ declare(strict_types=1);
 // Service-Worker-Caches nicht die alte Version ausliefern.
 // =============================================================
 require_once __DIR__ . "/../core/session_init.php";
+require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/image_utils.php';
 

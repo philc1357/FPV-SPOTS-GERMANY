@@ -4,6 +4,7 @@ declare(strict_types=1);
 // FPV Spots Germany – Spot-Meldung speichern
 // =============================================================
 require_once __DIR__ . "/../core/session_init.php";
+require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /');

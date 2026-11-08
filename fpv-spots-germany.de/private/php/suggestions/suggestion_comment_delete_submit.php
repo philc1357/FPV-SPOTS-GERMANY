@@ -4,6 +4,7 @@ declare(strict_types=1);
 // Admin-Kommentar zu Verbesserungsvorschlag löschen
 // =============================================================
 require_once __DIR__ . "/../core/session_init.php";
+require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
 
 require_once __DIR__ . '/../core/db.php';
 
