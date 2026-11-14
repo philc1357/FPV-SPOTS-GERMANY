@@ -8,6 +8,11 @@ declare(strict_types=1);
 // Rückgabe: 11-stellige ID oder null bei ungültiger Eingabe.
 // =============================================================
 
+// Gemeinsames Limit pro Spot (Ersteller + Community zusammen)
+if (!defined('SPOT_VIDEOS_MAX')) {
+    define('SPOT_VIDEOS_MAX', 20);
+}
+
 if (!function_exists('extractYoutubeId')) {
 
     function extractYoutubeId(string $url): ?string

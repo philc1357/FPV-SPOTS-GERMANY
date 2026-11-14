@@ -17,6 +17,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';
+require_once __DIR__ . '/../../../private/php/spots/youtube_helper.php'; // SPOT_VIDEOS_MAX
 
 $userId    = (int)$_SESSION['user_id'];
 $username  = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');$csrfToken = $_SESSION['csrf_token'];
@@ -44,7 +45,7 @@ $photoDeleted = isset($_GET['photo_deleted']);
 
 // Fotos des Spots laden
 $stmt = $pdo->prepare(
-    "SELECT id, filename, created_at FROM spot_images
+    "SELECT id, user_id, filename, created_at FROM spot_images
      WHERE spot_id = ? ORDER BY created_at DESC"
 );
 $stmt->execute([$spotId]);
@@ -56,12 +57,31 @@ $images = array_values(array_filter(
     fn($img) => is_file($uploadDir . $img['filename'])
 ));
 
-// Bestehende YouTube-Videos laden
+// -------------------------------------------------------------
+// Bestehende YouTube-Videos laden und nach Besitz aufteilen:
+// Im Formular bearbeitbar sind nur die Videos des Spot-Erstellers.
+// Videos anderer Nutzer bleiben unangetastet (Entfernen nur durch
+// die Person selbst oder Admins auf der Spot-Detailseite).
+// -------------------------------------------------------------
+$spotOwnerId = (int)$spot['user_id'];
 $stmt = $pdo->prepare(
-    "SELECT title, youtube_id FROM spot_videos WHERE spot_id = ? ORDER BY position ASC, id ASC"
+    "SELECT v.user_id, v.title, v.youtube_id, u.username
+     FROM spot_videos v
+     JOIN users u ON v.user_id = u.id
+     WHERE v.spot_id = ?
+     ORDER BY v.position ASC, v.id ASC"
 );
 $stmt->execute([$spotId]);
-$videos = $stmt->fetchAll();
+$videos          = [];
+$communityVideos = [];
+foreach ($stmt->fetchAll() as $row) {
+    if ((int)$row['user_id'] === $spotOwnerId) {
+        $videos[] = $row;
+    } else {
+        $communityVideos[] = $row;
+    }
+}
+$maxOwnerVideos = max(0, SPOT_VIDEOS_MAX - count($communityVideos));
 
 $videoError = isset($_GET['video_error']);
 ?>
@@ -187,14 +207,14 @@ $videoError = isset($_GET['video_error']);
                     ============================================================ -->
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">
-                            YouTube-Videos <span class="text-secondary fw-normal">(optional, max. 10)</span>
+                            YouTube-Videos <span class="text-secondary fw-normal">(optional, max. <?= (int)$maxOwnerVideos ?>)</span>
                         </label>
                         <?php if ($videoError): ?>
                             <div class="alert alert-danger py-2 small mb-2" role="alert">
                                 Mindestens ein Video war ungültig. Jeder Eintrag braucht Titel und eine gültige YouTube-URL.
                             </div>
                         <?php endif; ?>
-                        <div id="videoLinksContainer">
+                        <div id="videoLinksContainer" data-max-videos="<?= (int)$maxOwnerVideos ?>">
                             <?php
                             // Mindestens eine leere Zeile rendern
                             $rowsToRender = !empty($videos) ? $videos : [['title' => '', 'youtube_id' => '']];
@@ -224,6 +244,18 @@ $videoError = isset($_GET['video_error']);
                             <?php endforeach; ?>
                         </div>
                         <small class="text-secondary d-block mb-2">Titel wird automatisch beim Speichern geholt.</small>
+                        <?php if (!empty($communityVideos)): ?>
+                            <div class="small text-secondary mb-2">
+                                <span class="fw-semibold">Von der Community hinzugefügt (<?= count($communityVideos) ?>):</span>
+                                <ul class="mb-1 ps-3">
+                                    <?php foreach ($communityVideos as $cv): ?>
+                                        <li><i class="bi bi-youtube"></i> <?= htmlspecialchars((string)$cv['title'], ENT_QUOTES, 'UTF-8') ?>
+                                            – <?= htmlspecialchars((string)$cv['username'], ENT_QUOTES, 'UTF-8') ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                                Diese Videos kann nur die Person, die sie hinzugefügt hat, oder ein Admin entfernen.
+                            </div>
+                        <?php endif; ?>
                         <button type="button" id="addVideoLinkBtn" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-plus-lg"></i> Weiterer Link
                         </button>
@@ -259,6 +291,8 @@ $videoError = isset($_GET['video_error']);
                                 $imgFile = '/public/uploads/imgs/' . basename((string)$img['filename']);
                                 $imgSrc  = htmlspecialchars(thumb_url($imgFile), ENT_QUOTES, 'UTF-8');
                                 $imgAlt = 'Foto von ' . htmlspecialchars($spot['name'], ENT_QUOTES, 'UTF-8');
+                                // Drehen/Löschen: nur Uploader oder Admin (nicht der Spot-Ersteller)
+                                $canManageImg = (int)$img['user_id'] === $userId || $isAdmin;
                             ?>
                                 <div class="col-6 col-md-4">
                                     <img src="<?= $imgSrc ?>"
@@ -270,6 +304,7 @@ $videoError = isset($_GET['video_error']);
                                     <small class="text-secondary d-block mt-1">
                                         <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
                                     </small>
+                                    <?php if ($canManageImg): ?>
                                     <div class="d-flex gap-1 mt-1">
                                         <?php foreach (['left' => ['counterclockwise', 'Foto nach links drehen'], 'right' => ['clockwise', 'Foto nach rechts drehen']] as $dir => [$icon, $label]): ?>
                                             <form method="POST" action="/private/php/spots/photo_rotate_submit.php">
@@ -294,6 +329,7 @@ $videoError = isset($_GET['video_error']);
                                             </button>
                                         </form>
                                     </div>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>

@@ -19,10 +19,12 @@
 // Dynamisches Hinzufügen/Entfernen von YouTube-Video-Zeilen
 // =============================================================
 (function () {
-    var MAX_VIDEOS = 10;
     var container = document.getElementById('videoLinksContainer');
     var addBtn    = document.getElementById('addVideoLinkBtn');
     if (!container || !addBtn) return;
+    // Limit kommt vom Server: Gesamtlimit minus Videos anderer Nutzer
+    var MAX_VIDEOS = parseInt(container.dataset.maxVideos || '10', 10);
+    if (isNaN(MAX_VIDEOS) || MAX_VIDEOS < 0) MAX_VIDEOS = 0;
 
     function rowCount() {
         return container.querySelectorAll('.video-link-row').length;

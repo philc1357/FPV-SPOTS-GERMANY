@@ -10,6 +10,7 @@ require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/geozones.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 require_once __DIR__ . '/../../../private/php/core/affiliate.php';
+require_once __DIR__ . '/../../../private/php/spots/youtube_helper.php'; // SPOT_VIDEOS_MAX
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -161,12 +162,25 @@ if (is_array($_SESSION['upload_report'] ?? null)) {
 }
 $uploadMaxFiles = !empty($_SESSION['is_admin']) ? 0 : 10; // 0 = unbegrenzt (Admin)
 
-// YouTube-Videos laden
+// YouTube-Videos laden (inkl. wer sie hinzugefügt hat)
 $stmt = $pdo->prepare(
-    "SELECT title, youtube_id FROM spot_videos WHERE spot_id = ? ORDER BY position ASC, id ASC"
+    "SELECT v.id, v.user_id, v.title, v.youtube_id, u.username
+     FROM spot_videos v
+     JOIN users u ON v.user_id = u.id
+     WHERE v.spot_id = ?
+     ORDER BY v.position ASC, v.id ASC"
 );
 $stmt->execute([$spotId]);
 $videos = $stmt->fetchAll();
+
+// Rückmeldung vom Hinzufügen/Entfernen – nur für diesen Spot, einmalig anzeigen
+$videoFlash = null;
+if (is_array($_SESSION['video_flash'] ?? null)) {
+    if ((int)($_SESSION['video_flash']['spot_id'] ?? 0) === $spotId) {
+        $videoFlash = $_SESSION['video_flash'];
+    }
+    unset($_SESSION['video_flash']);
+}
 
 // Kommentare laden
 $stmt = $pdo->prepare(
@@ -821,9 +835,9 @@ $initials = static function (string $name): string {
                         <?php foreach ($images as $img):
                             $imgFile  = '/public/uploads/imgs/' . basename((string)$img['filename']);
                             $imgAlt   = 'Foto von ' . $spot['name'] . ', hochgeladen von ' . $img['username'];
+                            // Löschen/Drehen: nur Uploader oder Admin (nicht der Spot-Ersteller)
                             $canDeleteImg = $isLoggedIn && (
                                 $userId === (int)($img['user_id'] ?? 0)
-                                || $userId === (int)$spot['user_id']
                                 || $isAdmin
                             );
                         ?>
@@ -875,20 +889,61 @@ $initials = static function (string $name): string {
             </section>
 
             <!-- ================================================
-                 YouTube-Videos (nur wenn vorhanden)
+                 YouTube-Videos
+                 Jeder eingeloggte Nutzer kann Videos per Link
+                 ergänzen (keine Uploads). Entfernen darf nur,
+                 wer das Video hinzugefügt hat, oder ein Admin.
             ================================================ -->
-            <?php if (!empty($videos)): ?>
+            <?php $videoCount = count($videos); ?>
             <section class="fsg-card" id="videos" aria-labelledby="videosTitel">
                 <header class="fsg-card-head">
                     <div>
-                        <p class="fsg-kicker"><?= count($videos) === 1 ? '1 Video' : count($videos) . ' Videos' ?></p>
+                        <p class="fsg-kicker"><?= $videoCount === 1 ? '1 Video' : $videoCount . ' Videos' ?></p>
                         <h2 id="videosTitel" class="fsg-h2">Videos vom Spot</h2>
                     </div>
                 </header>
+
+                <?php if ($videoFlash): ?>
+                    <div class="alert <?= !empty($videoFlash['ok']) ? 'alert-success' : 'alert-danger' ?> py-2 mb-0" role="<?= !empty($videoFlash['ok']) ? 'status' : 'alert' ?>">
+                        <?= $e($videoFlash['message'] ?? '') ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($isLoggedIn && $videoCount < SPOT_VIDEOS_MAX): ?>
+                    <form method="POST" action="/private/php/spots/video_add_submit.php" class="sd-upload">
+                        <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
+                        <input type="hidden" name="spot_id" value="<?= $spotId ?>">
+                        <div class="sd-upload-row">
+                            <span class="sd-upload-icon" aria-hidden="true"><i class="bi bi-youtube"></i></span>
+                            <div class="sd-upload-text">
+                                <label for="videoUrlInput" class="sd-upload-title">Hier geflogen? Teile dein YouTube-Video</label>
+                                <span class="fsg-meta">Nur Links zu youtube.com oder youtu.be – der Titel wird automatisch geholt.</span>
+                            </div>
+                        </div>
+                        <div class="sd-upload-row sd-upload-pick">
+                            <input type="url" name="video_url" id="videoUrlInput"
+                                   class="fsg-field sd-video-url"
+                                   placeholder="https://youtube.com/watch?v=..."
+                                   maxlength="300" inputmode="url" autocomplete="off" required>
+                            <button type="submit" class="fsg-btn fsg-btn--primary text-nowrap">Video hinzufügen</button>
+                        </div>
+                    </form>
+                <?php elseif ($isLoggedIn): ?>
+                    <p class="fsg-empty mb-0">Für diesen Spot sind bereits <?= (int)SPOT_VIDEOS_MAX ?> Videos verlinkt – mehr geht nicht.</p>
+                <?php else: ?>
+                    <p class="fsg-empty mb-0">
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Einloggen</a>, um eigene Videos zu teilen.
+                    </p>
+                <?php endif; ?>
+
+                <?php if (empty($videos)): ?>
+                    <p class="fsg-empty mb-0"><i class="bi bi-camera-video me-1" aria-hidden="true"></i>Noch keine Videos – zeig, wie es sich hier fliegt.</p>
+                <?php else: ?>
                 <div class="sd-videos" id="videoGrid">
                     <?php foreach ($videos as $v):
                         $vid   = $e($v['youtube_id']);
                         $title = $e($v['title']);
+                        $canDeleteVideo = $isLoggedIn && ($userId === (int)$v['user_id'] || $isAdmin);
                     ?>
                         <div class="sd-video">
                             <!-- Zwei-Klick-Loesung: Player wird erst bei Klick nachgeladen -->
@@ -905,14 +960,30 @@ $initials = static function (string $name): string {
                                 </button>
                             </div>
                             <p class="sd-video-title"><?= $title ?></p>
-                            <a href="https://www.youtube.com/watch?v=<?= $vid ?>" target="_blank" rel="noopener noreferrer" class="sd-link-small">
-                                Auf YouTube ansehen <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
-                            </a>
+                            <div class="sd-video-meta">
+                                <span class="sd-video-by">hinzugefügt von <?= $e($v['username']) ?></span>
+                                <span class="sd-photo-tools">
+                                    <a href="https://www.youtube.com/watch?v=<?= $vid ?>" target="_blank" rel="noopener noreferrer" class="sd-link-small">
+                                        Auf YouTube ansehen <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                                    </a>
+                                    <?php if ($canDeleteVideo): ?>
+                                        <form method="POST" action="/private/php/spots/video_delete_submit.php"
+                                              data-confirm="Video wirklich entfernen?">
+                                            <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
+                                            <input type="hidden" name="spot_id" value="<?= (int)$spotId ?>">
+                                            <input type="hidden" name="video_id" value="<?= (int)$v['id'] ?>">
+                                            <button type="submit" class="fsg-mini-btn fsg-mini-btn--danger" title="Video entfernen" aria-label="Video entfernen">
+                                                <i class="bi bi-trash3" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </span>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <?php endif; ?>
             </section>
-            <?php endif; ?>
 
             <!-- ================================================
                  Kommentare

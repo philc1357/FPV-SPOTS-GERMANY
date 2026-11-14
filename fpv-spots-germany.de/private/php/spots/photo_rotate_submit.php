@@ -55,14 +55,9 @@ $stmt = $pdo->prepare(
 $stmt->execute([$imageId, $spotId]);
 $row = $stmt->fetch();
 
-// Berechtigt: Uploader des Fotos, Spot-Ersteller oder Admin
-if (
-    !$row || (
-        (int)$row['uploader_id'] !== $userId
-        && (int)$row['spot_owner'] !== $userId
-        && !$isAdmin
-    )
-) {
+// Berechtigt: nur Uploader des Fotos oder Admin
+// (Spot-Ersteller dürfen Fotos anderer Nutzer nicht verändern/löschen)
+if (!$row || ((int)$row['uploader_id'] !== $userId && !$isAdmin)) {
     header('Location: /dashboard.php');
     exit;
 }

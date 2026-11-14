@@ -103,7 +103,8 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Spot-Bearbeitung und -Löschung durch Eigentümer oder Admin
 - Sternebewertungen (1–5) und Kommentarsystem (bearbeiten/löschen)
 - Foto-Upload (JPG/PNG, max. 10 MB pro Bild, bis zu 10 Bilder auf einmal; ungültige Dateien werden einzeln übersprungen) — EXIF-Metadaten werden serverseitig entfernt
-- Einzel-Foto-Löschung durch Uploader, Spot-Eigentümer oder Admin
+- Einzel-Foto-Löschen/-Drehen nur durch Uploader oder Admin (Spot-Eigentümer dürfen fremde Fotos nicht löschen)
+- YouTube-Videos per Link (keine Uploads): jeder angemeldete Nutzer kann auf der Detailseite Videos ergänzen (max. 20 pro Spot, 10 pro Nutzer/Stunde); Entfernen nur durch den Hinzufügenden oder Admin. Im Bearbeiten-Formular verwaltet der Ersteller nur seine eigenen Videos
 - Community-pflegbare Parkinformationen je Spot (jeder angemeldete Nutzer kann bearbeiten)
 - Spot-Meldungen (Inhaltsverstöße an Admins melden: Kommentar, Foto, Spot-Info, Spot-Allgemein)
 
@@ -243,6 +244,8 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
         │   ├── rate_submit.php
         │   ├── upload_submit.php
         │   ├── photo_delete_submit.php
+        │   ├── video_add_submit.php
+        │   ├── video_delete_submit.php
         │   └── favorite_submit.php
         ├── comments/
         │   ├── comment_submit.php
@@ -884,7 +887,9 @@ Sicherheitsrelevante Aktionen werden mit User-ID, IP-Adresse und Zeitstempel pro
 | `CONTACT_SUBMITTED` | Kontaktformular abgeschickt (IP-Rate-Limit) |
 | `SPOT_EDITED` | Spot bearbeitet |
 | `IMAGE_UPLOADED` | Bild hochgeladen |
-| `IMAGE_DELETED` | Spot-Bild durch Uploader, Spot-Eigentümer oder Admin gelöscht |
+| `IMAGE_DELETED` | Spot-Bild durch Uploader oder Admin gelöscht |
+| `VIDEO_ADDED` | YouTube-Video auf der Spot-Detailseite verlinkt (Rate-Limit 10/Stunde) |
+| `VIDEO_DELETED` | YouTube-Video durch Hinzufügenden oder Admin entfernt |
 | `IMAGE_ORPHAN_CLEANED` | Verwaiste Bilddatei durch Wartungsskript gelöscht |
 | `FORUM_POST_CREATED` | Forenbeitrag erstellt |
 | `FORUM_POST_UPDATED` | Forenbeitrag bearbeitet |

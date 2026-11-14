@@ -533,6 +533,18 @@
 .sd-videos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .sd-video { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .sd-video-title { margin: 4px 0 0; font-weight: 600; color: var(--fsg-text); }
+.sd-video-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    font-size: .8rem;
+    color: var(--fsg-faint);
+}
+.sd-video-by { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sd-video-meta .sd-photo-tools { align-items: center; gap: 6px; }
+.sd-video-url { flex: 1 1 240px; min-width: 0; }
 .yt-embed { background: #000; border-radius: 12px; overflow: hidden; }
 .yt-facade { position: absolute; inset: 0; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
 .yt-thumb { width: 100%; height: 100%; object-fit: cover; }

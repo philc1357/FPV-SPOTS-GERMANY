@@ -98,7 +98,8 @@ $csrfToken  = $_SESSION['csrf_token'];
                     Dafür brauchst du ein kostenloses Konto. Melde dich an, öffne die Karte und
                     <strong>tippe auf die Stelle</strong>, an der dein Spot liegt. Es öffnet sich ein
                     Formular, in dem du Name, Beschreibung, Spot-Typ, Schwierigkeit, geeignete
-                    Coptergrößen, Parkmöglichkeiten und optional bis zu zehn YouTube-Links einträgst.
+                    Coptergrößen, Parkmöglichkeiten und optional bis zu 20 YouTube-Links einträgst. Auch auf der Detailseite
+                    jedes Spots können alle angemeldeten Nutzer weitere YouTube-Videos verlinken.
                     Die Koordinaten übernimmt die Karte automatisch.
                 </p>
                 <p class="mb-0">

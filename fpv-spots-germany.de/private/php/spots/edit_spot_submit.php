@@ -56,6 +56,8 @@ if (!$row || ((int)$row['user_id'] !== $userId && !$isAdmin)) {
     header('Location: /public/php/dashboard.php');
     exit;
 }
+// Videos im Formular gehören immer dem Spot-Ersteller – auch wenn ein Admin speichert
+$spotOwnerId = (int)$row['user_id'];
 
 // Validierung
 $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
@@ -79,24 +81,33 @@ if (!in_array($spotType, $allowedTypes, true) || !in_array($difficulty, $allowed
 }
 
 // =============================================================
-// YouTube-Videos einsammeln und validieren (max. 10 URLs)
+// YouTube-Videos des Spot-Erstellers einsammeln und validieren
+// Das Formular verwaltet nur die Videos des Erstellers; Videos
+// anderer Nutzer bleiben unangetastet und zählen zum Gesamtlimit.
 // Bestehende Titel aus DB übernehmen, neue per oEmbed holen.
 // =============================================================
 $rawVideoUrls = is_array($_POST['video_url'] ?? null) ? $_POST['video_url'] : [];
-$videoCount   = min(count($rawVideoUrls), 10);
 
 // Bisherige Titel pro youtube_id laden (vermeidet redundante oEmbed-Calls)
+// und Videos anderer Nutzer merken (dürfen nicht doppelt angelegt werden)
 $existingTitles = [];
-$rs = $pdo->prepare("SELECT youtube_id, title FROM spot_videos WHERE spot_id = ?");
+$foreignIds     = [];
+$rs = $pdo->prepare("SELECT user_id, youtube_id, title FROM spot_videos WHERE spot_id = ?");
 $rs->execute([$spotId]);
-foreach ($rs->fetchAll() as $row) {
-    $existingTitles[$row['youtube_id']] = $row['title'];
+foreach ($rs->fetchAll() as $vr) {
+    $existingTitles[$vr['youtube_id']] = $vr['title'];
+    if ((int)$vr['user_id'] !== $spotOwnerId) {
+        $foreignIds[$vr['youtube_id']] = true;
+    }
 }
 
+$maxOwnerVideos = max(0, SPOT_VIDEOS_MAX - count($foreignIds));
+$videoCount     = min(count($rawVideoUrls), SPOT_VIDEOS_MAX);
+
 $validVideos = [];
-$seenIds     = [];
-for ($i = 0; $i < $videoCount; $i++) {
-    $vUrl = trim((string)($rawVideoUrls[$i] ?? ''));
+$seenIds     = $foreignIds; // bereits von anderen verlinkt → überspringen
+for ($i = 0; $i < $videoCount && count($validVideos) < $maxOwnerVideos; $i++) {
+    $vUrl = is_string($rawVideoUrls[$i] ?? null) ? trim($rawVideoUrls[$i]) : '';
     if ($vUrl === '') {
         continue;
     }
@@ -126,15 +137,16 @@ try {
     );
     $stmt->execute([$name, $description, $spotType, $difficulty, $parkingInfo, $copterSize, $spotId]);
 
-    // Videos: alte löschen, neue komplett einfügen (Edit-Form überträgt vollständige Liste)
-    $pdo->prepare("DELETE FROM spot_videos WHERE spot_id = ?")->execute([$spotId]);
+    // Videos des Erstellers: alte löschen, neue komplett einfügen
+    // (Edit-Form überträgt dessen vollständige Liste; fremde Videos bleiben)
+    $pdo->prepare("DELETE FROM spot_videos WHERE spot_id = ? AND user_id = ?")->execute([$spotId, $spotOwnerId]);
 
     if (!empty($validVideos)) {
         $videoStmt = $pdo->prepare(
-            "INSERT INTO spot_videos (spot_id, title, youtube_id, position) VALUES (?, ?, ?, ?)"
+            "INSERT INTO spot_videos (spot_id, user_id, title, youtube_id, position) VALUES (?, ?, ?, ?, ?)"
         );
         foreach ($validVideos as $idx => $v) {
-            $videoStmt->execute([$spotId, $v['title'], $v['youtube_id'], $idx]);
+            $videoStmt->execute([$spotId, $spotOwnerId, $v['title'], $v['youtube_id'], $idx]);
         }
     }
 

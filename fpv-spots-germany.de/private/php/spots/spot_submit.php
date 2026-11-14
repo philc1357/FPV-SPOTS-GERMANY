@@ -47,17 +47,17 @@ $rawSizes      = is_array($_POST['copter_size'] ?? null) ? $_POST['copter_size']
 $copterSize    = implode(',', array_values(array_intersect($rawSizes, $allowedSizes)));
 
 // =============================================================
-// YouTube-Videos einsammeln und validieren (max. 10 URLs)
+// YouTube-Videos einsammeln und validieren (max. SPOT_VIDEOS_MAX URLs)
 // Titel wird automatisch über YouTubes oEmbed-API geholt.
 // =============================================================
 $rawVideoUrls = is_array($_POST['video_url'] ?? null) ? $_POST['video_url'] : [];
-$videoCount   = min(count($rawVideoUrls), 10);
+$videoCount   = min(count($rawVideoUrls), SPOT_VIDEOS_MAX);
 
 $validVideos = [];
 $videoError  = null;
 $seenIds     = [];
 for ($i = 0; $i < $videoCount; $i++) {
-    $vUrl = trim((string)($rawVideoUrls[$i] ?? ''));
+    $vUrl = is_string($rawVideoUrls[$i] ?? null) ? trim($rawVideoUrls[$i]) : '';
     if ($vUrl === '') {
         continue;
     }
@@ -137,10 +137,10 @@ try {
     // YouTube-Videos einfügen (Reihenfolge per position)
     if ($newSpotId > 0 && !empty($validVideos)) {
         $videoStmt = $pdo->prepare(
-            "INSERT INTO spot_videos (spot_id, title, youtube_id, position) VALUES (?, ?, ?, ?)"
+            "INSERT INTO spot_videos (spot_id, user_id, title, youtube_id, position) VALUES (?, ?, ?, ?, ?)"
         );
         foreach ($validVideos as $idx => $v) {
-            $videoStmt->execute([$newSpotId, $v['title'], $v['youtube_id'], $idx]);
+            $videoStmt->execute([$newSpotId, $userId, $v['title'], $v['youtube_id'], $idx]);
         }
     }
 

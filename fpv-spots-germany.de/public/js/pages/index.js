@@ -20,7 +20,7 @@
 // Dynamisches Hinzufügen/Entfernen von YouTube-Video-Zeilen
 // =============================================================
 (function () {
-    var MAX_VIDEOS = 10;
+    var MAX_VIDEOS = 20; // muss SPOT_VIDEOS_MAX (youtube_helper.php) entsprechen
     var container = document.getElementById('videoLinksContainer');
     var addBtn    = document.getElementById('addVideoLinkBtn');
     if (!container || !addBtn) return;

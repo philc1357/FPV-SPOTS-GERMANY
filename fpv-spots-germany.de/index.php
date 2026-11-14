@@ -336,12 +336,12 @@ if (!empty($_SESSION['spot_error'])) {
 
 
                 <!-- ============================================================
-                     YouTube-Video-Links (optional, max. 10)
+                     YouTube-Video-Links (optional, max. 20)
                      Titel wird automatisch beim Speichern von YouTube geholt
                 ============================================================ -->
                 <div class="col-12">
                     <label class="form-label small fw-semibold">
-                        YouTube-Videos <span class="text-secondary fw-normal">(optional, max. 10)</span>
+                        YouTube-Videos <span class="text-secondary fw-normal">(optional, max. 20)</span>
                     </label>
                     <div id="videoLinksContainer">
                         <div class="video-link-row d-flex gap-2 mb-2">

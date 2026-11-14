@@ -115,7 +115,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <li>Foto-Uploads zeigen keine Personen ohne deren Einverständnis.</li>
                 <li>Inhalte verstoßen nicht gegen geltendes Recht.</li>
                 <li>
-                    Verlinkte YouTube-Videos (max. 10 pro Spot) stehen inhaltlich in Bezug
+                    Verlinkte YouTube-Videos (max. 20 pro Spot, hinzufügbar durch alle registrierten Nutzer) stehen inhaltlich in Bezug
                     zum jeweiligen Spot und verletzen keine Urheber-, Persönlichkeits- oder
                     sonstigen Rechte Dritter. Es dürfen ausschließlich Links zu YouTube
                     (youtube.com, youtu.be) eingereicht werden; andere Video-Plattformen sind

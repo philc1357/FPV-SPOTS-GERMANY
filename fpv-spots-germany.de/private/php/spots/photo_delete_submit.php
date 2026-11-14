@@ -42,14 +42,9 @@ $stmt = $pdo->prepare(
 $stmt->execute([$imageId, $spotId]);
 $row = $stmt->fetch();
 
-// Berechtigt: Uploader des Fotos, Spot-Ersteller oder Admin
-if (
-    !$row || (
-        (int)$row['uploader_id'] !== $userId
-        && (int)$row['spot_owner'] !== $userId
-        && !$isAdmin
-    )
-) {
+// Berechtigt: nur Uploader des Fotos oder Admin
+// (Spot-Ersteller dürfen Fotos anderer Nutzer nicht verändern/löschen)
+if (!$row || ((int)$row['uploader_id'] !== $userId && !$isAdmin)) {
     header('Location: /dashboard.php');
     exit;
 }
@@ -68,7 +63,7 @@ $stmt->execute([$imageId]);
 
 // Audit-Log
 $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'IMAGE_DELETED', ?)";
-$pdo->prepare($logSql)->execute([$userId, $_SERVER['REMOTE_ADDR'] ?? '']);
+$pdo->prepare($logSql)->execute([$userId, client_ip()]);
 
 // Redirect-Ziel via Whitelist
 $redirect = post_str('redirect');
