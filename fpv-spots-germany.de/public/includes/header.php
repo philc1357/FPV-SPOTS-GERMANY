@@ -120,7 +120,7 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                 <?php if ($isLoggedIn): ?>
-                    <li><a class="dropdown-item" href="/dashboard.php"><i class="bi bi-person-fill me-1"></i> Dashboard</a></li>
+                    <li><a class="dropdown-item" href="/dashboard.php"><i class="bi bi-person-fill me-1"></i> Profil</a></li>
                     <li>
                         <a class="dropdown-item" href="/messages.php">
                             <i class="bi bi-envelope-fill me-1"></i> Nachrichten
