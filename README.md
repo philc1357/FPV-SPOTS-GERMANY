@@ -112,6 +112,7 @@ DocumentRoot /pfad/zum/projekt/fpv-spots-germany.de
 - Benutzerverwaltung (Registrierung, Login, Profil)
 - Benutzerdaten ändern: Benutzername, E-Mail-Adresse, Passwort, Bio (jeweils mit Passwort-Bestätigung)
 - Öffentliche Nutzerprofile mit optionaler Bio, Spot-Übersicht und `last_seen`-Anzeige
+- Profilbild: Upload im Dashboard (JPG/PNG, max. 10 MB), Platzierung im Kreis per Ziehen/Zoomen; serverseitig zugeschnitten und als 256×256-JPEG neu kodiert. Anzeige im Dashboard, auf dem öffentlichen Profil und an Kommentaren (ohne Bild: Initialen), nicht vergrößerbar
 - Privates Profil (Profil für andere Nutzer verbergen)
 - „Angemeldet bleiben" via sicherem Remember-Me-Token (30 Tage)
 - Passwort-Reset per E-Mail (zeitlich begrenzte Tokens, 1 Stunde)
@@ -167,6 +168,7 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │   ├── html/errors/            ← Statische Fehlerseiten (login_empty, login_failed)
 │   ├── uploads/imgs/           ← Spot-Uploads (randomisierte Dateinamen, EXIF entfernt)
 │   ├── uploads/forum/          ← Forum-Uploads (randomisierte Dateinamen, EXIF entfernt)
+│   ├── uploads/avatars/        ← Profilbilder (256×256-JPEG, randomisierte Dateinamen)
 │   ├── includes/
 │   │   ├── header.php
 │   │   ├── login_modal.php
@@ -178,6 +180,7 @@ fpv-spots-germany.de/           ← Webroot (Apache DocumentRoot)
 │       │   ├── spot.php        ← GET/PUT/DELETE Einzelspot
 │       │   ├── messages.php    ← Direktnachrichten-API
 │       │   ├── update_bio.php  ← Bio-Aktualisierung
+│       │   ├── avatar.php      ← Profilbild hochladen/entfernen
 │       │   └── save_legend.php ← Legende-Filter per Cookie speichern
 │       ├── auth/
 │       │   ├── login.php
@@ -311,6 +314,7 @@ Apache mod_rewrite mappt saubere URLs intern auf `public/php/` – Unterordner n
 | `/api/spot.php` | `public/php/api/spot.php` |
 | `/api/messages.php` | `public/php/api/messages.php` |
 | `/api/update_bio.php` | `public/php/api/update_bio.php` |
+| `/api/avatar.php` | `public/php/api/avatar.php` |
 
 Direkte Aufrufe der internen Pfade (z. B. `/public/php/auth/login.php`) werden per 301 auf die saubere URL umgeleitet. HTTPS wird ebenfalls erzwungen.
 
@@ -322,7 +326,7 @@ Das Schema (`database_raw.sql`, mit Daten `database_full.sql`) enthält folgende
 
 | Tabelle | Beschreibung |
 |---------|-------------|
-| `users` | Benutzerkonten (username, email, password_hash, bio, admin-Flag, private-Flag, last_seen, terms_accepted_at) |
+| `users` | Benutzerkonten (username, email, password_hash, bio, avatar (Dateiname), admin-Flag, private-Flag, last_seen, terms_accepted_at) |
 | `spots` | FPV-Spots mit Koordinaten, Typ, Schwierigkeit, Coptergröße, Parkinformationen und automatisch ermitteltem `bundesland` |
 | `comments` | Kommentare zu Spots |
 | `ratings` | Sternebewertungen (1 Bewertung pro Nutzer pro Spot) |
@@ -362,6 +366,7 @@ Alle API-Endpunkte liegen unter `public/php/api/` und antworten mit `Content-Typ
 | `GET` | `/api/messages.php` | ja | Konversationen / Nachrichten abrufen, Polling |
 | `POST` | `/api/messages.php` | ja + CSRF | Nachricht senden, Konversation löschen |
 | `POST` | `/api/update_bio.php` | ja + CSRF | Profil-Bio aktualisieren |
+| `POST` | `/api/avatar.php` | ja + CSRF | Profilbild hochladen (Datei + Ausschnitt) bzw. mit `_method=DELETE` entfernen; max. 10 Uploads/Stunde |
 | `POST` | `/api/save_legend.php` | nein | Legendenfilter als Cookie speichern |
 | `POST` | `/api/save_pilot_class.php` | nein | Betriebsklasse als Cookie speichern (JSON oder Form-POST) |
 | `GET` | `/api/dipul_wms.php` | nein | Proxy für die DIPUL-Kacheln (WMS 1.3.0), liefert `image/png` |

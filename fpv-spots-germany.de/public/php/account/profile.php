@@ -20,6 +20,7 @@ if (empty($_SESSION['csrf_token'])) {
 $csrfToken = $_SESSION['csrf_token'];
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
+require_once __DIR__ . '/../../../private/php/core/avatar.php';
 
 // Profil-ID aus URL validieren
 $profileId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT, [
@@ -41,7 +42,7 @@ $currentUsername = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UT
 $isLoggedIn = true;
 
 // Profil-Daten laden (nur öffentlich sichtbare Felder)
-$stmt = $pdo->prepare("SELECT username, bio, created_at FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT username, bio, avatar, created_at FROM users WHERE id = ?");
 $stmt->execute([$profileId]);
 $profile = $stmt->fetch();
 
@@ -89,9 +90,10 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
         ==================================================== -->
         <div class="col-12">
             <article class="card card-dark text-light p-4 h-100">
-                <h1 class="h4 mb-3">
-                    <i class="bi bi-person-fill me-1"></i><?= $profileUsername ?>
-                    <button class="btn btn-outline-primary btn-sm ms-2"
+                <h1 class="h4 mb-3 d-flex align-items-center flex-wrap gap-2">
+                    <?= render_avatar((string)$profile['username'], $profile['avatar'] !== null ? (string)$profile['avatar'] : null, 'pf-avatar', 56) ?>
+                    <span><?= $profileUsername ?></span>
+                    <button class="btn btn-outline-primary btn-sm"
                             data-bs-toggle="modal" data-bs-target="#sendMessageModal"
                             title="Nachricht senden">
                         <i class="bi bi-envelope-fill"></i>

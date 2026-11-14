@@ -46,6 +46,87 @@
     font-size: 1.9rem;
     letter-spacing: -.02em;
 }
+
+/* Avatar im Hero ist ein Button (öffnet den Upload-Dialog) */
+button.db-avatar {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow .2s, border-color .2s;
+}
+.db-avatar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+.db-avatar img,
+.pf-avatar img,
+.db-avatar-inner img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    user-select: none;
+}
+.db-avatar.has-img { background: var(--fsg-surface); }
+
+/* Kamera-Overlay: bei Hover/Fokus sichtbar, auf Touch-Geräten dezent dauerhaft */
+.db-avatar-edit {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(8, 12, 20, .62);
+    color: #fff;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity .18s;
+}
+button.db-avatar:hover,
+button.db-avatar:focus-visible {
+    border-color: var(--fsg-accent);
+    box-shadow: 0 0 0 6px rgba(var(--fsg-accent-rgb), .28);
+}
+button.db-avatar:hover .db-avatar-edit,
+button.db-avatar:focus-visible .db-avatar-edit { opacity: 1; }
+button.db-avatar:focus-visible { outline: 2px solid var(--fsg-accent); outline-offset: 4px; }
+@media (hover: none) {
+    .db-avatar-edit {
+        inset: auto 0 0 0;
+        height: 34%;
+        border-radius: 0;
+        font-size: .95rem;
+        opacity: 1;
+        background: rgba(8, 12, 20, .55);
+    }
+}
+.db-avatar-alert { margin: 8px 0 0; max-width: 62ch; }
+
+/* Avatar auf dem öffentlichen Profil (profile.php bindet dashboard.css ein) */
+.pf-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    vertical-align: middle;
+    background: linear-gradient(135deg, #1F3B57, #16263A);
+    border: 1px solid var(--fsg-line-2);
+    color: var(--fsg-accent-hi);
+    font-family: var(--fsg-font-head);
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+.pf-avatar.has-img { background: var(--fsg-surface); }
 .db-hero-text { min-width: 0; flex: 1 1 260px; }
 .db-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 4px; }
 .db-title {
@@ -161,12 +242,83 @@
 .db-bio-form { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
 
 /* ------------------------------------------------------------
-   6. Responsiv (Spalten/Kacheln: spot_detail.css)
+   6. Profilbild-Dialog: Kreis-Zuschnitt
+   ------------------------------------------------------------ */
+.db-avatar-modal {
+    background: var(--fsg-surface);
+    border: 1px solid var(--fsg-line-2);
+    border-radius: 18px;
+    color: var(--fsg-text);
+}
+.db-avatar-modal .modal-header,
+.db-avatar-modal .modal-footer { border-color: var(--fsg-line); }
+.db-avatar-modal .modal-title { font-family: var(--fsg-font-head); font-weight: 700; }
+.db-crop { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.db-crop-stage {
+    position: relative;
+    width: min(300px, 100%);
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 14px;
+    background:
+        repeating-conic-gradient(#151D2A 0% 25%, #101722 0% 50%) 50% / 24px 24px;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+}
+.db-crop-stage.is-dragging { cursor: grabbing; }
+.db-crop-stage img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: none;
+    transform-origin: 0 0;
+    will-change: transform;
+    pointer-events: none;
+}
+/* Abdunkelung ausserhalb des Kreises + Kreisrand */
+.db-crop-mask {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 999px rgba(6, 10, 16, .66);
+    outline: 2px solid rgba(var(--fsg-accent-rgb), .9);
+    outline-offset: -2px;
+    pointer-events: none;
+}
+.db-crop-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--fsg-muted);
+    font-size: .85rem;
+    text-align: center;
+}
+.db-crop-empty .bi { font-size: 2.2rem; color: var(--fsg-accent-hi); }
+.db-crop-zoom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(300px, 100%);
+    color: var(--fsg-muted);
+}
+.db-crop-zoom .form-range { flex: 1; }
+.db-crop-hint { margin: 0; text-align: center; font-size: .8rem; }
+.db-file-btn { cursor: pointer; margin: 0; }
+.db-avatar-modal .modal-footer { flex-wrap: nowrap; gap: 8px; }
+
+/* ------------------------------------------------------------
+   7. Responsiv (Spalten/Kacheln: spot_detail.css)
    ------------------------------------------------------------ */
 @media (max-width: 760px) {
     .db { padding-top: 14px; }
     .db-topline { margin-bottom: 20px; }
     .db-avatar { width: 64px; height: 64px; font-size: 1.4rem; }
+    .db-avatar-edit { font-size: 1.1rem; }
     .db-hero-head { margin-bottom: 18px; }
     .db .sd-actions { width: 100%; }
     .db .sd-actions > .fsg-btn--primary { flex: 1 1 auto; }
@@ -176,7 +328,7 @@
     .db-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
-    .db-spot, .db-spot-cover img { transition: none; }
+    .db-spot, .db-spot-cover img, .db-avatar-edit, button.db-avatar { transition: none; }
     .db-spot:hover { transform: none; }
     .db-spot:hover .db-spot-cover img { transform: none; }
 }

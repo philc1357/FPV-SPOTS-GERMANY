@@ -19,6 +19,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';
+require_once __DIR__ . '/../../../private/php/core/avatar.php';
 
 $isLoggedIn = true;
 $userId     = (int)$_SESSION['user_id'];
@@ -32,7 +33,7 @@ if (empty($_SESSION['last_seen_ts']) || time() - $_SESSION['last_seen_ts'] > 300
 }
 
 // Profil-Daten laden
-$stmt = $pdo->prepare("SELECT username, email, bio, created_at FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT username, email, bio, avatar, created_at FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $userData = $stmt->fetch();
 
@@ -86,23 +87,12 @@ $typeColors = [
     'Sonstige' => '#ffffff',
 ];
 
-$initials = static function (string $name): string {
-    $clean = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $name) ?? '';
-    $parts = preg_split('/\s+/', trim($clean)) ?: [];
-    $ini = '';
-    foreach (array_slice($parts, 0, 2) as $p) {
-        $ini .= mb_strtoupper(mb_substr($p, 0, 1));
-    }
-    if (mb_strlen($ini) < 2 && isset($parts[0])) {
-        $ini = mb_strtoupper(mb_substr($parts[0], 0, 2));
-    }
-    return $ini !== '' ? $ini : '?';
-};
-
 $uploadDir   = __DIR__ . '/../../uploads/imgs/';
 $memberSince = $userData['created_at'] ? date('d.m.Y', strtotime((string)$userData['created_at'])) : 'Unbekannt';
 $memberYear  = $userData['created_at'] ? date('Y', strtotime((string)$userData['created_at'])) : '–';
 $userName    = (string)$userData['username'];
+$userAvatar  = $userData['avatar'] !== null ? (string)$userData['avatar'] : null;
+$hasAvatar   = avatar_url($userAvatar) !== null;
 
 /**
  * Gibt eine Spot-Kachel (Foto, Typ, Schwierigkeit, Aktionen) aus.
@@ -214,10 +204,19 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
                 <p class="sd-eyebrow"><i class="bi bi-person-check" aria-hidden="true"></i>Mitglied seit <?= $e($memberSince) ?></p>
                 <div class="db-title-row">
                     <h1 id="profilTitel" class="db-title"><?= $e($userName) ?></h1>
-                    <span class="db-avatar" aria-hidden="true"><?= $e($initials($userName)) ?></span>
+                    <!-- Avatar: Klick öffnet den Upload-Dialog (keine Vergrößerung) -->
+                    <button type="button" id="dbAvatar" class="db-avatar<?= $hasAvatar ? ' has-img' : '' ?>"
+                            data-bs-toggle="modal" data-bs-target="#avatarModal"
+                            data-initials="<?= $e(user_initials($userName)) ?>"
+                            aria-label="Profilbild ändern" title="Profilbild ändern">
+                        <span class="db-avatar-inner" id="dbAvatarInner"><?= avatar_inner_html($userName, $userAvatar, 84) ?></span>
+                        <span class="db-avatar-edit" aria-hidden="true"><i class="bi bi-camera"></i></span>
+                    </button>
                 </div>
 
                 <!-- Über mich / Bio -->
+                <div id="avatarAlert" class="alert d-none py-2 small db-avatar-alert" role="status"></div>
+
                 <div class="db-bio">
                     <div id="bioDisplay" class="fsg-lead db-bio-text">
                         <?php if (!empty($userData['bio'])): ?>
@@ -256,6 +255,17 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
                                     data-bs-toggle="collapse" data-bs-target="#bioEditForm"
                                     aria-expanded="false" aria-controls="bioEditForm">
                                 <i class="bi bi-card-text me-2"></i>Beschreibung ändern
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#avatarModal">
+                                <i class="bi bi-camera me-2"></i>Profilbild ändern
+                            </button>
+                        </li>
+                        <li id="avatarDeleteItem"<?= $hasAvatar ? '' : ' hidden' ?>>
+                            <button class="dropdown-item" type="button" data-action="dash-avatar-delete">
+                                <i class="bi bi-person-x me-2"></i>Profilbild entfernen
                             </button>
                         </li>
                         <li><hr class="dropdown-divider"></li>
@@ -365,12 +375,62 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
     </div><!-- /.db-layout -->
 </main>
 
+<!-- ========================================================
+     Profilbild-Dialog: Bild wählen, im Kreis platzieren, speichern
+     (Logik: public/js/pages/avatar_upload.js)
+======================================================== -->
+<div class="modal fade" id="avatarModal" tabindex="-1" aria-labelledby="avatarModalTitel" aria-hidden="true" data-bs-theme="dark">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content db-avatar-modal">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="avatarModalTitel">Profilbild ändern</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+            </div>
+            <div class="modal-body">
+                <div id="avatarModalError" class="alert alert-danger d-none py-2 small" role="alert"></div>
+
+                <div class="db-crop" id="avatarCrop">
+                    <!-- Bühne: Bild wird per transform verschoben/skaliert, Maske zeigt den Kreis -->
+                    <div class="db-crop-stage" id="avatarStage">
+                        <img id="avatarCropImg" alt="Vorschau des Profilbilds" draggable="false" hidden>
+                        <div class="db-crop-empty" id="avatarEmpty">
+                            <i class="bi bi-image" aria-hidden="true"></i>
+                            <span>JPG oder PNG, max. 10 MB</span>
+                        </div>
+                        <div class="db-crop-mask" aria-hidden="true"></div>
+                    </div>
+
+                    <div class="db-crop-zoom" id="avatarZoomRow" hidden>
+                        <i class="bi bi-zoom-out" aria-hidden="true"></i>
+                        <label for="avatarZoom" class="visually-hidden">Zoom</label>
+                        <input type="range" id="avatarZoom" class="form-range" min="0" max="1000" step="1" value="0">
+                        <i class="bi bi-zoom-in" aria-hidden="true"></i>
+                    </div>
+                    <p class="fsg-meta db-crop-hint" id="avatarHint" hidden>
+                        <i class="bi bi-arrows-move me-1" aria-hidden="true"></i>Bild ziehen zum Verschieben, Regler oder Mausrad zum Zoomen.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <label class="fsg-btn fsg-btn--sm db-file-btn" for="avatarFile">
+                    <i class="bi bi-folder2-open" aria-hidden="true"></i>Bild wählen
+                </label>
+                <input type="file" id="avatarFile" class="visually-hidden" accept="image/jpeg,image/png">
+                <button type="button" class="fsg-btn fsg-btn--primary fsg-btn--sm ms-auto" id="avatarSaveBtn" disabled>
+                    <i class="bi bi-check2" aria-hidden="true"></i>Speichern
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- CSRF-Token für AJAX-Lösch-/Bio-Anfragen -->
 <meta name="app-csrf-token" content="<?= $e($csrfToken) ?>">
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 
 <script src="<?= asset('/public/js/pages/dashboard.js') ?>"></script>
+<script src="<?= asset('/public/js/pages/avatar_upload.js') ?>"></script>
 
 </body>
 </html>

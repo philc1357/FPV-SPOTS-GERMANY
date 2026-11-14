@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/geozones.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';
+require_once __DIR__ . '/../../../private/php/core/avatar.php';
 require_once __DIR__ . '/../../../private/php/core/affiliate.php';
 require_once __DIR__ . '/../../../private/php/spots/youtube_helper.php'; // SPOT_VIDEOS_MAX
 
@@ -184,7 +185,7 @@ if (is_array($_SESSION['video_flash'] ?? null)) {
 
 // Kommentare laden
 $stmt = $pdo->prepare(
-    "SELECT c.id, c.user_id, c.body, c.created_at, u.username
+    "SELECT c.id, c.user_id, c.body, c.created_at, u.username, u.avatar
      FROM comments c
      JOIN users u ON c.user_id = u.id
      WHERE c.spot_id = ?
@@ -276,20 +277,6 @@ foreach ($spotZones as $z) {
 if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
     $legalRefs[$a3Hint['label'] . ': ' . $a3Hint['paragraf']] = true;
 }
-
-// Initialen fuer die Kommentar-Avatare (mb-sicher, Umlaute)
-$initials = static function (string $name): string {
-    $clean = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $name) ?? '';
-    $parts = preg_split('/\s+/', trim($clean)) ?: [];
-    $ini = '';
-    foreach (array_slice($parts, 0, 2) as $p) {
-        $ini .= mb_strtoupper(mb_substr($p, 0, 1));
-    }
-    if (mb_strlen($ini) < 2 && isset($parts[0])) {
-        $ini = mb_strtoupper(mb_substr($parts[0], 0, 2));
-    }
-    return $ini !== '' ? $ini : '?';
-};
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -1027,7 +1014,7 @@ $initials = static function (string $name): string {
                             $canDelete = $isCommentOwner || $isAdmin;
                         ?>
                             <article class="sd-comment" id="comment-<?= $commentId ?>">
-                                <span class="sd-avatar" aria-hidden="true"><?= $e($initials($comment['username'])) ?></span>
+                                <?= render_avatar((string)$comment['username'], $comment['avatar'] !== null ? (string)$comment['avatar'] : null, 'sd-avatar', 40) ?>
                                 <div class="sd-comment-body">
                                     <div class="sd-comment-head">
                                         <a href="/profile.php?id=<?= (int)$comment['user_id'] ?>" class="sd-comment-user"><?= $e($comment['username']) ?></a>

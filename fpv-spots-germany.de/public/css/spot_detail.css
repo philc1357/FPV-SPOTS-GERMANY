@@ -607,6 +607,17 @@
     font-family: var(--fsg-font-head);
     font-weight: 700;
     font-size: .9rem;
+    overflow: hidden;
+}
+/* Profilbild statt Initialen (nicht klickbar, nicht vergrößerbar) */
+.sd-avatar.has-img { background: var(--fsg-surface); }
+.sd-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    user-select: none;
 }
 .sd-comment-body { flex: 1; min-width: 0; color: var(--fsg-text-2); overflow-wrap: anywhere; line-height: 1.6; }
 .sd-comment-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 4px; }
