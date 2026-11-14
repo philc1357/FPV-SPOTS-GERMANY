@@ -1,6 +1,7 @@
 /* ============================================================
    updates.css – Update-Verlauf
    Grundflaeche + Karten (card-dark) kommen aus components.css.
+   Aufbau wie im Forum: jedes Update ist eine eigene Karte.
    ============================================================ */
-.update-card { transition: border-color .15s; }
-.update-card:hover { border-color: var(--fsg-line-2) !important; }
+.update-title { word-break: break-word; }
+.update-body  { white-space: pre-wrap; word-break: break-word; }

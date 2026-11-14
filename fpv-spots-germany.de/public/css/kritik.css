@@ -1,13 +1,32 @@
 /* ============================================================
    kritik.css – Kritik & Vorschlaege
    Grundflaeche + Karten (card-dark) kommen aus components.css.
+   Aufbau wie im Forum: jeder Vorschlag ist eine eigene Karte.
    ============================================================ */
-.suggestion-item { border-bottom: 1px solid var(--fsg-line); }
-.suggestion-item:last-child { border-bottom: none; }
 
-/* Antwort des Admins: dezent in Akzentfarbe abgesetzt */
+/* Vote-Spalte links neben dem Vorschlag */
+.suggestion-vote { min-width: 52px; }
+
+/* Vorschlagstext etwas kraeftiger als die Antworten */
+.suggestion-body {
+    color: var(--fsg-text);
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* ------------------------------------------------------------
+   Antwort des Admins
+   Form wie die Forum-Kommentare (.forum-comment), aber mit
+   Akzentfarbe als Kennzeichen der offiziellen Antwort.
+   ------------------------------------------------------------ */
 .admin-comment {
+    padding: 0.5rem 0.75rem;
     background: rgba(var(--fsg-accent-rgb), .08);
-    border-left: 3px solid var(--fsg-accent) !important;
-    border-radius: 0 8px 8px 0;
+    border-left: 3px solid var(--fsg-accent);
+    border-radius: 0 10px 10px 0;
+    word-break: break-word;
+}
+.admin-comment-label {
+    color: var(--fsg-accent-hi);
+    font-weight: 600;
 }

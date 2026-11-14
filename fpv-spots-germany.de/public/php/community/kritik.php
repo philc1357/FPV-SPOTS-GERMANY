@@ -19,13 +19,13 @@ $csrfToken  = $_SESSION['csrf_token'];
 
 // Alle Vorschläge laden mit Vote-Anzahl und eigenem Vote-Status
 $stmt = $pdo->prepare(
-    "SELECT s.id, s.body, s.created_at, u.username,
+    "SELECT s.id, s.user_id, s.body, s.created_at, u.username,
             COUNT(v.user_id) AS vote_count,
             MAX(CASE WHEN v.user_id = :uid THEN 1 ELSE 0 END) AS user_voted
      FROM suggestions s
      JOIN users u ON s.user_id = u.id
      LEFT JOIN suggestion_votes v ON v.suggestion_id = s.id
-     GROUP BY s.id, s.body, s.created_at, u.username
+     GROUP BY s.id, s.user_id, s.body, s.created_at, u.username
      ORDER BY s.created_at DESC"
 );
 $stmt->execute([':uid' => $userId]);
@@ -96,7 +96,7 @@ if (!empty($suggestions)) {
 
 <main class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-lg-9">
 
             <!-- ====================================================
                  Einleitung
@@ -112,12 +112,12 @@ if (!empty($suggestions)) {
             <!-- ====================================================
                  Neuen Vorschlag posten
             ==================================================== -->
-            <div class="card card-dark text-light p-4 mb-4">
+            <section class="card card-dark text-light p-4 mb-4">
                 <h2 class="h5 mb-3">Vorschlag einreichen</h2>
 
                 <?php if ($isLoggedIn): ?>
                     <form method="POST" action="/private/php/suggestions/suggestion_submit.php">
-                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                         <textarea name="body"
                                   class="form-control mb-2"
                                   placeholder="Dein Verbesserungsvorschlag..."
@@ -135,12 +135,12 @@ if (!empty($suggestions)) {
                         <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-success">Einloggen</a>, um einen Vorschlag einzureichen.
                     </p>
                 <?php endif; ?>
-            </div>
+            </section>
 
             <!-- ====================================================
-                 Vorschlagsliste
+                 Vorschlagsliste – jeder Vorschlag als eigene Karte
             ==================================================== -->
-            <div class="card card-dark text-light p-4">
+            <section>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2 class="h5 mb-0">Alle Vorschläge</h2>
                     <span class="badge bg-primary"><?= count($suggestions) ?></span>
@@ -154,15 +154,15 @@ if (!empty($suggestions)) {
                         $voteCount = (int)$s['vote_count'];
                         $voted     = (bool)$s['user_voted'];
                     ?>
-                    <article class="suggestion-item py-3" id="suggestion-<?= $s['id'] ?>">
+                    <article class="card card-dark text-light p-4 mb-4 suggestion-item" id="suggestion-<?= (int)$s['id'] ?>">
                         <div class="d-flex gap-3 align-items-start">
 
                             <!-- Vote-Button -->
-                            <div class="text-center" style="min-width: 52px;">
+                            <div class="text-center suggestion-vote">
                                 <?php if ($isLoggedIn && !$voted): ?>
                                     <form method="POST" action="/private/php/suggestions/suggestion_vote_submit.php">
-                                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                                        <input type="hidden" name="suggestion_id" value="<?= $s['id'] ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                        <input type="hidden" name="suggestion_id" value="<?= (int)$s['id'] ?>">
                                         <button type="button"
                                                 class="btn btn-outline-secondary btn-sm d-block w-100"
                                                 title="Für diesen Vorschlag voten"
@@ -178,17 +178,21 @@ if (!empty($suggestions)) {
 
                             <!-- Inhalt -->
                             <div class="flex-grow-1">
-                                <p class="mb-1"><?= nl2br(htmlspecialchars($s['body'])) ?></p>
+                                <p class="mb-1 suggestion-body"><?= nl2br(htmlspecialchars($s['body'], ENT_QUOTES, 'UTF-8')) ?></p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <small class="text-secondary">
-                                        <i class="bi bi-person-fill"></i> <?= htmlspecialchars($s['username']) ?> &bull; <i class="bi bi-calendar3"></i> <?= $date ?>
+                                        <i class="bi bi-person-fill"></i>
+                                        <a href="/profile.php?id=<?= (int)$s['user_id'] ?>"
+                                           class="text-info text-decoration-none"
+                                           title="Profil ansehen"><?= htmlspecialchars($s['username'], ENT_QUOTES, 'UTF-8') ?></a>
+                                        &bull; <i class="bi bi-calendar3"></i> <?= $date ?>
                                     </small>
                                     <?php if (!empty($_SESSION['is_admin'])): ?>
                                         <form method="POST" action="/private/php/suggestions/suggestion_delete_submit.php"
                                               class="d-inline"
                                               data-confirm="Vorschlag wirklich löschen?">
-                                            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                                            <input type="hidden" name="suggestion_id" value="<?= $s['id'] ?>">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                            <input type="hidden" name="suggestion_id" value="<?= (int)$s['id'] ?>">
                                             <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
                                                     title="Löschen"><i class="bi bi-trash3"></i></button>
                                         </form>
@@ -199,16 +203,16 @@ if (!empty($suggestions)) {
                                 <?php if (!empty($comments[$s['id']])): ?>
                                     <?php foreach ($comments[$s['id']] as $c): ?>
                                         <?php $cDate = date('d.m.Y', strtotime($c['created_at'])); ?>
-                                        <div class="admin-comment mt-2 p-2 border-start border-success ps-3">
+                                        <div class="admin-comment mt-2">
                                             <p class="mb-1 small"><?= nl2br(htmlspecialchars($c['body'], ENT_QUOTES, 'UTF-8')) ?></p>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <small class="text-success"><i class="bi bi-chat-fill"></i> Admin-Antwort &bull; <i class="bi bi-calendar3"></i> <?= $cDate ?></small>
+                                                <small class="admin-comment-label"><i class="bi bi-chat-fill"></i> Admin-Antwort &bull; <i class="bi bi-calendar3"></i> <?= $cDate ?></small>
                                                 <?php if (!empty($_SESSION['is_admin'])): ?>
                                                     <form method="POST" action="/private/php/suggestions/suggestion_comment_delete_submit.php"
                                                           class="d-inline"
                                                           data-confirm="Kommentar wirklich löschen?">
-                                                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                                                        <input type="hidden" name="comment_id" value="<?= $c['id'] ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                                        <input type="hidden" name="comment_id" value="<?= (int)$c['id'] ?>">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1"
                                                                 title="Kommentar löschen"><i class="bi bi-trash3"></i></button>
                                                     </form>
@@ -221,8 +225,8 @@ if (!empty($suggestions)) {
                                 <!-- Admin-Kommentar-Formular -->
                                 <?php if (!empty($_SESSION['is_admin'])): ?>
                                     <form method="POST" action="/private/php/suggestions/suggestion_comment_submit.php" class="mt-2">
-                                        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                                        <input type="hidden" name="suggestion_id" value="<?= $s['id'] ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                        <input type="hidden" name="suggestion_id" value="<?= (int)$s['id'] ?>">
                                         <div class="input-group input-group-sm">
                                             <textarea name="body"
                                                       class="form-control"
@@ -241,7 +245,7 @@ if (!empty($suggestions)) {
                     </article>
                     <?php endforeach; ?>
                 <?php endif; ?>
-            </div>
+            </section>
 
         </div>
     </div>

@@ -77,7 +77,7 @@ $events = $stmt->fetchAll();
 
 <main class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-lg-9">
 
             <?php
                 $pageTitle  = 'Neuigkeiten';
@@ -87,8 +87,17 @@ $events = $stmt->fetchAll();
                 include __DIR__ . '/../../includes/page_head.php';
             ?>
 
+            <!-- ====================================================
+                 Aktivitaeten-Liste – jedes Ereignis als eigene Karte
+            ==================================================== -->
+            <section>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Letzte Aktivitäten</h2>
+                    <span class="badge bg-primary"><?= count($events) ?></span>
+                </div>
+
             <?php if (empty($events)): ?>
-                <p class="text-secondary text-center py-4">Noch keine Aktivität vorhanden.</p>
+                <p class="text-secondary">Noch keine Aktivität vorhanden.</p>
             <?php else:
                 $months    = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
                 $today     = date('Y-m-d');
@@ -124,7 +133,7 @@ $events = $stmt->fetchAll();
                     <hr class="flex-grow-1 opacity-25">
                 </div>
                 <?php endif; ?>
-                <article class="card card-dark text-light p-3 mb-3 news-card">
+                <article class="card card-dark text-light p-4 mb-4 news-card">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="flex-grow-1 me-3 min-w-0">
                             <?php if ($isComment): ?>
@@ -161,7 +170,8 @@ $events = $stmt->fetchAll();
                             <p class="mb-0 small text-secondary">
                                 von
                                 <a href="/profile.php?id=<?= $spotUserId ?>"
-                                   class="text-secondary"><?= $spotUser ?></a>
+                                   class="text-info text-decoration-none"
+                                   title="Profil ansehen"><?= $spotUser ?></a>
                             </p>
                         </div>
                         <time datetime="<?= htmlspecialchars($dateIso, ENT_QUOTES, 'UTF-8') ?>"
@@ -184,6 +194,7 @@ $events = $stmt->fetchAll();
                 </article>
                 <?php endforeach; ?>
             <?php endif; ?>
+            </section>
 
         </div>
     </div>

@@ -48,7 +48,7 @@ $error   = isset($_GET['error']);
 
 <main class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-lg-9">
 
             <!-- ====================================================
                  Seitenüberschrift
@@ -102,27 +102,34 @@ $error   = isset($_GET['error']);
             <?php endif; ?>
 
             <!-- ====================================================
-                 Update-Posts
+                 Update-Posts – jedes Update als eigene Karte
             ==================================================== -->
+            <section>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Alle Updates</h2>
+                    <span class="badge bg-primary"><?= count($updates) ?></span>
+                </div>
+
             <?php if (empty($updates)): ?>
-                <p class="text-secondary text-center py-4">Noch keine Updates vorhanden.</p>
+                <p class="text-secondary">Noch keine Updates vorhanden.</p>
             <?php else: ?>
                 <?php foreach ($updates as $update):
                     $dateFormatted = date('d.m.Y', strtotime($update['created_at']));
                     $dateIso       = date('Y-m-d', strtotime($update['created_at']));
                 ?>
-                <article class="card card-dark text-light p-4 mb-3 update-card">
+                <article class="card card-dark text-light p-4 mb-4 update-card">
                     <header class="d-flex justify-content-between align-items-start mb-2">
-                        <h2 class="h5 mb-0"><?= htmlspecialchars($update['title'], ENT_QUOTES, 'UTF-8') ?></h2>
+                        <h3 class="h5 mb-0 update-title"><?= htmlspecialchars($update['title'], ENT_QUOTES, 'UTF-8') ?></h3>
                         <time datetime="<?= htmlspecialchars($dateIso, ENT_QUOTES, 'UTF-8') ?>"
                               class="text-secondary small text-nowrap ms-3">
                             <?= htmlspecialchars($dateFormatted, ENT_QUOTES, 'UTF-8') ?>
                         </time>
                     </header>
-                    <p class="mb-0 text-light" style="white-space: pre-wrap;"><?= htmlspecialchars($update['description'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <p class="mb-0 text-light update-body"><?= htmlspecialchars($update['description'], ENT_QUOTES, 'UTF-8') ?></p>
                 </article>
                 <?php endforeach; ?>
             <?php endif; ?>
+            </section>
 
         </div>
     </div>
