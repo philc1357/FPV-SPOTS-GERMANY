@@ -155,6 +155,12 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
                 <li><a class="dropdown-item" href="/hilfe.php">Anleitung</a></li>
                 <li><a class="dropdown-item" href="/forum.php">Forum</a></li>
                 <li><a class="dropdown-item" href="/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
+                <?php
+                // Ausrüstungsseite nur verlinken, wenn Partnerprodukte konfiguriert sind
+                require_once __DIR__ . '/../../private/php/core/affiliate.php';
+                if (affiliate_enabled()): ?>
+                    <li><a class="dropdown-item" href="/ausruestung.php">Ausrüstung <span class="badge text-bg-warning ms-1">Werbung</span></a></li>
+                <?php endif; ?>
                 <li><a class="dropdown-item" href="/neuigkeiten.php">Community Updates</a></li>
                 <li><a class="dropdown-item" href="/updates.php">Website Updates</a></li>
                 <li><hr class="dropdown-divider"></li>

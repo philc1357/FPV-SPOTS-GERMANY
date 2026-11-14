@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../../private/php/core/auth_check.php';
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/geozones.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';
+require_once __DIR__ . '/../../../private/php/core/affiliate.php';
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -1058,6 +1059,14 @@ $initials = static function (string $name): string {
                     </p>
                 <?php endif; ?>
             </section>
+
+            <?php
+            // Passende Ausruestung (Partnerlinks, nur wenn Produkte zur Coptergroesse konfiguriert sind)
+            $affiliateItems = affiliate_for_sizes(explode(',', $spot['copter_size']), 3);
+            $affiliateTitle = 'Passende Ausrüstung';
+            $affiliateId    = 'ausruestung';
+            include __DIR__ . '/../../includes/affiliate_block.php';
+            ?>
 
             <section class="fsg-card fsg-card--quiet" aria-labelledby="meldenTitel">
                 <h2 id="meldenTitel" class="fsg-h3 mb-0">Stimmt etwas nicht?</h2>

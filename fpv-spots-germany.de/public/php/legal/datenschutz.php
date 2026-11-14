@@ -393,6 +393,17 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Unterstützung bei der Planung eines Flugs am jeweiligen Spot.</p>
                 <p><strong>Hinweis:</strong> Die angezeigten Werte sind Messwerte und Modellprognosen. Sie enthalten <strong>keine Bewertung</strong>, ob ein Flug möglich, sinnvoll oder zulässig ist; diese Entscheidung treffen ausschließlich Sie als Pilot vor Ort.</p>
             </section>
+
+            <!-- 16f. Partnerlinks (BetaFPV) -->
+            <section aria-labelledby="partnerlinks">
+                <h2 id="partnerlinks" class="h5 mt-4">16f. Partnerlinks (BetaFPV)</h2>
+                <p>Auf der Ausrüstungsseite und auf Spot-Seiten verlinken wir Produkte des Herstellers <strong>BetaFPV</strong> (betafpv.com). Diese Links sind <strong>Partnerlinks</strong> und als „Werbung“ gekennzeichnet. Kaufen Sie nach einem Klick auf einen solchen Link bei BetaFPV, erhalten wir eine Provision. Für Sie ändert sich der Preis nicht.</p>
+                <p><strong>Keine Übermittlung vor dem Klick:</strong> Die Links sind gewöhnliche Verweise. Beim bloßen Aufruf unserer Seiten wird keine Verbindung zu BetaFPV aufgebaut und keine Ihrer Daten an BetaFPV übermittelt. Bilder oder Skripte von BetaFPV binden wir nicht ein.</p>
+                <p><strong>Nach dem Klick:</strong> Mit dem Klick verlassen Sie unsere Website. Ab diesem Zeitpunkt gilt die Datenschutzerklärung von BetaFPV. Damit die Provision zugeordnet werden kann, setzt BetaFPV beim Aufruf üblicherweise ein Tracking-Cookie oder wertet Parameter des Links aus; darauf haben wir keinen Einfluss. Wir erhalten von BetaFPV keine personenbezogenen Daten über Ihren Einkauf, sondern nur aggregierte Provisionsabrechnungen.</p>
+                <p><strong>Klickzählung:</strong> Wir zählen mit unserer cookiefreien Reichweitenmessung (Abschnitt <a href="#reichweitenmessung">16e</a>), wie oft ein Partnerlink angeklickt wird und welches Produkt gemeint ist. Dabei werden keine Cookies gesetzt und keine Nutzer wiedererkannt.</p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Finanzierung des Betriebs dieser Website.</p>
+            </section>
+
             <!-- 17. Standortfreigabe -->
             <section aria-labelledby="standort">
                 <h2 id="standort" class="h5 mt-4">17. Standortfreigabe (Geolocation)</h2>
