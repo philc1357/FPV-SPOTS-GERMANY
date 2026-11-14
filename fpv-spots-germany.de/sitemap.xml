@@ -25,14 +25,6 @@
         <priority>0.6</priority>
     </url>
 
-    <!-- Login -->
-    <url>
-        <loc>https://fpv-spots-germany.de/login.php</loc>
-        <lastmod>2026-04-17</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
-
     <!-- Verbesserungsvorschläge -->
     <url>
         <loc>https://fpv-spots-germany.de/kritik.php</loc>

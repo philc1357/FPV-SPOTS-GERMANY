@@ -4,6 +4,30 @@ declare(strict_types=1);
 
     //Datenbankverbindungsdatei holen
     require_once __DIR__ . '/../core/db.php';
+    require_once __DIR__ . '/../core/redirect.php';
+
+    // =========================================================
+    // Redirect-Ziel + Fehler-Rückweg
+    // Erfolg und Fehler führen auf die Seite zurück, von der aus
+    // eingeloggt wurde; Fehler öffnen dort das Login-Banner.
+    // =========================================================
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header('Location: /');
+        exit;
+    }
+    $redirect = strip_login_params(safe_redirect_target(is_string($_POST['redirect'] ?? null) ? $_POST['redirect'] : ''));
+
+    function login_fail(string $msg, string $redirect): void {
+        $_SESSION['login_flash'] = ['type' => 'danger', 'msg' => $msg];
+        $hash = '';
+        if (($pos = strpos($redirect, '#')) !== false) {
+            $hash = substr($redirect, $pos);
+            $redirect = substr($redirect, 0, $pos);
+        }
+        $sep = str_contains($redirect, '?') ? '&' : '?';
+        header('Location: ' . $redirect . $sep . 'showLogin=1' . $hash);
+        exit;
+    }
 
     //Formulardaten holen
     $usernameInput = trim(post_str('username'));
@@ -12,12 +36,11 @@ declare(strict_types=1);
     // 3. Validierung
     // Im Submit-Handler prüfen:
     if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
-        die("CSRF-Fehler");
+        login_fail('Sicherheits-Token ungültig. Bitte Seite neu laden.', $redirect);
     }
     
     if (empty($usernameInput) || empty($passwordInput)) {
-        header("Location: /public/html/errors/login_empty.html");
-        exit;
+        login_fail('Bitte Benutzername und Passwort eingeben.', $redirect);
     }
 
     // Brute-Force-Schutz: IP nach 5 Fehlversuchen in 5 Minuten sperren
@@ -30,8 +53,7 @@ declare(strict_types=1);
     );
     $stmt->execute([$ip]);
     if ((int)$stmt->fetchColumn() >= 5) {
-        http_response_code(429);
-        die("Zu viele Fehlversuche. Bitte warte 5 Minuten.");
+        login_fail('Zu viele Fehlversuche. Bitte warte 5 Minuten.', $redirect);
     }
 
     // 4. User in der Datenbank suchen
@@ -52,8 +74,7 @@ declare(strict_types=1);
             );
             $acctStmt->execute([$user['id']]);
             if ((int)$acctStmt->fetchColumn() >= 10) {
-                http_response_code(429);
-                die("Zu viele Fehlversuche. Bitte warte 15 Minuten.");
+                login_fail('Zu viele Fehlversuche. Bitte warte 15 Minuten.', $redirect);
             }
         }
 
@@ -103,17 +124,7 @@ declare(strict_types=1);
 
             $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$user['id']]);
 
-            // Redirect-Ziel: nur relative Pfade innerhalb der eigenen Seite erlauben
-            // (kein protokoll-relatives "//host/..." → wäre ein Open Redirect)
-            $redirect = is_string($_POST['redirect'] ?? null) ? $_POST['redirect'] : '';
-            if ($redirect !== '' && (
-                str_starts_with($redirect, '//')
-                || !preg_match('#^/[a-zA-Z0-9_/]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)
-            )) {
-                $redirect = '';
-            }
-
-            header('Location: ' . ($redirect !== '' ? $redirect : '/'));
+            header('Location: ' . $redirect);
             exit;
 
         } else {
@@ -123,11 +134,10 @@ declare(strict_types=1);
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'LOGIN_FAILED', ?)";
             $pdo->prepare($logSql)->execute([$user ? $user['id'] : null, client_ip()]);
 
-            header("Location: /public/html/errors/login_failed.html");
-            exit;
+            login_fail('Benutzername oder Passwort falsch.', $redirect);
         }
 
     } catch (PDOException $e) {
         error_log($e->getMessage()); // intern loggen, sonst wird evtl Datenbankstruktur direkt im Browser ausgegeben.
-        die("Ein interner Fehler ist aufgetreten.");
+        login_fail('Ein interner Fehler ist aufgetreten. Bitte später erneut versuchen.', $redirect);
     }

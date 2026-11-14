@@ -4,13 +4,7 @@ require_once __DIR__ . "/../core/session_init.php";
 
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/password_blacklist.php';
-
-function safe_redirect_target(?string $raw): string {
-    if (!$raw) return '/';
-    if (!preg_match('#^/[A-Za-z0-9_\-./?&=]*$#', $raw)) return '/';
-    if (str_starts_with($raw, '//')) return '/';
-    return $raw;
-}
+require_once __DIR__ . '/../core/redirect.php';
 
 function register_flash_redirect(string $type, string $msg, string $redirect, bool $reopen): void {
     $_SESSION['register_flash'] = ['type' => $type, 'msg' => $msg];

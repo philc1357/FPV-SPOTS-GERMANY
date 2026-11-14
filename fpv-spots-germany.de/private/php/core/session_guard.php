@@ -152,11 +152,13 @@ if (!function_exists('enforce_session_freshness')) {
         if (wants_json_response()) {
             header('Content-Type: application/json; charset=utf-8');
             http_response_code(401);
-            echo json_encode(['error' => 'session_expired', 'redirect' => '/login.php']);
+            echo json_encode(['error' => 'session_expired', 'redirect' => '/?showLogin=1']);
             exit;
         }
 
-        header('Location: /login.php');
+        require_once __DIR__ . '/redirect.php';
+        $isGet = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET';
+        header('Location: ' . login_required_url($isGet ? ($_SERVER['REQUEST_URI'] ?? null) : null));
         exit;
     }
 }

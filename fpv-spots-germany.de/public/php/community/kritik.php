@@ -131,7 +131,7 @@ if (!empty($suggestions)) {
                     </form>
                 <?php else: ?>
                     <p class="text-secondary mb-0">
-                        <a href="/public/php/login.php" class="text-success">Einloggen</a>, um einen Vorschlag einzureichen.
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-success">Einloggen</a>, um einen Vorschlag einzureichen.
                     </p>
                 <?php endif; ?>
             </div>

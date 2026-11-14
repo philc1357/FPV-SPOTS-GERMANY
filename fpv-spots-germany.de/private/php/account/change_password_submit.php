@@ -143,7 +143,7 @@ declare(strict_types=1);
                     Passwort erfolgreich geändert.<br>
                     <small>Aus Sicherheitsgründen wurdest du auf allen Geräten ausgeloggt. Bitte melde dich erneut an.</small>
                 </div>
-                <a href="/login.php" class="btn btn-primary mt-2">Zum Login</a>
+                <a href="/?showLogin=1" class="btn btn-primary mt-2">Zum Login</a>
             <?php else: ?>
                 <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
                 <a href="/change_password.php" class="btn btn-warning mt-2">Zurück</a>

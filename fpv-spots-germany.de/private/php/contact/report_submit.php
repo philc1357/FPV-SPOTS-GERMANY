@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/php/login.php');
+    header('Location: /?showLogin=1');
     exit;
 }
 
