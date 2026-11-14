@@ -1,80 +1,709 @@
-body { background-color: #1a1a2e; }
-.card-dark { background: #16213e; border: 1px solid #0f3460; }
-.star { cursor: pointer; font-size: 1.5rem; color: #6c757d; transition: color .15s; }
-.star.active, .star:hover, .star:hover ~ .star { color: #ffc107; }
-.stars-display { color: #ffc107; }
-.comment-item { border-bottom: 1px solid #0f3460; }
-.comment-item:last-child { border-bottom: none; }
-
-/* YouTube-Zwei-Klick-Einbettung */
-.yt-embed { background: #000; }
-.yt-facade { position: absolute; top: 0; left: 0; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
-.yt-facade:focus-visible { outline: 2px solid #0d6efd; outline-offset: 2px; }
-.yt-thumb { width: 100%; height: 100%; object-fit: cover; }
-.yt-play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; width: 4rem; height: 4rem; border-radius: 50%; background: rgba(255, 0, 0, .85); color: #fff; font-size: 2rem; line-height: 1; transition: transform .15s, background .15s; }
-.yt-facade:hover .yt-play, .yt-facade:focus-visible .yt-play { background: #ff0000; transform: translate(-50%, -50%) scale(1.1); }
-
 /* ============================================================
-   Wetter am Spot
+   spot_detail.css – Spot-Detailseite (neues Design)
 
-   Palette wie der Rest der Seite: #16213e Karte, #0f3460 Rahmen,
-   #1a1a2e Grund. Die Kacheln setzen sich mit dem Grundton von der
-   Karte ab, statt einen weiteren Farbton einzufuehren.
-============================================================ */
+   Alles unter .page-spot bzw. .sd, damit nichts auf andere Seiten
+   durchschlaegt. Farben, Radien und Schriften kommen aus den
+   --fsg-*-Tokens in theme.css. --sd-type setzt spot_detail.php
+   inline am <main> (Farbe des Spot-Typs).
 
-/* Chevron der Aufklapp-Schaltflaeche folgt aria-expanded, damit
-   der Zustand ohne zusaetzliches JavaScript sichtbar ist. */
-.wx-chevron { transition: transform .2s; }
-[aria-expanded="true"] .wx-chevron { transform: rotate(180deg); }
+   Leitidee gegenueber der Vorlage: weniger "Cockpit". Keine
+   Monospace-Ziffern, keine Koordinaten-Leiste, Geozonen als
+   klare Aussage statt Paragrafen-Liste.
+   ============================================================ */
 
-/* Aktueller Zustand */
-.wx-now-icon { font-size: 2.75rem; line-height: 1; color: #6ea8fe; }
-.wx-now-temp { font-size: 2rem; font-weight: 600; line-height: 1.1; }
+/* ------------------------------------------------------------
+   1. Seitenrahmen (Grundflaeche + Bootstrap-Variablen: components.css)
+   ------------------------------------------------------------ */
+.page-spot .sd a { text-underline-offset: 3px; }
 
-/* Messwert-Kacheln */
-.wx-tile { background: #1a1a2e; border: 1px solid #0f3460; border-radius: .375rem; padding: .5rem .75rem; }
-.wx-tile-label { font-size: .75rem; color: #adb5bd; }
-.wx-tile-value { font-size: 1.05rem; font-weight: 600; white-space: nowrap; }
+.sd {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 20px 16px 72px;
+}
 
-/* Windrichtung: Pfeil zeigt in die Bewegungsrichtung des Windes */
-.wx-arrow { display: inline-block; font-size: .9rem; color: #6ea8fe; }
+/* ------------------------------------------------------------
+   2. Kopfzeile: Brotkrumen + Community-Hinweis
+   ------------------------------------------------------------ */
+.sd-topline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-bottom: 28px;
+    font-size: .875rem;
+}
+.sd-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--fsg-faint);
+    min-width: 0;
+}
+.sd-crumbs li { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60vw; }
+.sd-crumbs li + li::before { content: "/"; margin-right: 6px; color: var(--fsg-line-2); }
+.sd-crumbs a { color: var(--fsg-muted); text-decoration: none; }
+.sd-crumbs a:hover { color: var(--fsg-text); }
+.sd-crumbs [aria-current] { color: var(--fsg-text-2); }
+
+.sd-note {
+    margin: 0;
+    color: var(--fsg-faint);
+}
+.sd-note i { margin-right: 4px; }
+.sd-note a { margin-left: 4px; }
+.sd-alert { border-radius: var(--fsg-radius-sm); }
+
+/* ------------------------------------------------------------
+   3. Hero: Typ, Titel, Tags, Aktionen
+   ------------------------------------------------------------ */
+.sd-hero { margin-bottom: 28px; }
+.sd-hero-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px 32px;
+    margin-bottom: 24px;
+}
+.sd-hero-text { min-width: 0; flex: 1 1 520px; }
+
+.sd-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px;
+    color: var(--fsg-muted);
+    font-size: .95rem;
+    font-weight: 500;
+}
+.sd-type-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--sd-type, var(--fsg-accent));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--sd-type, var(--fsg-accent)) 22%, transparent);
+}
+
+.sd-title {
+    margin: 0 0 16px;
+    font-family: var(--fsg-font-head);
+    font-weight: 800;
+    font-size: clamp(2.1rem, 1.3rem + 3.6vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -.035em;
+    color: #fff;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+
+
+.sd-rating-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+    color: var(--fsg-muted);
+    font-size: .9rem;
+    text-decoration: none;
+}
+.sd-rating-inline i { color: var(--fsg-star); }
+.sd-rating-inline strong { color: var(--fsg-text); font-weight: 700; }
+.sd-rating-inline:hover span { color: var(--fsg-text); }
+
+/* ------------------------------------------------------------
+   4. Buttons
+   ------------------------------------------------------------ */
+.sd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.sd-fact:focus-visible,
+.sd-mosaic-tile:focus-visible,
+.sd-photo-btn:focus-visible,
+.yt-facade:focus-visible {
+    outline: 2px solid var(--fsg-accent);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------
+   5. Foto-Mosaik (aus den 600-px-Thumbnails)
+   ------------------------------------------------------------ */
+.sd-mosaic {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    height: clamp(240px, 38vw, 440px);
+    margin-bottom: 16px;
+    border-radius: var(--fsg-radius);
+    overflow: hidden;
+}
+.sd-mosaic--1 { grid-template-columns: 1fr; }
+.sd-mosaic--2 { grid-template-columns: 2fr 1fr; }
+.sd-mosaic--3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+.sd-mosaic--3 .sd-mosaic-tile:first-child { grid-row: span 2; }
+
+.sd-mosaic-tile {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: var(--fsg-surface);
+    overflow: hidden;
+    cursor: zoom-in;
+}
+.sd-mosaic-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .4s ease, filter .4s ease;
+}
+.sd-mosaic-tile:hover img { transform: scale(1.03); filter: brightness(1.06); }
+/* Feiner Verlauf unten, damit der "Alle Fotos"-Knopf lesbar bleibt */
+.sd-mosaic::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 30%;
+    background: linear-gradient(to top, rgba(5, 8, 13, .55), transparent);
+    pointer-events: none;
+}
+.sd-mosaic-more {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(10, 14, 21, .78);
+    border: 1px solid rgba(255, 255, 255, .14);
+    color: #fff;
+    font-size: .875rem;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+}
+.page-spot .sd .sd-mosaic-more:hover { background: rgba(10, 14, 21, .92); color: #fff; }
+
+/* ------------------------------------------------------------
+   6. Schnell-Infos (ersetzt die Koordinaten-Leiste)
+   ------------------------------------------------------------ */
+.sd-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.sd-fact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--fsg-line);
+    background: var(--fsg-surface);
+    color: var(--fsg-text);
+    text-decoration: none;
+    transition: border-color .15s, background-color .15s;
+}
+.page-spot .sd .sd-fact:hover { border-color: var(--fsg-line-2); background: #141D2B; color: var(--fsg-text); }
+.sd-fact-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: var(--fsg-surface-2);
+    color: var(--fsg-accent);
+    font-size: 1.1rem;
+}
+.sd-fact-text { display: flex; flex-direction: column; min-width: 0; }
+.sd-fact-label { font-size: .78rem; color: var(--fsg-faint); }
+.sd-fact-value {
+    font-weight: 600;
+    font-size: .95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Flugstatus-Kachel eingefaerbt nach Ergebnis */
+.sd-fact--rot     .sd-fact-icon { color: var(--fsg-danger); background: rgba(255, 107, 107, .12); }
+.sd-fact--gelb    .sd-fact-icon { color: var(--fsg-warm);   background: rgba(var(--fsg-warm-rgb), .12); }
+.sd-fact--clear   .sd-fact-icon { color: var(--fsg-ok);     background: rgba(74, 222, 128, .12); }
+.sd-fact--info    .sd-fact-icon { color: var(--fsg-accent); background: rgba(var(--fsg-accent-rgb), .12); }
+.sd-fact--neutral .sd-fact-icon { color: var(--fsg-muted); }
+.sd-fact--rot   { border-color: rgba(255, 107, 107, .3); }
+.sd-fact--gelb  { border-color: rgba(var(--fsg-warm-rgb), .3); }
+
+/* ------------------------------------------------------------
+   7. Zweispaltiges Layout + Karten
+   ------------------------------------------------------------ */
+.sd-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+    align-items: start;
+}
+.sd-main,
+.sd-aside { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.sd-aside { position: sticky; top: 76px; }
+
+.sd-link-small { font-size: .85rem; text-decoration: none; }
+
+/* ------------------------------------------------------------
+   8. Beschreibung: Parkmoeglichkeit
+   ------------------------------------------------------------ */
+.sd-parking {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--fsg-surface-2);
+    border: 1px solid var(--fsg-line);
+}
+.sd-parking-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: rgba(var(--fsg-accent-rgb), .1);
+    color: var(--fsg-accent);
+    font-size: 1.15rem;
+}
+.sd-parking-body { flex: 1; min-width: 0; color: var(--fsg-text-2); overflow-wrap: anywhere; }
+.sd-parking-body .fsg-meta { margin-top: 4px; }
+
+/* ------------------------------------------------------------
+   9. "Darf ich hier fliegen?"
+   ------------------------------------------------------------ */
+.sd-verdict {
+    --tone: var(--fsg-muted);
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--tone) 35%, transparent);
+    background: color-mix(in srgb, var(--tone) 9%, var(--fsg-surface));
+}
+.sd-verdict--rot   { --tone: var(--fsg-danger); }
+.sd-verdict--gelb  { --tone: var(--fsg-warm); }
+.sd-verdict--clear { --tone: var(--fsg-ok); }
+.sd-verdict--info  { --tone: var(--fsg-accent); }
+.sd-verdict-icon { flex-shrink: 0; font-size: 1.75rem; line-height: 1; color: var(--tone); }
+.sd-verdict-title {
+    margin: 0 0 4px;
+    font-family: var(--fsg-font-head);
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #fff;
+}
+.sd-verdict-text { margin: 0; color: var(--fsg-text-2); line-height: 1.6; }
+
+#pilotClassForm fieldset { min-width: 0; }
+
+.sd-zones { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.sd-zone {
+    --tone: var(--fsg-accent);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--fsg-surface-2);
+    border: 1px solid var(--fsg-line);
+    border-left: 3px solid var(--tone);
+}
+.sd-zone--rot  { --tone: var(--fsg-danger); }
+.sd-zone--gelb { --tone: var(--fsg-warm); }
+.sd-zone-icon { color: var(--tone); font-size: 1.1rem; line-height: 1.4; }
+.sd-zone-title { margin: 0; font-weight: 600; color: var(--fsg-text); overflow-wrap: anywhere; }
+.sd-zone-name { display: block; font-weight: 400; font-size: .88rem; color: var(--fsg-muted); }
+.sd-zone-text { margin: 4px 0 0; font-size: .92rem; color: var(--fsg-text-2); }
+.sd-zone-badge {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--tone);
+    background: color-mix(in srgb, var(--tone) 12%, transparent);
+    white-space: nowrap;
+}
+
+.sd-callout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--fsg-warm-rgb), .3);
+    background: rgba(var(--fsg-warm-rgb), .06);
+    color: var(--fsg-text-2);
+    font-size: .92rem;
+}
+.sd-callout > i { color: var(--fsg-warm); font-size: 1.3rem; }
+.sd-callout-title { margin: 0 0 2px; font-weight: 600; color: var(--fsg-text); }
+
+.sd-disclosures { display: flex; flex-direction: column; }
+
+/* ------------------------------------------------------------
+   10. Wetter am Spot (Markup aus spot_detail_weather.js)
+   ------------------------------------------------------------ */
+.wx-now { display: flex; align-items: center; gap: 18px; }
+.wx-now-icon { font-size: 3rem; line-height: 1; color: var(--fsg-accent); }
+.wx-now-temp {
+    font-family: var(--fsg-font-head);
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: #fff;
+}
+.wx-now-text { color: var(--fsg-muted); margin-top: 4px; }
+
+.wx-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.wx-tile {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--fsg-surface-2);
+    border: 1px solid var(--fsg-line);
+}
+.wx-tile-label { font-size: .78rem; color: var(--fsg-faint); }
+.wx-tile-value { font-size: 1.05rem; font-weight: 600; white-space: nowrap; color: var(--fsg-text); }
+.wx-arrow { display: inline-block; font-size: .9rem; color: var(--fsg-accent); }
+
+.wx-extra { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; color: var(--fsg-muted); font-size: .9rem; }
+.wx-extra i { color: var(--fsg-warm); margin-right: 4px; }
+
+.wx-h3 { margin: 6px 0 0; font-family: var(--fsg-font-head); font-weight: 700; font-size: 1.05rem; color: var(--fsg-text); }
 
 /* 24-Stunden-Streifen: scrollt horizontal in sich, nie die Seite */
-.wx-hours { display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .5rem; scrollbar-width: thin; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
-.wx-hour { flex: 0 0 4.25rem; text-align: center; scroll-snap-align: start; background: #1a1a2e; border: 1px solid #0f3460; border-radius: .375rem; padding: .5rem .25rem; }
-.wx-hour i { font-size: 1.25rem; color: #6ea8fe; }
-.wx-hour-time { font-size: .75rem; color: #adb5bd; }
-.wx-hour-temp { font-weight: 600; }
-.wx-hour-wind, .wx-hour-dir, .wx-hour-rain { font-size: .7rem; color: #adb5bd; white-space: nowrap; }
+.wx-hours { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
+.wx-hour {
+    flex: 0 0 4.4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 4px;
+    text-align: center;
+    scroll-snap-align: start;
+    border-radius: 12px;
+    background: var(--fsg-surface-2);
+    border: 1px solid var(--fsg-line);
+}
+.wx-hour i { font-size: 1.25rem; color: var(--fsg-accent); }
+.wx-hour-time { font-size: .75rem; color: var(--fsg-faint); }
+.wx-hour-temp { font-weight: 700; color: var(--fsg-text); }
+.wx-hour-wind, .wx-hour-dir, .wx-hour-rain { font-size: .72rem; color: var(--fsg-muted); white-space: nowrap; }
 
 /* 7-Tage-Liste */
-.wx-day { display: grid; grid-template-columns: 4.5rem 1.5rem 1fr auto auto; gap: .5rem; align-items: center; padding: .45rem 0; border-bottom: 1px solid #0f3460; }
+.wx-days { display: flex; flex-direction: column; }
+.wx-day {
+    display: grid;
+    grid-template-columns: 4.5rem 1.5rem 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--fsg-line);
+}
 .wx-day:last-child { border-bottom: none; }
-.wx-day i { font-size: 1.15rem; color: #6ea8fe; }
-.wx-day-name { font-size: .85rem; font-weight: 600; }
-.wx-day-date { display: block; font-size: .7rem; font-weight: 400; color: #adb5bd; }
-.wx-day-temp { font-size: .9rem; }
-.wx-day-wind, .wx-day-rain { font-size: .8rem; color: #adb5bd; white-space: nowrap; }
+.wx-day i { font-size: 1.15rem; color: var(--fsg-accent); }
+.wx-day-name { font-size: .9rem; font-weight: 600; color: var(--fsg-text); }
+.wx-day-date { display: block; font-size: .72rem; font-weight: 400; color: var(--fsg-faint); }
+.wx-day-temp { font-size: .95rem; color: var(--fsg-text); }
+.wx-day-temp span { color: var(--fsg-faint); }
+.wx-day-wind, .wx-day-rain { font-size: .82rem; color: var(--fsg-muted); white-space: nowrap; }
+.wx-day-wind i, .wx-day-rain i { font-size: .8rem; color: var(--fsg-faint); }
 
-/* Spaltenbeschriftung der kompakten Streifen */
-.wx-legend { margin: .35rem 0 0; font-size: .7rem; color: #6c757d; }
+.wx-legend { margin: 0; font-size: .75rem; color: var(--fsg-faint); }
 
 /* Ladeplatzhalter bis zur ersten Antwort */
-.wx-skeleton { background: linear-gradient(90deg, #16213e, #1e2b4d, #16213e); background-size: 200% 100%; animation: wx-shimmer 1.2s linear infinite; border-radius: .375rem; }
+.wx-skeleton {
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--fsg-surface-2), #162131, var(--fsg-surface-2));
+    background-size: 200% 100%;
+    animation: wx-shimmer 1.2s linear infinite;
+}
 @keyframes wx-shimmer { to { background-position: -200% 0; } }
+
+#wetterBody { display: flex; flex-direction: column; gap: 16px; }
+
+/* ------------------------------------------------------------
+   11. Fotos + Upload
+   ------------------------------------------------------------ */
+.sd-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 16px;
+    border: 1.5px dashed var(--fsg-line-2);
+    background: var(--fsg-surface-2);
+}
+.sd-upload-row { display: flex; align-items: center; gap: 12px; }
+.sd-upload-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(var(--fsg-accent-rgb), .1);
+    color: var(--fsg-accent);
+    font-size: 1.35rem;
+}
+.sd-upload-text { display: flex; flex-direction: column; min-width: 0; }
+.sd-upload-title { font-weight: 600; color: var(--fsg-text); }
+.sd-file { padding: 6px; min-width: 0; }
+.sd-file::file-selector-button {
+    margin-right: 12px;
+    padding: 8px 14px;
+    border: 1px solid var(--fsg-line-2);
+    border-radius: 9px;
+    background: var(--fsg-surface);
+    color: var(--fsg-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+.sd-upload .progress { --bs-progress-bg: var(--fsg-surface); --bs-progress-bar-bg: var(--fsg-accent); height: 8px; border-radius: 99px; }
+
+.sd-photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+.sd-photo { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.sd-photo-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--fsg-surface-2);
+    cursor: zoom-in;
+    aspect-ratio: 4 / 3;
+}
+.sd-photo-btn img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+.sd-photo-btn:hover img { transform: scale(1.04); }
+.sd-photo figcaption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 30px;
+    font-size: .8rem;
+    color: var(--fsg-faint);
+}
+.sd-photo figcaption > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sd-photo-tools { display: inline-flex; flex-shrink: 0; }
+.sd-photo-tools form { display: inline; }
+
+/* ------------------------------------------------------------
+   12. Videos (YouTube-Zwei-Klick-Einbettung)
+   ------------------------------------------------------------ */
+.sd-videos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sd-video { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sd-video-title { margin: 4px 0 0; font-weight: 600; color: var(--fsg-text); }
+.yt-embed { background: #000; border-radius: 12px; overflow: hidden; }
+.yt-facade { position: absolute; inset: 0; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
+.yt-thumb { width: 100%; height: 100%; object-fit: cover; }
+.yt-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(10, 14, 21, .72);
+    border: 1px solid rgba(255, 255, 255, .25);
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    backdrop-filter: blur(6px);
+    transition: transform .15s, background-color .15s;
+}
+.yt-facade:hover .yt-play,
+.yt-facade:focus-visible .yt-play { background: #FF0033; border-color: #FF0033; transform: translate(-50%, -50%) scale(1.08); }
+.yt-hint {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: rgba(10, 14, 21, .72);
+    color: var(--fsg-text-2);
+    font-size: .72rem;
+}
+
+/* ------------------------------------------------------------
+   13. Kommentare
+   ------------------------------------------------------------ */
+.sd-comment-form { display: flex; flex-direction: column; gap: 10px; }
+.sd-comments { display: flex; flex-direction: column; }
+.sd-comment {
+    display: flex;
+    gap: 14px;
+    padding: 18px 0;
+    border-top: 1px solid var(--fsg-line);
+    scroll-margin-top: 76px;
+}
+.sd-comment:first-child { border-top: 0; padding-top: 4px; }
+.sd-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1F3B57, #16263A);
+    border: 1px solid var(--fsg-line-2);
+    color: var(--fsg-accent-hi);
+    font-family: var(--fsg-font-head);
+    font-weight: 700;
+    font-size: .9rem;
+}
+.sd-comment-body { flex: 1; min-width: 0; color: var(--fsg-text-2); overflow-wrap: anywhere; line-height: 1.6; }
+.sd-comment-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 4px; }
+.page-spot .sd .sd-comment-user { color: var(--fsg-text); font-weight: 600; text-decoration: none; }
+.page-spot .sd .sd-comment-user:hover { color: var(--fsg-accent-hi); }
+.sd-comment-tools { margin-left: auto; display: inline-flex; gap: 2px; }
+
+/* ------------------------------------------------------------
+   14. Seitenspalte: Bewertung, Werbung, Melden
+   ------------------------------------------------------------ */
+.sd-aside .fsg-card { padding: 24px; gap: 16px; }
+.sd-score { display: flex; align-items: center; gap: 14px; }
+.sd-score-num {
+    font-family: var(--fsg-font-head);
+    font-weight: 800;
+    font-size: 3.4rem;
+    line-height: 1;
+    letter-spacing: -.04em;
+    color: #fff;
+}
+.sd-score-meta { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--fsg-muted); }
+.stars-display { color: var(--fsg-star); letter-spacing: 2px; }
+
+.sd-dist { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.sd-dist li {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr) 1.8rem;
+    gap: 10px;
+    align-items: center;
+    font-size: .8rem;
+    color: var(--fsg-muted);
+}
+.sd-dist li > span:last-child { text-align: right; }
+.sd-dist i { color: var(--fsg-faint); font-size: .7rem; }
+.sd-bar { display: block; height: 7px; border-radius: 99px; background: var(--fsg-surface-2); overflow: hidden; }
+.sd-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--fsg-star); }
+
+.sd-rate { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid var(--fsg-line); }
+.sd-rate fieldset { min-width: 0; }
+.sd-rate .fsg-label { margin-bottom: 6px; }
+.sd-stars { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; }
+.star { cursor: pointer; font-size: 1.9rem; line-height: 1; color: var(--fsg-line-2); transition: color .12s, transform .12s; }
+.star.active, .star:hover, .star:hover ~ .star { color: var(--fsg-star); }
+.star:hover { transform: scale(1.1); }
+.sd-stars input:focus-visible + .star { outline: 2px solid var(--fsg-accent); outline-offset: 2px; border-radius: 6px; }
+
+/* Werbeblock (affiliate_block.php, hier ohne eigenes Markup angepasst) */
+.sd-aside .card-dark {
+    margin-top: 0 !important;
+    padding: 24px !important;
+    border-radius: var(--fsg-radius);
+    border: 1px solid var(--fsg-line);
+    background: var(--fsg-surface);
+    color: var(--fsg-text-2) !important;
+}
+.sd-aside .card-dark h2 { font-family: var(--fsg-font-head); font-weight: 700; font-size: 1.15rem !important; color: #fff; }
+.sd-aside .card-dark .badge { background: rgba(var(--fsg-warm-rgb), .14) !important; color: var(--fsg-warm) !important; font-weight: 600; }
+.sd-aside .card-dark a { color: var(--fsg-accent); }
+.sd-aside .card-dark li + li { padding-top: 12px; border-top: 1px solid var(--fsg-line); }
+
+/* ------------------------------------------------------------
+   15. Modals (Foto-Lightbox, Melden)
+   ------------------------------------------------------------ */
+#photoModal .modal-body img { max-height: 80vh; object-fit: contain; }
+
+/* ------------------------------------------------------------
+   16. Responsiv
+   ------------------------------------------------------------ */
+@media (max-width: 1080px) {
+    .sd-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+}
+@media (max-width: 980px) {
+    .sd-layout { grid-template-columns: minmax(0, 1fr); }
+    .sd-aside { position: static; }
+    .sd-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+    .sd { padding-top: 14px; }
+    .sd-topline { margin-bottom: 20px; }
+    .sd-hero-head { margin-bottom: 18px; }
+    .sd-actions { width: 100%; }
+    .sd-actions > .fsg-btn--primary { flex: 1 1 auto; }
+    .sd-videos { grid-template-columns: minmax(0, 1fr); }
+    .wx-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sd-callout { grid-template-columns: auto minmax(0, 1fr); }
+    .sd-callout > .fsg-btn { grid-column: 1 / -1; justify-self: start; }
+    .sd-zone { grid-template-columns: auto minmax(0, 1fr); }
+    .sd-zone-badge { grid-column: 2; justify-self: start; }
+    .sd-upload-pick { flex-wrap: wrap; }
+    /* Mosaik auf dem Handy: nur das Hauptbild, die anderen liegen im Fotobereich */
+    .sd-mosaic { grid-template-columns: 1fr !important; grid-template-rows: 1fr !important; height: 260px; }
+    .sd-mosaic-tile:not(:first-child) { display: none; }
+    .sd-mosaic--3 .sd-mosaic-tile:first-child { grid-row: auto; }
+}
+@media (max-width: 460px) {
+    .sd-facts { grid-template-columns: minmax(0, 1fr); }
+    .sd-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .sd-verdict { padding: 16px; gap: 12px; }
+}
+/* Schmale Displays: Tagesliste enger setzen statt umbrechen */
+@media (max-width: 420px) {
+    .wx-day { grid-template-columns: 3.4rem 1.15rem 1fr auto auto; gap: 6px; }
+    .wx-day i { font-size: 1rem; }
+    .wx-day-temp { font-size: .85rem; }
+    .wx-day-wind, .wx-day-rain { font-size: .74rem; }
+}
 
 @media (prefers-reduced-motion: reduce) {
     .wx-skeleton { animation: none; }
-    .wx-chevron { transition: none; }
-}
-
-/* Schmale Displays: enger setzen statt umbrechen. Ein Umbruch der
-   Regenspalte in eine zweite Zeile verdoppelt die Zeilenhoehe und
-   macht die Woche unuebersichtlich – die fuenf Spalten passen bei
-   kleinerem Schriftgrad auch auf 360 px noch nebeneinander. */
-@media (max-width: 420px) {
-    .wx-day { grid-template-columns: 3.4rem 1.15rem 1fr auto auto; gap: .35rem; }
-    .wx-day i { font-size: 1rem; }
-    .wx-day-temp { font-size: .82rem; }
-    .wx-day-wind, .wx-day-rain { font-size: .72rem; }
+    .sd-mosaic-tile img, .sd-photo-btn img, .star, .fsg-btn, .fsg-details summary::after { transition: none; }
+    .sd-mosaic-tile:hover img, .sd-photo-btn:hover img { transform: none; }
 }

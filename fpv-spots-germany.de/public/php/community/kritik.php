@@ -101,12 +101,13 @@ if (!empty($suggestions)) {
             <!-- ====================================================
                  Einleitung
             ==================================================== -->
-            <div class="card card-dark text-light p-4 mb-4">
-                <h1 class="h3 mb-2">Verbesserungsvorschläge</h1>
-                <p class="text-secondary mb-0">
-                    Hast du eine Idee, wie <b><span>FPV-Spots-Germany</span></b> besser werden kann? Teile deinen Vorschlag mit der <span>Community</span> und vote für die Ideen, die dir am besten gefallen.
-                </p>
-            </div>
+            <?php
+                $pageTitle  = 'Verbesserungsvorschläge';
+                $pageKicker = 'Community';
+                $pageIcon   = 'bi-lightbulb';
+                $pageLead   = 'Hast du eine Idee, wie FPV Spots Germany besser werden kann? Teile deinen Vorschlag mit der Community und vote für die Ideen, die dir am besten gefallen.';
+                include __DIR__ . '/../../includes/page_head.php';
+            ?>
 
             <!-- ====================================================
                  Neuen Vorschlag posten
@@ -118,7 +119,7 @@ if (!empty($suggestions)) {
                     <form method="POST" action="/private/php/suggestions/suggestion_submit.php">
                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                         <textarea name="body"
-                                  class="form-control bg-secondary text-light border-0 mb-2"
+                                  class="form-control mb-2"
                                   placeholder="Dein Verbesserungsvorschlag..."
                                   rows="4"
                                   minlength="10"
@@ -126,7 +127,7 @@ if (!empty($suggestions)) {
                                   required></textarea>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-secondary">Mindestens 10, maximal 1000 Zeichen</small>
-                            <button type="submit" class="btn btn-success btn-sm">Vorschlag absenden</button>
+                            <button type="submit" class="btn btn-primary btn-sm">Vorschlag absenden</button>
                         </div>
                     </form>
                 <?php else: ?>
@@ -168,7 +169,7 @@ if (!empty($suggestions)) {
                                                 data-action="open-vote-confirm"><i class="bi bi-hand-thumbs-up-fill"></i></button>
                                     </form>
                                 <?php else: ?>
-                                    <button class="btn btn-sm d-block w-100 <?= $voted ? 'btn-success' : 'btn-outline-secondary' ?>"
+                                    <button class="btn btn-sm d-block w-100 <?= $voted ? 'btn-primary' : 'btn-outline-secondary' ?>"
                                             disabled
                                             title="<?= $voted ? 'Du hast bereits gevoted' : 'Einloggen zum Voten' ?>"><i class="bi bi-hand-thumbs-up-fill"></i></button>
                                 <?php endif; ?>
@@ -224,13 +225,13 @@ if (!empty($suggestions)) {
                                         <input type="hidden" name="suggestion_id" value="<?= $s['id'] ?>">
                                         <div class="input-group input-group-sm">
                                             <textarea name="body"
-                                                      class="form-control bg-secondary text-light border-secondary"
+                                                      class="form-control"
                                                       placeholder="Admin-Kommentar hinzufügen..."
                                                       rows="2"
                                                       minlength="3"
                                                       maxlength="1000"
                                                       required></textarea>
-                                            <button type="submit" class="btn btn-success">Kommentieren</button>
+                                            <button type="submit" class="btn btn-primary">Kommentieren</button>
                                         </div>
                                     </form>
                                 <?php endif; ?>
@@ -258,7 +259,7 @@ if (!empty($suggestions)) {
             <div class="modal-body">
                 <p>Diese Aktion kann nicht rückgängig gemacht werden, bist du sicher dass du diesen Verbesserungsvorschlag voten möchtest?</p>
                 <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-success flex-fill" id="voteConfirmBtn">Ja, voten</button>
+                    <button type="button" class="btn btn-primary flex-fill" id="voteConfirmBtn">Ja, voten</button>
                     <button type="button" class="btn btn-danger flex-fill" data-bs-dismiss="modal">Abbrechen</button>
                 </div>
             </div>

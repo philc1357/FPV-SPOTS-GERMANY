@@ -38,12 +38,14 @@ $csrfToken  = $_SESSION['csrf_token'];
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
 <main class="container my-5">
-    <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
-
-        <div class="alert alert-warning" role="alert">
-            <i class="bi bi-shield-exclamation me-2"></i>
-            <strong>Bitte bestätige unsere aktualisierten Nutzungsbedingungen</strong>
-        </div>
+    <?php
+        $pageTitle  = 'Bitte bestätige unsere Nutzungsbedingungen';
+        $pageKicker = 'Einmal kurz bestätigen';
+        $pageIcon   = 'bi-shield-exclamation';
+        $pageNarrow = true;
+        include __DIR__ . '/../../includes/page_head.php';
+    ?>
+    <article class="fsg-card fsg-card--prose">
 
         <p>
             Hallo <strong><?= $username ?></strong>,
@@ -63,7 +65,7 @@ $csrfToken  = $_SESSION['csrf_token'];
             <li>Der Betreiber haftet nicht für die Richtigkeit nutzergenerierter Spot-Informationen.</li>
         </ul>
         <p>
-            <a href="/nutzungsbedingungen.php" target="_blank" class="text-white fw-semibold">
+            <a href="/nutzungsbedingungen.php" target="_blank" class="fw-semibold">
                 <i class="bi bi-box-arrow-up-right me-1"></i>Nutzungsbedingungen vollständig lesen
             </a>
         </p>
@@ -76,7 +78,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                     Ich habe die Nutzungsbedingungen gelesen und akzeptiere sie.
                 </label>
             </div>
-            <button type="submit" class="btn btn-success w-100">
+            <button type="submit" class="btn btn-primary btn-lg w-100">
                 <i class="bi bi-check-circle me-1"></i>Akzeptieren und weiter
             </button>
         </form>

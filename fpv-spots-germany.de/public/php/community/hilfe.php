@@ -29,19 +29,21 @@ $csrfToken  = $_SESSION['csrf_token'];
 <?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
     <main class="container my-5">
-        <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
-            <h1 class="h3 mb-2">So funktioniert FPV Spots Germany</h1>
-            <p class="mb-4">
-                FPV Spots Germany ist eine Community-Plattform, auf der FPV-Piloten ihre Flugspots in
-                Deutschland eintragen, bewerten und teilen. Auf dieser Seite findest du alles, was du
-                zur Bedienung wissen musst.
-            </p>
+        <?php
+            $pageTitle  = 'So funktioniert FPV Spots Germany';
+            $pageKicker = 'Hilfe';
+            $pageIcon   = 'bi-book';
+            $pageLead   = 'FPV Spots Germany ist eine Community-Plattform, auf der FPV-Piloten ihre Flugspots in Deutschland eintragen, bewerten und teilen. Auf dieser Seite findest du alles, was du zur Bedienung wissen musst.';
+            $pageNarrow = true;
+            include __DIR__ . '/../../includes/page_head.php';
+        ?>
+        <article class="fsg-card fsg-card--prose">
 
             <!-- ============ Karte & Filter ============ -->
             <section aria-labelledby="karte" class="mb-4">
                 <h2 id="karte" class="h5"><i class="bi bi-map-fill me-1"></i> Die Karte</h2>
                 <p>
-                    Die <a href="/" class="text-white">Startseite</a> ist eine Vollbild-Karte mit allen
+                    Die <a href="/">Startseite</a> ist eine Vollbild-Karte mit allen
                     eingetragenen Spots. Jeder Marker steht für einen Spot: Die <strong>Farbe</strong>
                     zeigt den Spot-Typ (Bando, Feld, Gebirge, Park, Wald, Windpark, Sonstige), der farbige
                     <strong>Ring</strong> die Schwierigkeit (Anfänger, Mittel, Fortgeschritten, Profi).
@@ -111,13 +113,13 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <ul>
                     <li><strong>Registrierung &amp; Login</strong> erfolgen über das Menü oben rechts.
                         Mit „Angemeldet bleiben“ bleibst du 30 Tage eingeloggt.</li>
-                    <li>Im <a href="/dashboard.php" class="text-white">Dashboard</a> siehst du deine eigenen
+                    <li>Im <a href="/dashboard.php">Dashboard</a> siehst du deine eigenen
                         Spots und deine Favoriten und kannst eine kurze <strong>Bio</strong> hinterlegen.</li>
                     <li><strong>Öffentliches Profil:</strong> Jeder Nutzer hat eine Profilseite mit Bio und
                         einer Mini-Karte seiner Spots. Du kannst dein Profil auch auf privat stellen.</li>
                     <li><strong>Zugangsdaten ändern:</strong> Benutzername, E-Mail und Passwort änderst du
                         im Dashboard – jeweils mit Passwort-Bestätigung. Passwort vergessen? Dann nutze den
-                        <a href="/forgot_password.php" class="text-white">Passwort-Reset per E-Mail</a>.</li>
+                        <a href="/forgot_password.php">Passwort-Reset per E-Mail</a>.</li>
                 </ul>
             </section>
 
@@ -127,11 +129,11 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p class="mb-0">
                     Über das <i class="bi bi-envelope-fill"></i>-Symbol auf einem Profil schreibst du anderen
                     Piloten direkt. Alle Unterhaltungen findest du unter
-                    <a href="/messages.php" class="text-white">Nachrichten</a>. Das
+                    <a href="/messages.php">Nachrichten</a>. Das
                     <i class="bi bi-exclamation-circle-fill text-warning"></i>-Symbol im Menü zeigt dir an,
                     wenn es etwas Neues gibt – etwa eine Nachricht, einen Kommentar zu deinem Spot oder
                     einen neuen Verbesserungsvorschlag. Details siehst du unter
-                    <a href="/benachrichtigungen.php" class="text-white">Benachrichtigungen</a>.
+                    <a href="/benachrichtigungen.php">Benachrichtigungen</a>.
                 </p>
             </section>
 
@@ -139,13 +141,13 @@ $csrfToken  = $_SESSION['csrf_token'];
             <section aria-labelledby="community" class="mb-4">
                 <h2 id="community" class="h5"><i class="bi bi-people-fill me-1"></i> Community</h2>
                 <ul>
-                    <li><a href="/forum.php" class="text-white">Forum</a> – Beiträge mit Bildern, Kommentaren
+                    <li><a href="/forum.php">Forum</a> – Beiträge mit Bildern, Kommentaren
                         und Antworten.</li>
-                    <li><a href="/kritik.php" class="text-white">Verbesserungsvorschläge</a> – Ideen einreichen
+                    <li><a href="/kritik.php">Verbesserungsvorschläge</a> – Ideen einreichen
                         und für die Vorschläge anderer abstimmen (eine Stimme pro Nutzer).</li>
-                    <li><a href="/neuigkeiten.php" class="text-white">Community Updates</a> – was zuletzt auf
+                    <li><a href="/neuigkeiten.php">Community Updates</a> – was zuletzt auf
                         der Plattform passiert ist.</li>
-                    <li><a href="/updates.php" class="text-white">Website Updates</a> – Changelog der Seite.</li>
+                    <li><a href="/updates.php">Website Updates</a> – Changelog der Seite.</li>
                 </ul>
             </section>
 
@@ -167,13 +169,13 @@ $csrfToken  = $_SESSION['csrf_token'];
                     und keine Aufforderung, ein Gelände zu betreten. Prüfe vor jedem Flug selbst die
                     geltenden Luftrechts- und Betretungsregeln, Schutzgebiete sowie eventuelle
                     Genehmigungspflichten. Mehr dazu in den
-                    <a href="/nutzungsbedingungen.php" class="text-white">Nutzungsbedingungen</a>.
+                    <a href="/nutzungsbedingungen.php">Nutzungsbedingungen</a>.
                 </p>
             </section>
 
             <p>
                 Noch Fragen offen? Schreib uns über das
-                <a href="/kontakt.php" class="text-white">Kontaktformular</a>.
+                <a href="/kontakt.php">Kontaktformular</a>.
             </p>
 
             <div class="d-flex gap-2 flex-wrap">

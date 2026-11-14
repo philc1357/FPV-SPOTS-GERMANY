@@ -1,6 +1,9 @@
-body { background-color: #1a1a2e; }
-.card-dark { background: #16213e; border: 1px solid #0f3460; }
-.news-card:hover { background: rgba(255,255,255,.03); }
+/* ============================================================
+   neuigkeiten.css – Neuigkeiten-Feed
+   Grundflaeche + Karten (card-dark) kommen aus components.css.
+   ============================================================ */
+.news-card { transition: border-color .15s; }
+.news-card:hover { border-color: var(--fsg-line-2) !important; }
 
 /* Flex-Item darf bei langen Inhalten schrumpfen, sonst sprengt der Text die Karte */
 .min-w-0 { min-width: 0; }

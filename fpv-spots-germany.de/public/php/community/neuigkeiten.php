@@ -79,10 +79,13 @@ $events = $stmt->fetchAll();
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8">
 
-            <div class="card card-dark text-light p-4 mb-4">
-                <h1 class="h3 mb-1"><i class="bi bi-activity me-2"></i>Neuigkeiten</h1>
-                <p class="text-secondary mb-0">Aktuelle Aktivitäten der FPV Spots Germany Community.</p>
-            </div>
+            <?php
+                $pageTitle  = 'Neuigkeiten';
+                $pageKicker = 'Community';
+                $pageIcon   = 'bi-activity';
+                $pageLead   = 'Aktuelle Aktivitäten der FPV Spots Germany Community.';
+                include __DIR__ . '/../../includes/page_head.php';
+            ?>
 
             <?php if (empty($events)): ?>
                 <p class="text-secondary text-center py-4">Noch keine Aktivität vorhanden.</p>

@@ -282,10 +282,13 @@ $all = array_slice($all, 0, 80);
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8">
 
-            <div class="card card-dark text-light p-4 mb-4">
-                <h1 class="h3 mb-1"><i class="bi bi-bell-fill me-2"></i>Benachrichtigungen</h1>
-                <p class="text-secondary mb-0">Alle neuen Aktivitäten der Community und persönliche Hinweise.</p>
-            </div>
+            <?php
+                $pageTitle  = 'Benachrichtigungen';
+                $pageKicker = 'Dein Konto';
+                $pageIcon   = 'bi-bell';
+                $pageLead   = 'Alle neuen Aktivitäten der Community und persönliche Hinweise.';
+                include __DIR__ . '/../../includes/page_head.php';
+            ?>
 
             <?php if (empty($all)): ?>
                 <p class="text-secondary text-center py-4">Keine Benachrichtigungen vorhanden.</p>

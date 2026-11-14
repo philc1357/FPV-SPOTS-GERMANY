@@ -1,16 +1,18 @@
 // =============================================================
 // Spot-Detail – Wetter
 // Ausgelagert aus public/php/spots/spot_detail.php (CSP: keine Inline-Skripte).
-// Wird an derselben Stelle wie zuvor synchron geladen, d. h. das
-// darüberliegende HTML ist beim Ausführen bereits vorhanden.
+// Wird am Seitenende synchron geladen, d. h. das HTML ist beim
+// Ausführen bereits vorhanden. Geladen wird erst, wenn der Bereich
+// in Sichtnähe scrollt (IntersectionObserver) – kein Request beim
+// Seitenaufbau, solange niemand bis zum Wetter kommt.
 // =============================================================
 (function () {
-    var box = document.getElementById('wetterCollapse');
+    var box = document.getElementById('wetterBox');
     if (!box) return;
 
     var body  = document.getElementById('wetterBody');
     var stand = document.getElementById('wetterStand');
-    var laeuft = false;   // schuetzt vor schnellem Auf/Zu/Auf
+    var laeuft = false;   // schuetzt vor doppeltem Laden
 
     // ── Hilfsfunktionen ──────────────────────────────────────
 
@@ -49,11 +51,11 @@
     }
 
     function kachel(bi, titel, inhalt) {
-        return '<div class="col-6 col-md-4"><div class="wx-tile h-100">'
+        return '<div class="wx-tile">'
              + '<div class="wx-tile-label"><i class="bi ' + icon(bi) + ' me-1" aria-hidden="true"></i>'
              + esc(titel) + '</div>'
              + '<div class="wx-tile-value">' + inhalt + '</div>'
-             + '</div></div>';
+             + '</div>';
     }
 
     // ── Rendern ──────────────────────────────────────────────
@@ -63,17 +65,17 @@
         var h = '';
 
         // Aktueller Zustand
-        h += '<div class="d-flex align-items-center gap-3 mb-3">'
+        h += '<div class="wx-now">'
            +   '<i class="bi ' + icon(a.icon) + ' wx-now-icon" aria-hidden="true"></i>'
            +   '<div>'
            +     '<div class="wx-now-temp">' + num(a.temp, '°C', 1) + '</div>'
-           +     '<div class="text-secondary small">' + esc(a.text)
+           +     '<div class="wx-now-text">' + esc(a.text)
            +       ' &middot; gefühlt ' + num(a.gefuehlt, '°C', 1) + '</div>'
            +   '</div>'
            + '</div>';
 
         // Messwert-Kacheln
-        h += '<div class="row g-2 mb-3">'
+        h += '<div class="wx-tiles">'
            + kachel('bi-wind',            'Wind',       num(a.wind, 'km/h') + ' ' + pfeil(a.richtung, a.richtung_text))
            + kachel('bi-wind',            'Böen',       num(a.boeen, 'km/h'))
            + kachel('bi-umbrella',        'Niederschlag', num(a.niederschlag, 'mm', 1))
@@ -82,35 +84,30 @@
            + kachel('bi-droplet-half',    'Luftfeuchte', num(a.feuchte, '%'))
            + '</div>';
 
-        // Sonnenzeiten
+        // Sonnenzeiten + Kp-Index in einer ruhigen Zeile. Der Kp-Index
+        // entfaellt still, wenn die NOAA nicht erreichbar war.
         var s = d.sonne || {};
+        var extra = '';
         if (s.aufgang || s.untergang) {
-            h += '<p class="small text-secondary mb-2">'
-               + '<i class="bi bi-sunrise me-1" aria-hidden="true"></i>' + esc(s.aufgang) + ' Uhr'
-               + '<span class="mx-2">&middot;</span>'
-               + '<i class="bi bi-sunset me-1" aria-hidden="true"></i>' + esc(s.untergang) + ' Uhr'
-               + '</p>';
+            extra += '<span><i class="bi bi-sunrise" aria-hidden="true"></i>Aufgang ' + esc(s.aufgang) + ' Uhr</span>'
+                   + '<span><i class="bi bi-sunset" aria-hidden="true"></i>Untergang ' + esc(s.untergang) + ' Uhr</span>';
         }
-
-        // Kp-Index – entfaellt still, wenn die NOAA nicht erreichbar war
         if (d.kp) {
-            h += '<p class="small text-secondary mb-3">'
-               + '<i class="bi bi-activity me-1" aria-hidden="true"></i>'
-               + 'Kp-Index ' + num(d.kp.wert, '', 1) + ' (' + esc(d.kp.text) + ') '
-               + '<span class="text-secondary">– geomagnetische Aktivität, '
-               + 'hohe Werte können die GPS-Genauigkeit verringern.</span>'
-               + '</p>';
+            extra += '<span title="Geomagnetische Aktivität – hohe Werte können die GPS-Genauigkeit verringern.">'
+                   + '<i class="bi bi-activity" aria-hidden="true"></i>'
+                   + 'Kp-Index ' + num(d.kp.wert, '', 1) + ' (' + esc(d.kp.text) + ')</span>';
         }
+        if (extra) h += '<p class="wx-extra">' + extra + '</p>';
 
         // Naechste 24 Stunden – horizontal scrollbarer Streifen
         if (d.stunden && d.stunden.length) {
-            h += '<h3 class="h6 mt-4 mb-2">Nächste 24 Stunden</h3><div class="wx-hours">';
+            h += '<h3 class="wx-h3">Nächste 24 Stunden</h3><div class="wx-hours">';
             d.stunden.forEach(function (x) {
                 h += '<div class="wx-hour">'
                    +   '<div class="wx-hour-time">' + esc(x.zeit) + '</div>'
                    +   '<i class="bi ' + icon(x.icon) + '" title="' + esc(x.text) + '"></i>'
                    +   '<div class="wx-hour-temp">' + num(x.temp, '°') + '</div>'
-                   +   '<div class="wx-hour-wind">' + num(x.wind) + '<span class="text-secondary">/</span>'
+                   +   '<div class="wx-hour-wind">' + num(x.wind) + '/'
                    +     num(x.boeen) + '</div>'
                    +   '<div class="wx-hour-dir">' + esc(x.richtung_text || '') + '</div>'
                    +   '<div class="wx-hour-rain">' + num(x.regen_prozent, '%') + '</div>'
@@ -122,13 +119,13 @@
 
         // 7-Tage-Uebersicht
         if (d.tage && d.tage.length) {
-            h += '<h3 class="h6 mt-4 mb-2">7 Tage</h3><div class="wx-days">';
+            h += '<h3 class="wx-h3">7 Tage</h3><div class="wx-days">';
             d.tage.forEach(function (x) {
                 h += '<div class="wx-day">'
                    +   '<div class="wx-day-name">' + (x.heute ? 'Heute' : esc(x.wochentag))
                    +     '<span class="wx-day-date">' + esc(x.datum) + '</span></div>'
                    +   '<i class="bi ' + icon(x.icon) + '" title="' + esc(x.text) + '"></i>'
-                   +   '<div class="wx-day-temp">' + num(x.tmax, '°') + '<span class="text-secondary"> / '
+                   +   '<div class="wx-day-temp">' + num(x.tmax, '°') + '<span> / '
                    +     num(x.tmin, '°') + '</span></div>'
                    +   '<div class="wx-day-wind"><i class="bi bi-wind me-1" aria-hidden="true"></i>'
                    +     num(x.boeen, 'km/h') + '</div>'
@@ -141,14 +138,13 @@
         }
 
         // Quellenangabe – Open-Meteo steht unter CC BY 4.0 und verlangt sie
-        h += '<p class="small text-secondary border-top border-secondary pt-3 mt-4 mb-0">'
-           + '<i class="bi bi-info-circle me-1" aria-hidden="true"></i>'
+        h += '<p class="fsg-fineprint">'
            + 'Prognosen sind Modellrechnungen und keine Zusage. Ob ein Flug möglich und '
            + 'zulässig ist, entscheidest du vor Ort.'
            + '<br>Wetterdaten: <a href="https://open-meteo.com/" target="_blank" rel="noopener" '
-           + 'class="text-info">Open-Meteo.com</a> (CC BY 4.0), für Deutschland auf Basis von DWD ICON. '
+           + '>Open-Meteo.com</a> (CC BY 4.0), für Deutschland auf Basis von DWD ICON. '
            + 'Kp-Index: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener" '
-           + 'class="text-info">NOAA SWPC</a>.'
+           + '>NOAA SWPC</a>.'
            + '</p>';
 
         body.innerHTML = h;
@@ -160,9 +156,9 @@
 
     function renderFehler(meldung) {
         body.innerHTML =
-            '<div class="alert alert-secondary mb-0">'
+            '<div class="fsg-empty">'
           +   '<p class="mb-2"><i class="bi bi-cloud-slash me-1" aria-hidden="true"></i>' + esc(meldung) + '</p>'
-          +   '<button type="button" class="btn btn-outline-secondary btn-sm" id="wetterRetry">'
+          +   '<button type="button" class="fsg-btn fsg-btn--sm" id="wetterRetry">'
           +     'Erneut versuchen</button>'
           + '</div>';
         if (stand) stand.textContent = '';
@@ -170,7 +166,7 @@
         var btn = document.getElementById('wetterRetry');
         if (btn) btn.addEventListener('click', function () {
             body.innerHTML = '<div class="wx-skeleton" style="height:5.5rem"></div>'
-                           + '<div class="wx-skeleton mt-2" style="height:5rem"></div>';
+                           + '<div class="wx-skeleton" style="height:5rem"></div>';
             laden();
         });
     }
@@ -204,5 +200,18 @@
         });
     }
 
-    box.addEventListener('shown.bs.collapse', laden);
+    // Erst laden, wenn der Bereich bis auf 400 px an den sichtbaren
+    // Ausschnitt heranrueckt. Ohne IntersectionObserver (sehr alte
+    // Browser) sofort laden, damit der Bereich nie leer bleibt.
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (eintraege) {
+            if (eintraege.some(function (e) { return e.isIntersecting; })) {
+                io.disconnect();
+                laden();
+            }
+        }, { rootMargin: '400px 0px' });
+        io.observe(box);
+    } else {
+        laden();
+    }
 })();

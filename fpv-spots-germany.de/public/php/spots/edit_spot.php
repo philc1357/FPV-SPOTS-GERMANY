@@ -84,8 +84,14 @@ $videoError = isset($_GET['video_error']);
 <main class="container py-4">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
-            <div class="card card-dark text-light p-4">
-                <h1 class="h4 mb-4">Spot bearbeiten</h1>
+            <?php
+                $pageTitle  = 'Spot bearbeiten';
+                $pageKicker = 'Deine Spots';
+                $pageIcon   = 'bi-pencil-square';
+                $pageAction = ['href' => '/spot_detail.php?id=' . (int)$spot['id'], 'label' => 'Zum Spot', 'icon' => 'bi-arrow-left'];
+                include __DIR__ . '/../../includes/page_head.php';
+            ?>
+            <div class="card card-dark p-4">
 
                 <?php if ($success): ?>
                     <div class="alert alert-success" role="alert">Spot erfolgreich aktualisiert!</div>
@@ -93,12 +99,12 @@ $videoError = isset($_GET['video_error']);
 
                 <form method="POST" action="/private/php/spots/edit_spot_submit.php">
                     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                    <input type="hidden" name="spot_id" value="<?= $spot['id'] ?>">
+                    <input type="hidden" name="spot_id" value="<?= (int)$spot['id'] ?>">
 
                     <div class="mb-3">
                         <label for="editName" class="form-label small fw-semibold">Spot-Name *</label>
                         <input type="text" id="editName" name="name"
-                               class="form-control bg-secondary text-light border-0"
+                               class="form-control"
                                value="<?= htmlspecialchars($spot['name'], ENT_QUOTES, 'UTF-8') ?>"
                                maxlength="100" required>
                     </div>
@@ -106,7 +112,7 @@ $videoError = isset($_GET['video_error']);
                     <div class="mb-3">
                         <label for="editDesc" class="form-label small fw-semibold">Beschreibung *</label>
                         <textarea id="editDesc" name="description"
-                                  class="form-control bg-secondary text-light border-0"
+                                  class="form-control"
                                   rows="3" maxlength="2000"><?= htmlspecialchars($spot['description'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                     </div>
 
@@ -114,7 +120,7 @@ $videoError = isset($_GET['video_error']);
                         <div class="col-6">
                             <label for="editType" class="form-label small fw-semibold">Typ *</label>
                             <select id="editType" name="spot_type"
-                                    class="form-select bg-secondary text-light border-0" required>
+                                    class="form-select" required>
                                 <?php foreach (['Bando','Feld','Gebirge','Park','Wald','Windpark','Sonstige'] as $t): ?>
                                     <option value="<?= $t ?>" <?= $spot['spot_type'] === $t ? 'selected' : '' ?>><?= $t ?></option>
                                 <?php endforeach; ?>
@@ -123,7 +129,7 @@ $videoError = isset($_GET['video_error']);
                         <div class="col-6">
                             <label for="editDiff" class="form-label small fw-semibold">Schwierigkeit *</label>
                             <select id="editDiff" name="difficulty"
-                                    class="form-select bg-secondary text-light border-0" required>
+                                    class="form-select" required>
                                 <?php foreach (['Anfänger','Mittel','Fortgeschritten','Profi'] as $d): ?>
                                     <option value="<?= $d ?>" <?= $spot['difficulty'] === $d ? 'selected' : '' ?>><?= $d ?></option>
                                 <?php endforeach; ?>
@@ -169,7 +175,7 @@ $videoError = isset($_GET['video_error']);
                             <label class="form-check-label small" for="editParkingUnknown">Unbekannt</label>
                         </div>
                         <textarea id="editParkingInfo" name="parking_info"
-                                  class="form-control bg-secondary text-light border-0"
+                                  class="form-control"
                                   placeholder="z. B. Kostenloser Parkplatz direkt am Feld…"
                                   rows="2" maxlength="500"
                                   <?= ($spot['parking_info'] ?? 'Unbekannt') === 'Unbekannt' ? 'disabled' : '' ?>><?= ($spot['parking_info'] ?? 'Unbekannt') !== 'Unbekannt' ? htmlspecialchars($spot['parking_info'], ENT_QUOTES, 'UTF-8') : '' ?></textarea>
@@ -202,7 +208,7 @@ $videoError = isset($_GET['video_error']);
                                     <div class="d-flex gap-2">
                                         <input type="url" name="video_url[]"
                                                value="<?= $vUrl ?>"
-                                               class="form-control bg-secondary text-light border-0"
+                                               class="form-control"
                                                placeholder="https://youtube.com/watch?v=...">
                                         <button type="button" class="btn btn-outline-danger btn-sm video-remove flex-shrink-0"
                                                 aria-label="Link entfernen">
@@ -294,7 +300,7 @@ $videoError = isset($_GET['video_error']);
                     <?php endif; ?>
                 </section>
 
-                <a href="/public/php/spot_detail.php?id=<?= $spot['id'] ?>" class="btn btn-outline-light w-100 mt-3">Zur Spot-Detailseite</a>
+                <a href="/spot_detail.php?id=<?= (int)$spot['id'] ?>" class="btn btn-outline-secondary w-100 mt-3">Zur Spot-Detailseite</a>
                 <a href="/public/php/dashboard.php" class="btn btn-outline-secondary w-100 mt-2">Zum Dashboard</a>
             </div>
         </div>

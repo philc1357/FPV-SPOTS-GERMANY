@@ -57,7 +57,7 @@ if (!empty($_SESSION['spot_error'])) {
     <link rel="canonical" href="https://fpv-spots-germany.de/">
 
     <!-- PWA -->
-    <meta name="theme-color" content="#212529">
+    <meta name="theme-color" content="#0A0E15">
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -203,8 +203,8 @@ if (!empty($_SESSION['spot_error'])) {
 ============================================================ -->
 <div class="modal fade" id="discardSpotModal" tabindex="-1" aria-labelledby="discardSpotModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-secondary">
-            <div class="modal-header border-secondary">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title" id="discardSpotModalLabel">
                     <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Eingaben verwerfen?
                 </h5>
@@ -212,7 +212,7 @@ if (!empty($_SESSION['spot_error'])) {
             <div class="modal-body">
                 <p class="mb-0">Du hast bereits Daten eingegeben. Wenn du einen neuen Standort wählst, gehen diese verloren.</p>
             </div>
-            <div class="modal-footer border-secondary">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" id="discardCancelBtn">Weiter bearbeiten</button>
                 <button type="button" class="btn btn-danger" id="discardConfirmBtn">Verwerfen</button>
             </div>
@@ -225,19 +225,19 @@ if (!empty($_SESSION['spot_error'])) {
 ============================================================ -->
 <div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-secondary">
-            <div class="modal-header border-secondary">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title" id="locationModalLabel">
-                    <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Standort anzeigen?
+                    <i class="bi bi-geo-alt-fill me-2 text-primary"></i>Standort anzeigen?
                 </h5>
             </div>
             <div class="modal-body">
                 <p>Möchtest du deinen aktuellen Standort auf der Karte sehen?</p>
                 <p class="text-muted small mb-0">Dein Standort wird nur lokal in deinem Browser verarbeitet und nicht gespeichert.</p>
             </div>
-            <div class="modal-footer border-secondary">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" id="locationDenyBtn">Nein, danke</button>
-                <button type="button" class="btn btn-danger" id="locationAllowBtn">
+                <button type="button" class="btn btn-primary" id="locationAllowBtn">
                     <i class="bi bi-geo-alt-fill me-1"></i>Standort freigeben
                 </button>
             </div>
@@ -249,8 +249,8 @@ if (!empty($_SESSION['spot_error'])) {
      Offcanvas: Spot erstellen
      Wird nach Karten-Klick geöffnet, Koordinaten bereits gesetzt
 ============================================================ -->
-<div class="offcanvas offcanvas-bottom bg-dark text-light" tabindex="-1" id="createSpotOffcanvas" style="height: 50dvh;" aria-labelledby="createSpotLabel">
-    <div class="offcanvas-header border-bottom border-secondary">
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="createSpotOffcanvas" style="height: 50dvh;" aria-labelledby="createSpotLabel">
+    <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title" id="createSpotLabel"><i class="bi bi-plus-circle-fill me-2"></i>Neuen Spot erstellen</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Schliessen"></button>
     </div>
@@ -266,17 +266,17 @@ if (!empty($_SESSION['spot_error'])) {
             <div class="row g-3">
                 <div class="col-12">
                     <label class="form-label small fw-semibold">Spot-Name *</label>
-                    <input type="text" name="name" class="form-control bg-secondary text-light border-0" placeholder="z. B. Kornfeld bei Musterdorf" minlength="5" maxlength="100" required>
+                    <input type="text" name="name" class="form-control" placeholder="z. B. Kornfeld bei Musterdorf" minlength="5" maxlength="100" required>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label small fw-semibold">Beschreibung *</label>
-                    <textarea name="description" class="form-control bg-secondary text-light border-0" placeholder="Hinweise zu Zugang, Regeln, besonderen Merkmalen oder Copter-Art…" rows="3" minlength="10" maxlength="2000" required></textarea>
+                    <textarea name="description" class="form-control" placeholder="Hinweise zu Zugang, Regeln, besonderen Merkmalen oder Copter-Art…" rows="3" minlength="10" maxlength="2000" required></textarea>
                 </div>
 
                 <div class="col-6">
                     <label class="form-label small fw-semibold">Typ *</label>
-                    <select name="spot_type" class="form-select bg-secondary text-light border-0" required>
+                    <select name="spot_type" class="form-select" required>
                         <option value="" disabled selected>Bitte wählen</option>
                         <option value="Bando">Bando</option>
                         <option value="Feld">Feld</option>
@@ -290,7 +290,7 @@ if (!empty($_SESSION['spot_error'])) {
 
                 <div class="col-6">
                     <label class="form-label small fw-semibold">Schwierigkeit *</label>
-                    <select name="difficulty" class="form-select bg-secondary text-light border-0" required>
+                    <select name="difficulty" class="form-select" required>
                         <option value="" disabled selected>Bitte wählen</option>
                         <option value="Anfänger">Anfänger</option>
                         <option value="Mittel">Mittel</option>
@@ -329,7 +329,7 @@ if (!empty($_SESSION['spot_error'])) {
                         <label class="form-check-label small" for="parkingUnknown">Unbekannt</label>
                     </div>
                     <textarea name="parking_info" id="parkingInfo"
-                              class="form-control bg-secondary text-light border-0"
+                              class="form-control"
                               placeholder="z. B. Kostenloser Parkplatz direkt am Feld…"
                               rows="2" maxlength="500" disabled></textarea>
                 </div>
@@ -346,7 +346,7 @@ if (!empty($_SESSION['spot_error'])) {
                     <div id="videoLinksContainer">
                         <div class="video-link-row d-flex gap-2 mb-2">
                             <input type="url" name="video_url[]"
-                                   class="form-control bg-secondary text-light border-0"
+                                   class="form-control"
                                    placeholder="https://youtube.com/watch?v=...">
                             <button type="button" class="btn btn-outline-danger btn-sm video-remove flex-shrink-0"
                                     aria-label="Link entfernen">
@@ -373,7 +373,7 @@ if (!empty($_SESSION['spot_error'])) {
                         Du bist selbst verantwortlich für die Einhaltung von Luftrecht, Betretungsrechten
                         und lokalen Verordnungen. <a href="/nutzungsbedingungen.php" target="_blank" class="alert-link">Mehr erfahren</a>
                     </div>
-                    <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
                         Spot speichern
                     </button>
                 </div>
@@ -386,11 +386,11 @@ if (!empty($_SESSION['spot_error'])) {
      Offcanvas: Spot-Detail
      Wird nach Marker-Klick geöffnet
 ============================================================ -->
-<div class="offcanvas offcanvas-bottom bg-dark text-light"
+<div class="offcanvas offcanvas-bottom"
      tabindex="-1" id="spotDetailOffcanvas"
      style="height: 50dvh;"
      aria-labelledby="spotDetailLabel">
-    <div class="offcanvas-header border-bottom border-secondary">
+    <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title" id="spotDetailLabel"></h5>
         <button type="button" class="btn-close btn-close-white"
                 data-bs-dismiss="offcanvas" aria-label="Schliessen"></button>
@@ -428,7 +428,7 @@ if (!empty($_SESSION['spot_error'])) {
         </div>
         <div class="d-flex gap-2">
             <button id="pwaInstallDismiss" type="button" class="btn btn-sm btn-outline-secondary">Nein</button>
-            <button id="pwaInstallBtn" type="button" class="btn btn-sm btn-success">Installieren</button>
+            <button id="pwaInstallBtn" type="button" class="btn btn-sm btn-primary">Installieren</button>
         </div>
     </div>
 </aside>
@@ -449,9 +449,9 @@ if (!empty($_SESSION['spot_error'])) {
 
 <!-- PWA: Update-Banner -->
 <aside id="pwaUpdateBanner" class="d-none position-fixed top-0 start-0 end-0 p-3" style="z-index:1300">
-    <div class="d-flex align-items-center justify-content-between bg-dark border border-success rounded-3 p-3 shadow-lg mx-auto" style="max-width:480px">
+    <div class="d-flex align-items-center justify-content-between bg-dark border border-primary rounded-3 p-3 shadow-lg mx-auto" style="max-width:480px">
         <span class="text-light small">Neue Version verfügbar</span>
-        <button id="pwaUpdateBtn" type="button" class="btn btn-sm btn-success">Aktualisieren</button>
+        <button id="pwaUpdateBtn" type="button" class="btn btn-sm btn-primary">Aktualisieren</button>
     </div>
 </aside>
 

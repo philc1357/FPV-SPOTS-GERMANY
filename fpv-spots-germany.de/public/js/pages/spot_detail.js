@@ -4,35 +4,46 @@
 // Wird an derselben Stelle wie zuvor synchron geladen, d. h. das
 // darüberliegende HTML ist beim Ausführen bereits vorhanden.
 // =============================================================
-// Spot-Link in Zwischenablage kopieren
-function copySpotLink(btn) {
-    const url = window.location.href;
-    const original = btn.innerHTML;
+// ---------------------------------------------------------------
+// Kopieren mit Rueckmeldung
+//
+// Icon-Knoepfe (.fsg-icon-btn) zeigen nur einen Haken, damit sich ihre
+// Breite nicht aendert; Menue-Eintraege bekommen "Kopiert!" als Text.
+// Der Originalinhalt wird als DOM-Knoten gesichert, nicht als HTML.
+// ---------------------------------------------------------------
+function copyWithFeedback(btn, text) {
+    const original = Array.from(btn.childNodes).map(n => n.cloneNode(true));
+    const iconOnly = btn.classList.contains('fsg-icon-btn');
     const done = () => {
-        btn.innerHTML = '<i class="bi bi-check2"></i> Kopiert!';
+        const check = document.createElement('i');
+        check.className = 'bi bi-check2' + (iconOnly ? '' : ' me-2');
+        check.setAttribute('aria-hidden', 'true');
+        btn.replaceChildren(check);
+        if (!iconOnly) btn.append('Kopiert!');
+        btn.classList.add('is-copied');
         btn.disabled = true;
-        setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
-    };
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(done).catch(() => { fallbackCopy(url); done(); });
-    } else {
-        fallbackCopy(url); done();
-    }
-}
-// Spot-Koordinaten in Zwischenablage kopieren
-function copySpotCoords(btn) {
-    const text = btn.dataset.lat + ', ' + btn.dataset.lng;
-    const original = btn.innerHTML;
-    const done = () => {
-        btn.innerHTML = '<i class="bi bi-check2"></i> Kopiert!';
-        btn.disabled = true;
-        setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
+        setTimeout(() => {
+            btn.replaceChildren(...original);
+            btn.classList.remove('is-copied');
+            btn.disabled = false;
+        }, 2000);
     };
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(text); done(); });
     } else {
         fallbackCopy(text); done();
     }
+}
+// Spot-Link in Zwischenablage kopieren (ohne #-Anker)
+function copySpotLink(btn) {
+    copyWithFeedback(btn, window.location.href.split('#')[0]);
+}
+// Spot-Koordinaten in Zwischenablage kopieren
+function copySpotCoords(btn) {
+    const lat = Number(btn.dataset.lat);
+    const lng = Number(btn.dataset.lng);
+    if (!isFinite(lat) || !isFinite(lng)) return;
+    copyWithFeedback(btn, lat.toFixed(6) + ', ' + lng.toFixed(6));
 }
 function fallbackCopy(text) {
     const el = document.createElement('textarea');

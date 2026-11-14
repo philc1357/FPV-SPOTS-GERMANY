@@ -30,9 +30,14 @@ $csrfToken  = $_SESSION['csrf_token'];
 <?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
 <main class="container my-5">
-    <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
-        <h1 class="h3 mb-4">Nutzungsbedingungen &amp; Haftungsausschluss</h1>
-        <p class="text-white-50 small">Stand: Mai 2026</p>
+    <?php
+        $pageTitle  = 'Nutzungsbedingungen & Haftungsausschluss';
+        $pageKicker = 'Rechtliches · Stand: Mai 2026';
+        $pageIcon   = 'bi-file-earmark-text';
+        $pageNarrow = true;
+        include __DIR__ . '/../../includes/page_head.php';
+    ?>
+    <article class="fsg-card fsg-card--prose">
 
         <section aria-labelledby="zweck" class="mb-4">
             <h2 id="zweck" class="h5">1. Zweck der Plattform</h2>
@@ -61,7 +66,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                     <strong>Luftrecht:</strong> Einhaltung der Luftverkehrs-Ordnung (LuftVO), insbesondere
                     § 21a ff. LuftVO (Betrieb von Drohnen), gültige EU-Drohnenführerscheine (A1/A3 oder A2),
                     Verbotszonen (z. B. Kontrollzonen, Naturschutz-Luftsperren) sowie die
-                    <a href="https://www.dipul.de" target="_blank" rel="noopener noreferrer" class="text-white">
+                    <a href="https://www.dipul.de" target="_blank" rel="noopener noreferrer">
                         DIPUL-Karte (Digitale Plattform Unbemannte Luftfahrt)
                     </a>.
                 </li>
@@ -163,7 +168,7 @@ $csrfToken  = $_SESSION['csrf_token'];
             <p>
                 Der Quellcode dieser Plattform ist unter
                 <a href="https://github.com/philc1357/FPV-SPOTS-GERMANY"
-                   target="_blank" rel="noopener noreferrer" class="text-white">
+                   target="_blank" rel="noopener noreferrer">
                     github.com/philc1357/FPV-SPOTS-GERMANY
                 </a>
                 öffentlich einsehbar. Die Veröffentlichung des Codes stellt keine Lizenz zur
@@ -194,7 +199,7 @@ $csrfToken  = $_SESSION['csrf_token'];
             </p>
         </section>
 
-        <a href="/"><button class="btn btn-primary w-100 mb-2">Zur Karte</button></a>
+        <a href="/" class="btn btn-outline-secondary w-100 mb-2">Zur Karte</a>
     </article>
 </main>
 

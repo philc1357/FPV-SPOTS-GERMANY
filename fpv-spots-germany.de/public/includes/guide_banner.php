@@ -48,7 +48,7 @@
             <a href="/hilfe.php" class="link-light small">
                 <i class="bi bi-book me-1"></i> Ausführliche Anleitung
             </a>
-            <button id="guide-banner-btn" type="button" class="btn btn-success btn-sm">
+            <button id="guide-banner-btn" type="button" class="btn btn-primary btn-sm">
                 Los geht's
             </button>
         </div>

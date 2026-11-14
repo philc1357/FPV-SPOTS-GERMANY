@@ -92,12 +92,13 @@ if (!empty($posts)) {
         <div class="col-12 col-lg-9">
 
             <!-- Einleitung -->
-            <header class="card card-dark text-light p-4 mb-4">
-                <h1 class="h3 mb-2">Forum</h1>
-                <p class="text-secondary mb-0">
-                    Diskutiere mit der <span>FPV-Community</span>: Stelle Fragen, teile Erfahrungen oder zeige deine Lieblingsspots.
-                </p>
-            </header>
+            <?php
+                $pageTitle  = 'Forum';
+                $pageKicker = 'Community';
+                $pageIcon   = 'bi-chat-square-text';
+                $pageLead   = 'Diskutiere mit der FPV-Community: Stelle Fragen, teile Erfahrungen oder zeige deine Lieblingsspots.';
+                include __DIR__ . '/../../includes/page_head.php';
+            ?>
 
             <?php if ($forumError !== ''): ?>
                 <div class="alert forum-error mb-4" role="alert">
@@ -121,23 +122,23 @@ if (!empty($posts)) {
                         <div class="mb-2">
                             <label for="forum-title" class="form-label small text-secondary">Überschrift</label>
                             <input type="text" id="forum-title" name="title"
-                                   class="form-control bg-secondary text-light border-0"
+                                   class="form-control"
                                    minlength="3" maxlength="150" required>
                         </div>
                         <div class="mb-2">
                             <label for="forum-body" class="form-label small text-secondary">Beitrag</label>
                             <textarea id="forum-body" name="body"
-                                      class="form-control bg-secondary text-light border-0"
+                                      class="form-control"
                                       rows="5" minlength="10" maxlength="5000" required></textarea>
                         </div>
                         <div class="mb-2">
                             <label for="forum-photos" class="form-label small text-secondary">Bilder (max. 4, je 5 MB, JPG/PNG)</label>
                             <input type="file" id="forum-photos" name="photos[]"
-                                   class="form-control bg-secondary text-light border-0"
+                                   class="form-control"
                                    accept="image/jpeg,image/png" multiple>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-success btn-sm">Beitrag veröffentlichen</button>
+                            <button type="submit" class="btn btn-primary btn-sm">Beitrag veröffentlichen</button>
                         </div>
                     </form>
                 <?php else: ?>
@@ -302,13 +303,13 @@ if (!empty($posts)) {
                                             <input type="hidden" name="parent_id" value="<?= $cId ?>">
                                             <div class="input-group input-group-sm mt-1">
                                                 <textarea name="body"
-                                                          class="form-control bg-secondary text-light border-secondary"
+                                                          class="form-control"
                                                           placeholder="Antwort schreiben…"
                                                           rows="2"
                                                           minlength="2"
                                                           maxlength="2000"
                                                           required></textarea>
-                                                <button type="submit" class="btn btn-success">Antworten</button>
+                                                <button type="submit" class="btn btn-primary">Antworten</button>
                                             </div>
                                         </form>
                                     <?php endif; ?>
@@ -321,13 +322,13 @@ if (!empty($posts)) {
                                     <input type="hidden" name="post_id" value="<?= $pid ?>">
                                     <div class="input-group input-group-sm">
                                         <textarea name="body"
-                                                  class="form-control bg-secondary text-light border-secondary"
+                                                  class="form-control"
                                                   placeholder="Kommentar schreiben…"
                                                   rows="2"
                                                   minlength="2"
                                                   maxlength="2000"
                                                   required></textarea>
-                                        <button type="submit" class="btn btn-success">Senden</button>
+                                        <button type="submit" class="btn btn-primary">Senden</button>
                                     </div>
                                 </form>
                             <?php else: ?>

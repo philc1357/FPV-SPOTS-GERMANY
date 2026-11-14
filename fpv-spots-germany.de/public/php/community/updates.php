@@ -53,11 +53,13 @@ $error   = isset($_GET['error']);
             <!-- ====================================================
                  Seitenüberschrift
             ==================================================== -->
-            <div class="card card-dark text-light p-4 mb-4">
-                <h1 class="h3 mb-1"><i class="bi bi-arrow-repeat me-2"></i>Website-Updates</h1>
-                <p class="text-secondary mb-0">Alle Änderungen und Neuerungen auf FPV Spots Germany.</p>
-                <p class="text-secondary mb-0">Damit die Änderungen in eurer Web-App sichtbar werden müsst ihr die App neu installieren.</p>
-            </div>
+            <?php
+                $pageTitle  = 'Website-Updates';
+                $pageKicker = 'Changelog';
+                $pageIcon   = 'bi-arrow-repeat';
+                $pageLead   = 'Alle Änderungen und Neuerungen auf FPV Spots Germany. Damit die Änderungen in eurer Web-App sichtbar werden, müsst ihr die App neu installieren.';
+                include __DIR__ . '/../../includes/page_head.php';
+            ?>
 
             <?php if ($success): ?>
                 <div class="alert alert-success" role="alert">Update erfolgreich veröffentlicht.</div>
@@ -80,7 +82,7 @@ $error   = isset($_GET['error']);
                         <input type="text"
                                id="update-title"
                                name="title"
-                               class="form-control bg-dark text-light border-secondary"
+                               class="form-control"
                                maxlength="255"
                                required>
                     </div>
@@ -89,7 +91,7 @@ $error   = isset($_GET['error']);
                         <label for="update-description" class="form-label">Beschreibung</label>
                         <textarea id="update-description"
                                   name="description"
-                                  class="form-control bg-dark text-light border-secondary"
+                                  class="form-control"
                                   rows="5"
                                   required></textarea>
                     </div>

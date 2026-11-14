@@ -33,9 +33,9 @@ $userId     = (int)$_SESSION['user_id'];
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
     <main class="container mt-5">
-        <div class="card bg-secondary text-white p-4" style="max-width: 400px; margin: auto;">
-        <h1 class="h4">Passwort ändern</h1>
-        <div id="passwordError" style="color: red; display: none; margin-top: 5px;">
+        <div class="fsg-card" style="max-width: 440px; margin: auto;">
+        <h1 class="fsg-h2">Passwort ändern</h1>
+        <div id="passwordError" class="text-danger small" style="display: none;">
             Die Passwörter stimmen nicht überein.
         </div>
         <form id="passwordForm" action="/private/php/account/change_password_submit.php" method="post">
@@ -46,8 +46,8 @@ $userId     = (int)$_SESSION['user_id'];
             <input id="password" type="password" name="password_field1" class="form-control mb-2" minlength="8" maxlength="50" required>
             <label for="new_password" class="mb-2">Passwort wiederholen:</label>
             <input id="password_confirm" type="password" name="password" class="form-control mb-2" minlength="8" maxlength="50" required>
-            <button type="submit" class="btn btn-success">Bestätigen</button>
-            <a href="/public/php/dashboard.php" class="btn btn-danger">Zurück</a>
+            <button type="submit" class="btn btn-primary">Bestätigen</button>
+            <a href="/dashboard.php" class="btn btn-outline-secondary">Zurück</a>
         </form>
     </div>
     </main>

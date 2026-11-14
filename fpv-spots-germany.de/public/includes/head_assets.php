@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../private/php/core/assets.php';
 /* ============================================================
    Zentrale Vendor-Styles (im <head> einbinden)
    Reihenfolge ist wichtig: Bootstrap zuerst, Icons, dann das
-   eigene theme.css (Overrides gewinnen -> muss zuletzt laden).
+   eigene theme.css + components.css (Overrides gewinnen -> nach Vendor).
    banners.css lag frueher mitten im <body> (header.php) und
    blockierte das Rendern dort ein zweites Mal.
    Cache-Busting via asset() – Version in
@@ -18,8 +18,13 @@ require_once __DIR__ . '/../../private/php/core/assets.php';
      sonst laedt die Datei zweimal. -->
 <link rel="preload" href="/public/vendor/bootstrap-icons/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6"
       as="font" type="font/woff2" crossorigin>
+<!-- Webfonts aus theme.css (Header auf jeder Seite): ebenfalls vorziehen,
+     damit Marke und Navigation nicht sichtbar die Schrift wechseln. -->
+<link rel="preload" href="/public/vendor/fonts/bricolage-grotesque-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/public/vendor/fonts/figtree-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
 
 <link rel="stylesheet" href="<?= asset('/public/vendor/bootstrap/bootstrap.min.css') ?>">
 <link rel="stylesheet" href="<?= asset('/public/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
 <link rel="stylesheet" href="<?= asset('/public/css/theme.css') ?>">
+<link rel="stylesheet" href="<?= asset('/public/css/components.css') ?>">
 <link rel="stylesheet" href="<?= asset('/public/css/banners.css') ?>">

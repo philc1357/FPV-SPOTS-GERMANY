@@ -137,7 +137,7 @@ $diffBadgeClass = [
                     <div id="bioSuccessAlert" class="alert alert-success d-none py-1 small" role="alert"></div>
                     <div id="bioErrorAlert"   class="alert alert-danger  d-none py-1 small" role="alert"></div>
                     <textarea id="bioTextarea"
-                              class="form-control bg-dark text-light border-secondary"
+                              class="form-control"
                               rows="4" maxlength="1000"
                               placeholder="Beschreibe dich kurz (max. 1000 Zeichen)…"><?= htmlspecialchars($userData['bio'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                     <div class="d-flex justify-content-between align-items-center mt-1">

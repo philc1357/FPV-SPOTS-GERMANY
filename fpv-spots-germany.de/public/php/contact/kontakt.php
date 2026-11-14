@@ -41,16 +41,29 @@ if ($isLoggedIn) {
 <?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
     <main class="container my-5">
-        <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
-            <h1 class="h3 mb-4">Kontaktformular</h1>
+        <?php
+            $pageTitle  = 'Kontaktformular';
+            $pageKicker = 'Kontakt';
+            $pageIcon   = 'bi-envelope';
+            $pageLead   = 'Fragen, Hinweise oder Probleme? Schreib uns – wir melden uns so schnell wie möglich.';
+            $pageNarrow = true;
+            include __DIR__ . '/../../includes/page_head.php';
+        ?>
+        <article class="fsg-card fsg-card--prose">
 
             <form id="contactForm" action="/private/php/contact/kontakt_submit.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                <div class="mb-3"><input type="email" name="email" class="form-control" placeholder="E-Mail" value="<?= $userEmail ?>"<?= $userEmail ? ' readonly' : '' ?>></div>
-                <div class="mb-3"><textarea name="contact_field" class="form-control" rows="12" placeholder="Ihr Anliegen..."></textarea></div>
-                <button type="submit" class="btn btn-success w-100 mb-2">Absenden</button>
+                <div class="mb-3">
+                    <label for="contactEmail" class="form-label">E-Mail</label>
+                    <input id="contactEmail" type="email" name="email" class="form-control" placeholder="name@beispiel.de" autocomplete="email" value="<?= $userEmail ?>"<?= $userEmail ? ' readonly' : '' ?>>
+                </div>
+                <div class="mb-3">
+                    <label for="contactField" class="form-label">Dein Anliegen</label>
+                    <textarea id="contactField" name="contact_field" class="form-control" rows="10" placeholder="Worum geht es?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 mb-2">Absenden</button>
             </form>
-            <a href="/"><button class="btn btn-primary w-100 mb-2">Zurück</button></a>
+            <a href="/" class="btn btn-outline-secondary w-100">Zurück zur Karte</a>
         </article>
     </main>
 

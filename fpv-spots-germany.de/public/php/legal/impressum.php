@@ -30,8 +30,14 @@ $csrfToken  = $_SESSION['csrf_token'];
 <?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
     <main class="container my-5">
-        <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
-            <h1 class="h3 mb-4">Impressum</h1>
+        <?php
+            $pageTitle  = 'Impressum';
+            $pageKicker = 'Rechtliches';
+            $pageIcon   = 'bi-info-circle';
+            $pageNarrow = true;
+            include __DIR__ . '/../../includes/page_head.php';
+        ?>
+        <article class="fsg-card fsg-card--prose">
 
             <section aria-labelledby="angaben">
                 <h2 id="angaben" class="h5">Angaben gemäß § 5 DDG</h2>
@@ -45,8 +51,8 @@ $csrfToken  = $_SESSION['csrf_token'];
             <section aria-labelledby="kontakt">
                 <h2 id="kontakt" class="h5">Kontakt</h2>
                 <p>
-                    Telefon: <a href="tel:+4915238252427" class="text-white">01523 - 8252427</a><br>
-                    E-Mail: <a href="mailto:info@fpv-spots-germany.de" class="text-white">info@fpv-spots-germany.de</a>
+                    Telefon: <a href="tel:+4915238252427">01523 - 8252427</a><br>
+                    E-Mail: <a href="mailto:info@fpv-spots-germany.de">info@fpv-spots-germany.de</a>
                 </p>
             </section>
 
@@ -64,7 +70,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer
                     Verbraucherschlichtungsstelle teilzunehmen. Eine Übersicht der anerkannten
                     Streitbeilegungsstellen findest du unter
-                    <a href="https://consumer-redress.ec.europa.eu/" target="_blank" rel="noopener noreferrer" class="text-white">https://consumer-redress.ec.europa.eu/</a>.
+                    <a href="https://consumer-redress.ec.europa.eu/" target="_blank" rel="noopener noreferrer">https://consumer-redress.ec.europa.eu/</a>.
                 </p>
                 <p>Unsere E-Mail-Adresse findest du oben im Impressum.</p>
             </section>
@@ -81,7 +87,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                     Diese Plattform stellt keine Aufforderung dar, Orte zu betreten oder dort zu fliegen.
                     Nutzer sind selbst verantwortlich für die Einhaltung des Luftrechts, der
                     Betretungsrechte sowie lokaler Verordnungen. Weitere Informationen in unseren
-                    <a href="/nutzungsbedingungen.php" class="text-white">Nutzungsbedingungen</a>.
+                    <a href="/nutzungsbedingungen.php">Nutzungsbedingungen</a>.
                 </p>
             </section>
 
@@ -95,7 +101,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 </p>
             </section>
 
-            <a href="/"><button class="btn btn-primary w-100 mb-2">Zur Karte</button></a>
+            <a href="/" class="btn btn-outline-secondary w-100 mb-2">Zur Karte</a>
         </article>
     </main>
 

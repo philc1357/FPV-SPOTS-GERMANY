@@ -1,3 +1,6 @@
-body { background-color: #1a1a2e; }
-.card-dark { background: #16213e; border: 1px solid #0f3460; }
-.update-card:hover { background: rgba(255,255,255,.03); }
+/* ============================================================
+   updates.css – Update-Verlauf
+   Grundflaeche + Karten (card-dark) kommen aus components.css.
+   ============================================================ */
+.update-card { transition: border-color .15s; }
+.update-card:hover { border-color: var(--fsg-line-2) !important; }

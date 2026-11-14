@@ -53,7 +53,12 @@ try {
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
 <main class="container py-4">
-    <h1 class="h4 mb-3"><i class="bi bi-envelope-fill me-1"></i>Nachrichten</h1>
+    <?php
+        $pageTitle  = 'Nachrichten';
+        $pageKicker = 'Dein Konto';
+        $pageIcon   = 'bi-envelope';
+        include __DIR__ . '/../../includes/page_head.php';
+    ?>
 
     <div class="row g-3">
         <!-- Sidebar: Konversationsliste -->
@@ -91,10 +96,10 @@ try {
                         <div class="chat-input-area">
                             <div class="d-flex gap-2">
                                 <textarea id="msgInput"
-                                          class="form-control bg-secondary text-light border-0"
+                                          class="form-control"
                                           rows="1" maxlength="2000"
                                           placeholder="Nachricht schreiben..."></textarea>
-                                <button class="btn btn-success flex-shrink-0" id="btnSend">
+                                <button class="btn btn-primary flex-shrink-0" id="btnSend">
                                     <i class="bi bi-send-fill"></i>
                                 </button>
                             </div>

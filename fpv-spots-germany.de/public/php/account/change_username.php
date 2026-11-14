@@ -33,17 +33,17 @@ $userId     = (int)$_SESSION['user_id'];
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
     <main class="container mt-5">
-        <div class="card bg-secondary text-white p-4" style="max-width: 400px; margin: auto;">
-        <h1 class="h4">Benutzername ändern</h1>
+        <div class="fsg-card" style="max-width: 440px; margin: auto;">
+        <h1 class="fsg-h2">Benutzername ändern</h1>
         <p>Aktueller Benutzername: <span><b class="text-primary"><?= htmlspecialchars($username ?? '') ?></b></span></p>
         <form action="/private/php/account/change_username_submit.php" method="post">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <label for="new_username" class="mb-2">Neuer Benutzername:</label>
-            <input type="text" class="form-control mb-2" name="new_username" minlength="5" maxlength="50" required>
+            <input id="new_username" type="text" class="form-control mb-2" name="new_username" autocomplete="username" minlength="5" maxlength="50" required>
             <label for="current_password" class="mb-2">Aktuelles Passwort zur Bestätigung:</label>
             <input id="current_password" type="password" class="form-control mb-2" name="current_password" maxlength="50" required autocomplete="current-password">
-            <button type="submit" class="btn btn-success">Bestätigen</button>
-            <a href="/public/php/dashboard.php" class="btn btn-danger">Zurück</a>
+            <button type="submit" class="btn btn-primary">Bestätigen</button>
+            <a href="/dashboard.php" class="btn btn-outline-secondary">Zurück</a>
         </form>
     </div>
     </main>

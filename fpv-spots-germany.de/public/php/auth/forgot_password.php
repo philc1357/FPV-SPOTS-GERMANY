@@ -30,18 +30,18 @@ $csrfToken  = $_SESSION['csrf_token'];
 <?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
     <main class="container mt-5">
-        <div class="card bg-secondary text-white p-4" style="max-width: 400px; margin: auto;">
-            <h1 class="h3">Passwort vergessen</h1>
-            <p class="text-light small mb-3">Gib deine E-Mail-Adresse ein. Du erhältst einen Link zum Zurücksetzen deines Passworts.</p>
+        <div class="fsg-card" style="max-width: 440px; margin: auto;">
+            <h1 class="fsg-h2">Passwort vergessen</h1>
+            <p class="fsg-lead small mb-0">Gib deine E-Mail-Adresse ein. Du erhältst einen Link zum Zurücksetzen deines Passworts.</p>
 
             <form action="/private/php/auth/forgot_password_submit.php" method="POST">
                 <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                 <div class="mb-3">
                     <input type="email" name="email" class="form-control" placeholder="E-Mail-Adresse" required>
                 </div>
-                <button type="submit" class="btn btn-success w-100 mb-2">Link senden</button>
+                <button type="submit" class="btn btn-primary w-100 mb-2">Link senden</button>
             </form>
-            <a href="/"><button class="btn btn-primary w-100 mb-2">Zurück</button></a>
+            <a href="/" class="btn btn-outline-secondary w-100 mb-2">Zurück zur Karte</a>
         </div>
     </main>
 

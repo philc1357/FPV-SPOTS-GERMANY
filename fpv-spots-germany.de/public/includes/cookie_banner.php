@@ -3,13 +3,13 @@
         <p class="text-light mb-0 small">
             Diese Website verwendet Cookies, um die Funktionalität sicherzustellen (z.&nbsp;B. Karten-Einstellungen, Login-Status).
             Mit dem Klick auf „Akzeptieren" stimmst du außerdem unseren
-            <a href="/nutzungsbedingungen.php" class="text-info">Nutzungsbedingungen</a> zu –
+            <a href="/nutzungsbedingungen.php">Nutzungsbedingungen</a> zu –
             insbesondere, dass alle Spot-Informationen nutzergeneriert sind und du selbst für die
             Einhaltung von Luftrecht und Betretungsrechten verantwortlich bist.
             Weitere Informationen in unserer
-            <a href="/datenschutz.php" class="text-info">Datenschutzerklärung</a>.
+            <a href="/datenschutz.php">Datenschutzerklärung</a>.
         </p>
-        <button id="cookie-accept-btn" type="button" class="btn btn-success btn-sm text-nowrap">
+        <button id="cookie-accept-btn" type="button" class="btn btn-primary btn-sm text-nowrap">
             Akzeptieren
         </button>
     </div>

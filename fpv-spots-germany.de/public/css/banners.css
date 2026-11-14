@@ -5,8 +5,27 @@
     left: 0;
     right: 0;
     z-index: 9999;
-    background: #16213e;
-    border-top: 1px solid #0f3460;
+    background: rgba(17, 25, 37, .97);   /* --fsg-surface, fast deckend */
+    border-top: 1px solid var(--fsg-line-2);
+    box-shadow: 0 -18px 40px rgba(0, 0, 0, .4);
     padding: 1rem 1.5rem;
     display: none;
+}
+
+/* ------------------------------------------------------------
+   Discord-Hinweis (discord_banner.php)
+   Discord-Blau nur als Markenzeichen am Titel und Button –
+   alles andere folgt dem Seiten-Design.
+   ------------------------------------------------------------ */
+.discord-title { color: #A5B4FC; }
+.btn-discord {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #5865F2;
+    --bs-btn-border-color: #5865F2;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #4752C4;
+    --bs-btn-hover-border-color: #4752C4;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #3C45A5;
+    --bs-btn-active-border-color: #3C45A5;
 }

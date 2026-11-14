@@ -1,0 +1,799 @@
+/* ============================================================
+   components.css – gemeinsame Bausteine des neuen Designs
+
+   Wird auf JEDER Seite nach theme.css geladen (head_assets.php).
+   Teil A: Grundflaeche + Typografie.
+   Teil B: fsg-Bausteine (urspruenglich auf der Spot-Detailseite
+           entstanden, jetzt seitenuebergreifend).
+   Teil C: Bootstrap-Feinschliff – bestehendes Markup (card-dark,
+           bg-secondary-Felder, btn-success …) bekommt das neue
+           Aussehen, ohne dass jede Seite umgebaut werden muss.
+   Farben/Radien/Schriften kommen ausschliesslich aus den
+   --fsg-*-Tokens in theme.css.
+   ============================================================ */
+
+
+/* ============================================================
+   TEIL A – Grundflaeche + Typografie
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   A1. Seitengrund: dunkles Blau-Schwarz mit leichtem Akzent-
+   Schimmer oben links (ein einziger Verlauf, kein Bild).
+   ------------------------------------------------------------ */
+body {
+    background:
+        radial-gradient(1200px 520px at 15% -120px, rgba(var(--fsg-accent-rgb), .07), transparent 70%)
+        no-repeat,
+        var(--fsg-bg);
+    background-color: var(--fsg-bg);
+    color: var(--fsg-text);
+    font-family: var(--fsg-font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+::selection { background: rgba(var(--fsg-accent-rgb), .35); color: #fff; }
+
+/* ------------------------------------------------------------
+   A2. Ueberschriften in Bricolage Grotesque
+   ------------------------------------------------------------ */
+h1, h2, h3, h4,
+.h1, .h2, .h3, .h4 {
+    font-family: var(--fsg-font-head);
+    font-weight: 700;
+    letter-spacing: -.015em;
+    color: #fff;
+}
+h1, .h1 { font-weight: 800; letter-spacing: -.03em; }
+h5, h6, .h5, .h6 { font-weight: 650; color: var(--fsg-text); }
+
+a { text-underline-offset: 3px; }
+hr { border-color: var(--fsg-line); opacity: 1; }
+
+
+/* ============================================================
+   TEIL B – fsg-Bausteine
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   B1. Seitenkopf (public/includes/page_head.php)
+   Kicker-Zeile + grosse Ueberschrift + optionaler Lead-Text.
+   ------------------------------------------------------------ */
+.fsg-page-head {
+    margin: 12px 0 28px;
+    min-width: 0;
+}
+.fsg-page-head--narrow { max-width: 800px; margin-left: auto; margin-right: auto; }
+.fsg-page-head .fsg-kicker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.fsg-page-title {
+    margin: 0 0 10px;
+    font-family: var(--fsg-font-head);
+    font-weight: 800;
+    font-size: clamp(2rem, 1.35rem + 2.4vw, 3.1rem);
+    line-height: 1.05;
+    letter-spacing: -.035em;
+    color: #fff;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+.fsg-page-head .fsg-lead { max-width: 62ch; }
+.fsg-page-head-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 24px;
+}
+.fsg-page-head-text { min-width: 0; flex: 1 1 320px; }
+.fsg-page-head-action { flex-shrink: 0; }
+
+/* ------------------------------------------------------------
+   B2. Buttons
+   ------------------------------------------------------------ */
+.fsg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: var(--fsg-radius-sm);
+    border: 1px solid var(--fsg-line-2);
+    background: var(--fsg-surface);
+    color: var(--fsg-text);
+    font-family: var(--fsg-font-body);
+    font-size: .95rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s, transform .15s;
+}
+.fsg-btn:hover { border-color: #3B4E6B; background: #16212F; color: #fff; }
+.fsg-btn:active { transform: translateY(1px); }
+.fsg-btn:focus-visible,
+.fsg-mini-btn:focus-visible {
+    outline: 2px solid var(--fsg-accent);
+    outline-offset: 2px;
+}
+.fsg-btn--primary {
+    background: var(--fsg-accent);
+    border-color: var(--fsg-accent);
+    color: var(--fsg-accent-ink);
+}
+.fsg-btn--primary:hover { background: var(--fsg-accent-hi); border-color: var(--fsg-accent-hi); color: var(--fsg-accent-ink); }
+.fsg-btn--ghost { background: transparent; }
+.fsg-btn--sm { height: 36px; padding: 0 14px; font-size: .875rem; border-radius: 10px; }
+.fsg-btn--block { width: 100%; }
+.fsg-btn:disabled { opacity: .6; cursor: default; }
+
+.fsg-icon-btn { width: 44px; padding: 0; font-size: 1.1rem; }
+.fsg-icon-btn.is-active { color: var(--fsg-danger); border-color: rgba(var(--fsg-danger-rgb), .45); }
+.fsg-icon-btn.is-copied { color: var(--fsg-ok); border-color: rgba(var(--fsg-ok-rgb), .45); }
+
+.fsg-mini-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--fsg-muted);
+    font-size: .9rem;
+    cursor: pointer;
+    transition: background-color .15s, color .15s;
+}
+.fsg-mini-btn:hover { background: var(--fsg-hover); color: var(--fsg-text); }
+.fsg-mini-btn--danger:hover { color: var(--fsg-danger); }
+
+/* Aufklappmenue (z. B. "Mehr" im Spot-Hero) */
+.fsg-menu .dropdown-item { padding: 8px 12px; }
+
+/* ------------------------------------------------------------
+   B3. Karten + Typografie in Karten
+   ------------------------------------------------------------ */
+.fsg-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 28px;
+    border-radius: var(--fsg-radius);
+    border: 1px solid var(--fsg-line);
+    background: var(--fsg-surface);
+    color: var(--fsg-text);
+    scroll-margin-top: 76px;
+}
+.fsg-card--quiet {
+    background: transparent;
+    border-style: dashed;
+    color: var(--fsg-muted);
+    gap: 12px;
+    padding: 22px 24px;
+}
+/* Lange Fliesstexte (Rechtstexte, Hilfe) – 800 px wie bisher */
+.fsg-card--prose {
+    display: block;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+    color: var(--fsg-text-2);
+}
+.fsg-card--prose h2,
+.fsg-card--prose h3 { margin-top: 1.6rem; }
+.fsg-card--prose section:first-child h2,
+.fsg-card--prose > h2:first-child { margin-top: 0; }
+
+.fsg-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px 16px;
+}
+.fsg-kicker {
+    margin: 0 0 4px;
+    color: var(--fsg-accent-hi);
+    font-size: .85rem;
+    font-weight: 600;
+}
+.fsg-h2 {
+    margin: 0;
+    font-family: var(--fsg-font-head);
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: -.02em;
+    color: #fff;
+}
+.fsg-h3 {
+    margin: 0 0 4px;
+    font-family: var(--fsg-font-head);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--fsg-text);
+}
+.fsg-label {
+    float: none;
+    margin-bottom: 10px;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--fsg-text);
+}
+.fsg-lead {
+    margin: 0;
+    font-size: 1.06rem;
+    line-height: 1.7;
+    color: var(--fsg-text-2);
+    overflow-wrap: anywhere;
+}
+.fsg-meta { font-size: .85rem; color: var(--fsg-faint); }
+.fsg-empty { color: var(--fsg-muted); }
+.fsg-fineprint {
+    margin: 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--fsg-line);
+    font-size: .82rem;
+    line-height: 1.6;
+    color: var(--fsg-faint);
+}
+
+/* ------------------------------------------------------------
+   B4. Formularfelder
+   ------------------------------------------------------------ */
+.fsg-field {
+    display: block;
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: var(--fsg-radius-sm);
+    border: 1px solid var(--fsg-line-2);
+    background: var(--fsg-surface-2);
+    color: var(--fsg-text);
+    font: inherit;
+    transition: border-color .15s, box-shadow .15s;
+}
+.fsg-field::placeholder { color: var(--fsg-faint); }
+.fsg-field:focus {
+    outline: none;
+    border-color: var(--fsg-accent);
+    box-shadow: 0 0 0 3px rgba(var(--fsg-accent-rgb), .22);
+}
+.fsg-field:disabled { opacity: .55; }
+
+/* Mehrzeilige Eingabefelder (Kontakt, Forum, Kommentare, Nachrichten …)
+   projektweit ohne Größen-Anfasser: Höhe kommt aus rows/CSS, das
+   Layout kann nicht vom Nutzer aufgezogen und zerschossen werden. */
+textarea,
+textarea.form-control,
+textarea.fsg-field { resize: none; }
+
+/* ------------------------------------------------------------
+   B5. Tags (Spot-Typ, Schwierigkeit …)
+   ------------------------------------------------------------ */
+.fsg-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.fsg-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--fsg-line-2);
+    background: var(--fsg-surface);
+    color: var(--fsg-text-2);
+    font-size: .85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+/* Schwierigkeit: dezente Toenung statt voller Bootstrap-Badges */
+.fsg-tag--diff-success { color: var(--fsg-ok);     border-color: rgba(var(--fsg-ok-rgb), .35);     background: rgba(var(--fsg-ok-rgb), .08); }
+.fsg-tag--diff-warning { color: var(--fsg-warm);   border-color: rgba(var(--fsg-warm-rgb), .35);   background: rgba(var(--fsg-warm-rgb), .08); }
+.fsg-tag--diff-danger  { color: var(--fsg-danger); border-color: rgba(var(--fsg-danger-rgb), .35); background: rgba(var(--fsg-danger-rgb), .08); }
+.fsg-tag--diff-dark    { color: #C4A7FF;           border-color: rgba(196, 167, 255, .35);         background: rgba(196, 167, 255, .08); }
+
+/* ------------------------------------------------------------
+   B6. Auswahl-Kacheln (Radio als grosse Flaeche, mit .btn-check)
+   ------------------------------------------------------------ */
+.fsg-pills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+}
+.fsg-pill {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    height: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--fsg-line-2);
+    background: var(--fsg-surface-2);
+    cursor: pointer;
+    transition: border-color .15s, background-color .15s;
+}
+.fsg-pill:hover { border-color: #3B4E6B; }
+.fsg-pill-title { font-weight: 600; color: var(--fsg-text); }
+.fsg-pill-hint { font-size: .8rem; color: var(--fsg-faint); line-height: 1.4; }
+.btn-check:checked + .fsg-pill {
+    border-color: var(--fsg-accent);
+    background: rgba(var(--fsg-accent-rgb), .1);
+}
+.btn-check:checked + .fsg-pill .fsg-pill-title { color: var(--fsg-accent-hi); }
+.btn-check:focus-visible + .fsg-pill { outline: 2px solid var(--fsg-accent); outline-offset: 2px; }
+
+/* ------------------------------------------------------------
+   B7. Aufklapp-Abschnitte (<details class="fsg-details">)
+   ------------------------------------------------------------ */
+.fsg-details { border-top: 1px solid var(--fsg-line); }
+.fsg-details:last-child { border-bottom: 1px solid var(--fsg-line); }
+.fsg-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 0;
+    font-weight: 600;
+    color: var(--fsg-text);
+    cursor: pointer;
+    list-style: none;
+}
+.fsg-details summary::-webkit-details-marker { display: none; }
+.fsg-details summary::after {
+    content: "+";
+    font-family: var(--fsg-font-head);
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--fsg-muted);
+    transition: transform .2s;
+}
+.fsg-details[open] summary::after { transform: rotate(45deg); }
+.fsg-details summary:hover { color: #fff; }
+.fsg-details summary:focus-visible { outline: 2px solid var(--fsg-accent); outline-offset: 2px; border-radius: 4px; }
+.fsg-details ul { margin: 0 0 16px; padding-left: 1.2rem; color: var(--fsg-text-2); font-size: .92rem; }
+.fsg-details li + li { margin-top: 6px; }
+.fsg-details .fsg-meta { margin: 0 0 8px; }
+
+/* ------------------------------------------------------------
+   B8. Modal-Inhalt (zusaetzlich zum globalen .modal-Feinschliff)
+   ------------------------------------------------------------ */
+.fsg-modal {
+    background: var(--fsg-surface);
+    border: 1px solid var(--fsg-line);
+    border-radius: var(--fsg-radius);
+    color: var(--fsg-text);
+}
+
+
+/* ============================================================
+   TEIL C – Bootstrap-Feinschliff
+   Bootstrap-Klassen behalten ihre Funktion, bekommen aber das
+   neue Aussehen. Wo Bootstrap Hilfsklassen mit !important setzt
+   (bg-secondary, bg-dark, border-0 …), muss hier ebenfalls
+   !important stehen – mit hoeherer Spezifitaet.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   C1. Text- und Rahmen-Hilfsklassen auf die Palette ziehen
+   ------------------------------------------------------------ */
+.text-light        { color: var(--fsg-text) !important; }
+.text-secondary,
+.text-muted        { color: var(--fsg-muted) !important; }
+.text-white-50     { color: rgba(231, 237, 246, .6) !important; }
+.text-primary      { color: var(--fsg-accent-hi) !important; }
+.text-success      { color: var(--fsg-ok) !important; }
+.text-danger       { color: var(--fsg-danger) !important; }
+.text-warning      { color: var(--fsg-warm) !important; }
+.text-info         { color: var(--fsg-info) !important; }
+/* Gruene/blaue Text-Links (alte Markenfarbe bzw. Nutzernamen) → Akzent.
+   Reiner Hinweistext mit .text-info (kein <a>) bleibt ruhiges Blau. */
+a.text-success,
+a.text-info        { color: var(--fsg-accent-hi) !important; }
+a.text-success:hover,
+a.text-info:hover  { color: var(--fsg-accent-hover) !important; }
+
+.border-secondary  { border-color: var(--fsg-line-2) !important; }
+.bg-dark           { background-color: var(--fsg-surface) !important; }
+
+/* ------------------------------------------------------------
+   C2. Karten (card, card-dark, card bg-secondary)
+   ------------------------------------------------------------ */
+.card {
+    --bs-card-bg: var(--fsg-surface);
+    --bs-card-color: var(--fsg-text);
+    --bs-card-border-color: var(--fsg-line);
+    --bs-card-border-radius: var(--fsg-radius);
+    --bs-card-inner-border-radius: calc(var(--fsg-radius) - 1px);
+    --bs-card-cap-bg: transparent;
+    --bs-card-title-color: #fff;
+}
+.card-dark,
+.card.bg-secondary,
+.card.bg-dark {
+    background-color: var(--fsg-surface) !important;
+    border: 1px solid var(--fsg-line) !important;
+    border-radius: var(--fsg-radius);
+}
+.card.text-white,
+.card-dark.text-light { color: var(--fsg-text) !important; }
+/* Weisse Links in Karten (Impressum & Co.) als Akzent-Link */
+.card a.text-white { color: var(--fsg-accent-hi) !important; }
+
+/* ------------------------------------------------------------
+   C3. Formulare
+   ------------------------------------------------------------ */
+.form-label { color: var(--fsg-text-2); font-weight: 600; font-size: .92rem; }
+.form-text  { color: var(--fsg-faint); }
+
+.form-control,
+.form-select {
+    background-color: var(--fsg-surface-2);
+    border: 1px solid var(--fsg-line-2);
+    border-radius: var(--fsg-radius-sm);
+    color: var(--fsg-text);
+    padding: .65rem .9rem;
+    transition: border-color .15s, box-shadow .15s;
+}
+.form-control-sm,
+.form-select-sm { padding: .4rem .7rem; border-radius: 10px; }
+/* Altes Markup: bg-secondary/bg-dark/border-0 an Feldern */
+.form-control.bg-secondary, .form-control.bg-dark,
+.form-select.bg-secondary,  .form-select.bg-dark {
+    background-color: var(--fsg-surface-2) !important;
+    color: var(--fsg-text) !important;
+}
+.form-control.border-0,
+.form-select.border-0 { border: 1px solid var(--fsg-line-2) !important; }
+
+.form-control::placeholder { color: var(--fsg-faint); opacity: 1; }
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--fsg-surface-2) !important;
+    color: var(--fsg-text) !important;
+    border-color: var(--fsg-accent) !important;
+    box-shadow: 0 0 0 3px rgba(var(--fsg-accent-rgb), .22);
+}
+.form-control:disabled,
+.form-select:disabled { background-color: var(--fsg-bg) !important; opacity: .6; }
+.form-control::file-selector-button {
+    background: var(--fsg-surface);
+    color: var(--fsg-text);
+    border-color: var(--fsg-line-2);
+    font-weight: 600;
+}
+/* Helles Pfeil-Icon fuer Auswahllisten (Standard waere dunkel) */
+.form-select {
+    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23C9D4E5' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.form-check-input {
+    background-color: var(--fsg-surface-2);
+    border-color: var(--fsg-line-2);
+}
+.form-check-input:checked {
+    background-color: var(--fsg-accent);
+    border-color: var(--fsg-accent);
+}
+.form-check-input:focus {
+    border-color: var(--fsg-accent);
+    box-shadow: 0 0 0 3px rgba(var(--fsg-accent-rgb), .25);
+}
+.form-switch .form-check-input:not(:checked) {
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%2394A3BA'/%3e%3c/svg%3e");
+}
+
+.input-group-text {
+    background-color: var(--fsg-surface);
+    border-color: var(--fsg-line-2);
+    color: var(--fsg-muted);
+}
+
+/* ------------------------------------------------------------
+   C4. Buttons
+   Hauptaktion (btn-success/btn-primary) = Akzent mit dunkler
+   Schrift; Outline-Varianten = ruhige Ghost-Buttons.
+   ------------------------------------------------------------ */
+.btn {
+    --bs-btn-font-family: var(--fsg-font-body);
+    --bs-btn-font-weight: 600;
+    --bs-btn-padding-y: .55rem;
+    --bs-btn-padding-x: 1.1rem;
+    --bs-btn-border-radius: var(--fsg-radius-sm);
+    --bs-btn-focus-box-shadow: 0 0 0 3px rgba(var(--fsg-accent-rgb), .35);
+    transition: background-color .15s, border-color .15s, color .15s, transform .15s;
+}
+.btn:active { transform: translateY(1px); }
+/* .btn oben ueberschreibt sonst die Groessen von btn-sm/btn-lg */
+.btn-sm { --bs-btn-padding-y: .35rem; --bs-btn-padding-x: .8rem; --bs-btn-font-size: .875rem; --bs-btn-border-radius: 10px; }
+.btn-lg { --bs-btn-padding-y: .8rem;  --bs-btn-padding-x: 1.5rem; --bs-btn-font-size: 1.05rem; --bs-btn-border-radius: 14px; }
+
+.btn-primary,
+.btn-success {
+    --bs-btn-color: var(--fsg-accent-ink);
+    --bs-btn-bg: var(--fsg-accent);
+    --bs-btn-border-color: var(--fsg-accent);
+    --bs-btn-hover-color: var(--fsg-accent-ink);
+    --bs-btn-hover-bg: var(--fsg-accent-hi);
+    --bs-btn-hover-border-color: var(--fsg-accent-hi);
+    --bs-btn-active-color: var(--fsg-accent-ink);
+    --bs-btn-active-bg: #B3630B;
+    --bs-btn-active-border-color: #B3630B;
+    --bs-btn-disabled-color: var(--fsg-accent-ink);
+    --bs-btn-disabled-bg: var(--fsg-accent);
+    --bs-btn-disabled-border-color: var(--fsg-accent);
+}
+
+.btn-secondary,
+.btn-dark,
+.btn-outline-secondary,
+.btn-outline-light,
+.btn-outline-dark {
+    --bs-btn-color: var(--fsg-text);
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: var(--fsg-line-2);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #16212F;
+    --bs-btn-hover-border-color: #3B4E6B;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--fsg-hover);
+    --bs-btn-active-border-color: #3B4E6B;
+    --bs-btn-disabled-color: var(--fsg-muted);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--fsg-line);
+}
+.btn-secondary,
+.btn-dark { --bs-btn-bg: var(--fsg-surface); }
+
+.btn-outline-primary,
+.btn-outline-success {
+    --bs-btn-color: var(--fsg-accent-hi);
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: rgba(var(--fsg-accent-rgb), .55);
+    --bs-btn-hover-color: var(--fsg-accent-ink);
+    --bs-btn-hover-bg: var(--fsg-accent);
+    --bs-btn-hover-border-color: var(--fsg-accent);
+    --bs-btn-active-color: var(--fsg-accent-ink);
+    --bs-btn-active-bg: #B3630B;
+    --bs-btn-active-border-color: #B3630B;
+    --bs-btn-disabled-color: var(--fsg-accent-hi);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: rgba(var(--fsg-accent-rgb), .35);
+}
+
+.btn-danger {
+    --bs-btn-color: #2A0606;
+    --bs-btn-bg: var(--fsg-danger);
+    --bs-btn-border-color: var(--fsg-danger);
+    --bs-btn-hover-color: #2A0606;
+    --bs-btn-hover-bg: #FF8A8A;
+    --bs-btn-hover-border-color: #FF8A8A;
+    --bs-btn-active-color: #2A0606;
+    --bs-btn-active-bg: #E85A5A;
+    --bs-btn-active-border-color: #E85A5A;
+    --bs-btn-disabled-color: #2A0606;
+    --bs-btn-disabled-bg: var(--fsg-danger);
+    --bs-btn-disabled-border-color: var(--fsg-danger);
+}
+.btn-outline-danger {
+    --bs-btn-color: var(--fsg-danger);
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: rgba(var(--fsg-danger-rgb), .45);
+    --bs-btn-hover-color: #FF8A8A;
+    --bs-btn-hover-bg: rgba(var(--fsg-danger-rgb), .12);
+    --bs-btn-hover-border-color: var(--fsg-danger);
+    --bs-btn-active-color: #FF8A8A;
+    --bs-btn-active-bg: rgba(var(--fsg-danger-rgb), .2);
+    --bs-btn-active-border-color: var(--fsg-danger);
+}
+.btn-warning {
+    --bs-btn-color: #1C1503;
+    --bs-btn-bg: var(--fsg-warm);
+    --bs-btn-border-color: var(--fsg-warm);
+    --bs-btn-hover-color: #1C1503;
+    --bs-btn-hover-bg: #F7D774;
+    --bs-btn-hover-border-color: #F7D774;
+}
+.btn-outline-warning {
+    --bs-btn-color: var(--fsg-warm);
+    --bs-btn-border-color: rgba(var(--fsg-warm-rgb), .45);
+    --bs-btn-hover-color: #1C1503;
+    --bs-btn-hover-bg: var(--fsg-warm);
+    --bs-btn-hover-border-color: var(--fsg-warm);
+}
+.btn-link {
+    --bs-btn-color: var(--fsg-accent-hi);
+    --bs-btn-hover-color: var(--fsg-accent-hover);
+    --bs-btn-active-color: var(--fsg-accent-hover);
+}
+
+/* ------------------------------------------------------------
+   C5. Badges
+   ------------------------------------------------------------ */
+.badge {
+    --bs-badge-font-weight: 600;
+    --bs-badge-border-radius: 999px;
+    --bs-badge-padding-x: .6em;
+}
+.badge.bg-secondary,
+.badge.text-bg-secondary { background-color: var(--fsg-line-2) !important; color: var(--fsg-text) !important; }
+.badge.bg-primary,
+.badge.text-bg-primary   { background-color: var(--fsg-accent) !important; color: var(--fsg-accent-ink) !important; }
+/* Schwierigkeit (text-bg-*): getoent wie .fsg-tag--diff-* */
+.badge.text-bg-success { background-color: rgba(var(--fsg-ok-rgb), .14) !important;     color: var(--fsg-ok) !important; }
+.badge.text-bg-warning { background-color: rgba(var(--fsg-warm-rgb), .14) !important;   color: var(--fsg-warm) !important; }
+.badge.text-bg-danger  { background-color: rgba(var(--fsg-danger-rgb), .16) !important; color: var(--fsg-danger) !important; }
+.badge.text-bg-dark    { background-color: rgba(196, 167, 255, .14) !important;         color: #C4A7FF !important; }
+
+/* ------------------------------------------------------------
+   C6. Hinweise (Alerts) – getoente Flaechen statt Vollfarbe
+   ------------------------------------------------------------ */
+.alert {
+    --bs-alert-border-radius: var(--fsg-radius-sm);
+    --bs-alert-link-color: #fff;
+}
+.alert-success   { --bs-alert-color: #B9F3CD; --bs-alert-bg: rgba(var(--fsg-ok-rgb), .1);      --bs-alert-border-color: rgba(var(--fsg-ok-rgb), .35); }
+.alert-danger    { --bs-alert-color: #FFC2C2; --bs-alert-bg: rgba(var(--fsg-danger-rgb), .1);  --bs-alert-border-color: rgba(var(--fsg-danger-rgb), .35); }
+.alert-warning   { --bs-alert-color: #F8E3A4; --bs-alert-bg: rgba(var(--fsg-warm-rgb), .1);    --bs-alert-border-color: rgba(var(--fsg-warm-rgb), .35); }
+.alert-info      { --bs-alert-color: #CBE6FF; --bs-alert-bg: rgba(var(--fsg-info-rgb), .1);    --bs-alert-border-color: rgba(var(--fsg-info-rgb), .35); }
+.alert-primary   { --bs-alert-color: #F6C891; --bs-alert-bg: rgba(var(--fsg-accent-rgb), .12); --bs-alert-border-color: rgba(var(--fsg-accent-rgb), .4); }
+.alert-secondary,
+.alert-dark,
+.alert-light     { --bs-alert-color: var(--fsg-text-2); --bs-alert-bg: var(--fsg-surface-2); --bs-alert-border-color: var(--fsg-line-2); }
+
+/* ------------------------------------------------------------
+   C7. Listen + Tabellen
+   ------------------------------------------------------------ */
+.list-group {
+    --bs-list-group-bg: transparent;
+    --bs-list-group-color: var(--fsg-text);
+    --bs-list-group-border-color: var(--fsg-line);
+    --bs-list-group-border-radius: var(--fsg-radius-sm);
+    --bs-list-group-action-color: var(--fsg-text-2);
+    --bs-list-group-action-hover-color: #fff;
+    --bs-list-group-action-hover-bg: var(--fsg-hover);
+    --bs-list-group-action-active-bg: var(--fsg-hover);
+    --bs-list-group-active-color: var(--fsg-accent-hi);
+    --bs-list-group-active-bg: rgba(var(--fsg-accent-rgb), .14);
+    --bs-list-group-active-border-color: rgba(var(--fsg-accent-rgb), .4);
+}
+.list-group-item.border-secondary { border-color: var(--fsg-line) !important; }
+
+.table,
+.table-dark {
+    --bs-table-color: var(--fsg-text-2);
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--fsg-line);
+    --bs-table-striped-color: var(--fsg-text-2);
+    --bs-table-striped-bg: rgba(255, 255, 255, .025);
+    --bs-table-hover-color: #fff;
+    --bs-table-hover-bg: var(--fsg-hover);
+    --bs-table-active-bg: var(--fsg-hover);
+}
+
+/* ------------------------------------------------------------
+   C8. Modals, Offcanvas, Dropdowns, Toasts
+   ------------------------------------------------------------ */
+.modal {
+    --bs-modal-bg: var(--fsg-surface);
+    --bs-modal-color: var(--fsg-text);
+    --bs-modal-border-color: var(--fsg-line);
+    --bs-modal-border-radius: var(--fsg-radius);
+    --bs-modal-inner-border-radius: calc(var(--fsg-radius) - 1px);
+    --bs-modal-header-border-color: var(--fsg-line);
+    --bs-modal-footer-border-color: var(--fsg-line);
+    --bs-modal-box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+}
+.modal-content.border-secondary { border-color: var(--fsg-line) !important; }
+.modal-header.border-secondary,
+.modal-footer.border-secondary { border-color: var(--fsg-line) !important; }
+.modal-title { font-family: var(--fsg-font-head); font-weight: 700; color: #fff; }
+.modal-backdrop { --bs-backdrop-bg: #04070C; --bs-backdrop-opacity: .72; }
+
+.offcanvas {
+    --bs-offcanvas-bg: var(--fsg-surface);
+    --bs-offcanvas-color: var(--fsg-text);
+    --bs-offcanvas-border-color: var(--fsg-line);
+}
+.offcanvas-bottom { border-radius: var(--fsg-radius) var(--fsg-radius) 0 0; }
+.offcanvas-title { font-family: var(--fsg-font-head); font-weight: 700; }
+
+.dropdown-menu,
+.dropdown-menu-dark {
+    --bs-dropdown-bg: var(--fsg-surface);
+    --bs-dropdown-color: var(--fsg-text);
+    --bs-dropdown-border-color: var(--fsg-line);
+    --bs-dropdown-border-radius: 14px;
+    --bs-dropdown-link-color: var(--fsg-text-2);
+    --bs-dropdown-link-hover-color: #fff;
+    --bs-dropdown-link-hover-bg: var(--fsg-hover);
+    --bs-dropdown-link-active-color: var(--fsg-accent-ink);
+    --bs-dropdown-link-active-bg: var(--fsg-accent);
+    --bs-dropdown-divider-bg: var(--fsg-line);
+    --bs-dropdown-header-color: var(--fsg-faint);
+    padding: 6px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+}
+.dropdown-menu.bg-secondary { background-color: var(--fsg-surface) !important; }
+.dropdown-item { border-radius: 8px; }
+
+.toast {
+    --bs-toast-bg: rgba(17, 25, 37, .96);
+    --bs-toast-color: var(--fsg-text);
+    --bs-toast-border-color: var(--fsg-line-2);
+    --bs-toast-border-radius: 14px;
+    --bs-toast-header-bg: var(--fsg-surface-2);
+    --bs-toast-header-color: var(--fsg-text-2);
+    --bs-toast-header-border-color: var(--fsg-line);
+}
+
+/* ------------------------------------------------------------
+   C9. Navigation, Seitenzahlen, Fortschritt
+   ------------------------------------------------------------ */
+.nav {
+    --bs-nav-link-color: var(--fsg-muted);
+    --bs-nav-link-hover-color: #fff;
+}
+.nav-tabs {
+    --bs-nav-tabs-border-color: var(--fsg-line);
+    --bs-nav-tabs-link-hover-border-color: var(--fsg-line) var(--fsg-line) var(--fsg-line);
+    --bs-nav-tabs-link-active-color: #fff;
+    --bs-nav-tabs-link-active-bg: var(--fsg-surface);
+    --bs-nav-tabs-link-active-border-color: var(--fsg-line) var(--fsg-line) var(--fsg-surface);
+}
+.nav-pills {
+    --bs-nav-pills-link-active-color: var(--fsg-accent-ink);
+    --bs-nav-pills-link-active-bg: var(--fsg-accent);
+}
+.pagination {
+    --bs-pagination-color: var(--fsg-text-2);
+    --bs-pagination-bg: var(--fsg-surface);
+    --bs-pagination-border-color: var(--fsg-line);
+    --bs-pagination-hover-color: #fff;
+    --bs-pagination-hover-bg: var(--fsg-hover);
+    --bs-pagination-hover-border-color: var(--fsg-line-2);
+    --bs-pagination-focus-color: #fff;
+    --bs-pagination-focus-bg: var(--fsg-hover);
+    --bs-pagination-focus-box-shadow: 0 0 0 3px rgba(var(--fsg-accent-rgb), .3);
+    --bs-pagination-active-color: var(--fsg-accent-ink);
+    --bs-pagination-active-bg: var(--fsg-accent);
+    --bs-pagination-active-border-color: var(--fsg-accent);
+    --bs-pagination-disabled-color: var(--fsg-faint);
+    --bs-pagination-disabled-bg: var(--fsg-surface-2);
+    --bs-pagination-disabled-border-color: var(--fsg-line);
+}
+.progress,
+.progress-stacked {
+    --bs-progress-bg: var(--fsg-surface-2);
+    --bs-progress-bar-bg: var(--fsg-accent);
+    --bs-progress-border-radius: 99px;
+}
+
+
+/* ============================================================
+   Responsiv + reduzierte Bewegung
+   ============================================================ */
+@media (max-width: 760px) {
+    .fsg-card { padding: 20px; border-radius: 16px; }
+    .fsg-h2 { font-size: 1.35rem; }
+    .fsg-page-head { margin: 4px 0 20px; }
+}
+@media (max-width: 460px) {
+    .fsg-pills { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fsg-btn, .btn, .fsg-details summary::after { transition: none; }
+    .fsg-btn:active, .btn:active { transform: none; }
+}

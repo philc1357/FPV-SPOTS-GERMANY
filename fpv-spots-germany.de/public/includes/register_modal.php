@@ -6,8 +6,8 @@ if (!$isLoggedIn):
 ?>
 <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-light border-secondary">
-            <div class="modal-header border-secondary">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title" id="registerModalLabel">Registrieren</h5>
                 <button type="button" class="btn-close btn-close-white"
                         data-bs-dismiss="modal" aria-label="Schliessen"></button>
@@ -22,45 +22,49 @@ if (!$isLoggedIn):
                     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                     <input type="hidden" name="redirect" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8') ?>">
                     <div class="mb-3">
-                        <input type="text" name="username"
-                               class="form-control bg-secondary text-light border-0"
+                        <label for="registerUsername" class="visually-hidden">Benutzername</label>
+                        <input id="registerUsername" type="text" name="username"
+                               class="form-control"
                                placeholder="Benutzername" minlength="5" maxlength="50"
                                autocomplete="username" required>
                     </div>
                     <div class="mb-3">
-                        <input type="email" name="email"
-                               class="form-control bg-secondary text-light border-0"
+                        <label for="registerEmail" class="visually-hidden">E-Mail</label>
+                        <input id="registerEmail" type="email" name="email"
+                               class="form-control"
                                placeholder="Email" minlength="10" maxlength="100"
                                autocomplete="email" required>
                     </div>
                     <div class="mb-3">
+                        <label for="password" class="visually-hidden">Passwort</label>
                         <input id="password" type="password" name="password_field1"
-                               class="form-control bg-secondary text-light border-0"
+                               class="form-control"
                                placeholder="Passwort" minlength="8" maxlength="50"
                                autocomplete="new-password" required>
                     </div>
                     <div class="mb-3">
+                        <label for="password_confirm" class="visually-hidden">Passwort wiederholen</label>
                         <input id="password_confirm" type="password" name="password"
-                               class="form-control bg-secondary text-light border-0"
+                               class="form-control"
                                placeholder="Passwort wiederholen" maxlength="50"
                                autocomplete="new-password" required>
-                        <div id="passwordError" style="color: #ff6b6b; display: none; margin-top: 5px;" class="small">
+                        <div id="passwordError" style="display: none;" class="small text-danger mt-1">
                             Die Passwörter stimmen nicht überein.
                         </div>
                     </div>
                     <div class="form-check mb-3">
                         <input type="checkbox" class="form-check-input" id="terms" name="terms" value="1" required
-                               style="accent-color: #198754;">
+                              >
                         <label class="form-check-label small" for="terms">
-                            Ich habe die <a href="/nutzungsbedingungen.php" target="_blank" class="text-success fw-semibold">Nutzungsbedingungen</a> gelesen und akzeptiere sie. *
+                            Ich habe die <a href="/nutzungsbedingungen.php" target="_blank" class="fw-semibold">Nutzungsbedingungen</a> gelesen und akzeptiere sie. *
                         </label>
                     </div>
-                    <button type="submit" class="btn btn-success w-100 py-2">Registrieren</button>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Registrieren</button>
                 </form>
-                <hr class="border-secondary">
+                <hr>
                 <p class="text-center mb-0 small">
                     Bereits registriert?
-                    <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-success">Jetzt einloggen</a>
+                    <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" class="fw-semibold">Jetzt einloggen</a>
                 </p>
             </div>
         </div>

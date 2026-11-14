@@ -31,8 +31,14 @@ $csrfToken  = $_SESSION['csrf_token'];
 <?php include __DIR__ . '/../../includes/register_modal.php'; ?>
 
     <main class="container my-5">
-        <article class="card bg-secondary text-white p-4" style="max-width: 800px; margin: auto;">
-            <h1 class="h3 mb-4">Datenschutzerklärung</h1>
+        <?php
+            $pageTitle  = 'Datenschutzerklärung';
+            $pageKicker = 'Rechtliches';
+            $pageIcon   = 'bi-shield-lock';
+            $pageNarrow = true;
+            include __DIR__ . '/../../includes/page_head.php';
+        ?>
+        <article class="fsg-card fsg-card--prose">
 
             <!-- 1. Verantwortlicher -->
             <section aria-labelledby="verantwortlicher">
@@ -41,8 +47,8 @@ $csrfToken  = $_SESSION['csrf_token'];
                     Philipp Bauer<br>
                     Raimundstraße 10<br>
                     04177 Leipzig<br>
-                    E-Mail: <a href="mailto:info@fpv-spots-germany.de" class="text-white">info@fpv-spots-germany.de</a><br>
-                    Telefon: <a href="tel:+4915238252427" class="text-white">01523 - 8252427</a>
+                    E-Mail: <a href="mailto:info@fpv-spots-germany.de">info@fpv-spots-germany.de</a><br>
+                    Telefon: <a href="tel:+4915238252427">01523 - 8252427</a>
                 </address>
             </section>
 
@@ -300,7 +306,7 @@ $csrfToken  = $_SESSION['csrf_token'];
 
                 <h3 class="h6 mt-3">Statistik-Cookie</h3>
                 <ul>
-                    <li><strong><code>fpv_counted_today</code>:</strong> Dient unserer eigenen, anonymen serverseitigen Besucherzählung (unabhängig von der in Abschnitt <a href="#reichweitenmessung" class="text-white">16e</a> beschriebenen Reichweitenmessung). Verhindert, dass ein Browser-Neustart am selben Tag doppelt als neuer Besuch gezählt wird. Enthält ausschließlich den Wert „1", keine Kennung Ihrer Person oder Ihres Geräts. Läuft <strong>zum Ende des jeweiligen Tages</strong> ab – es entsteht kein mehrtägiges Profil. HttpOnly, Secure, SameSite=Lax.</li>
+                    <li><strong><code>fpv_counted_today</code>:</strong> Dient unserer eigenen, anonymen serverseitigen Besucherzählung (unabhängig von der in Abschnitt <a href="#reichweitenmessung">16e</a> beschriebenen Reichweitenmessung). Verhindert, dass ein Browser-Neustart am selben Tag doppelt als neuer Besuch gezählt wird. Enthält ausschließlich den Wert „1", keine Kennung Ihrer Person oder Ihres Geräts. Läuft <strong>zum Ende des jeweiligen Tages</strong> ab – es entsteht kein mehrtägiges Profil. HttpOnly, Secure, SameSite=Lax.</li>
                 </ul>
 
                 <h3 class="h6 mt-3">Präferenz-Cookies</h3>
@@ -336,13 +342,13 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <h3 class="h6 mt-3">OpenStreetMap (Standard-Kartenansicht)</h3>
                 <p>Beim Laden der Standard-Kartenansicht wird eine Verbindung zu den Servern der OpenStreetMap Foundation (OSMF) hergestellt. Dabei wird Ihre IP-Adresse an die OSMF übermittelt.</p>
                 <p><strong>Anbieter:</strong> OpenStreetMap Foundation, St John's Innovation Centre, Cowley Road, Cambridge, CB4 0WS, Vereinigtes Königreich.</p>
-                <p><strong>Datenschutzrichtlinie:</strong> <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer" class="text-white">https://wiki.osmfoundation.org/wiki/Privacy_Policy</a></p>
+                <p><strong>Datenschutzrichtlinie:</strong> <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer">https://wiki.osmfoundation.org/wiki/Privacy_Policy</a></p>
 
                 <h3 class="h6 mt-3">Esri World Imagery (Satellitenansicht)</h3>
                 <p>Wenn Sie die Satellitenansicht aktivieren, werden Kartenkacheln von den Servern von <strong>Esri</strong> geladen. Dabei wird Ihre IP-Adresse an Esri übermittelt.</p>
                 <p><strong>Anbieter:</strong> Esri (Environmental Systems Research Institute, Inc.), 380 New York St, Redlands, CA 92373, USA.</p>
                 <p><strong>Hinweis zur Drittlandübermittlung:</strong> Esri hat seinen Sitz in den USA. Die Übermittlung Ihrer IP-Adresse erfolgt auf Grundlage von Art. 49 Abs. 1 lit. b DSGVO im Zusammenhang mit der Nutzung der Satellitenansicht.</p>
-                <p><strong>Datenschutzrichtlinie:</strong> <a href="https://www.esri.com/en-us/privacy/privacy-statements/privacy-statement" target="_blank" rel="noopener noreferrer" class="text-white">https://www.esri.com/en-us/privacy/privacy-statements/privacy-statement</a></p>
+                <p><strong>Datenschutzrichtlinie:</strong> <a href="https://www.esri.com/en-us/privacy/privacy-statements/privacy-statement" target="_blank" rel="noopener noreferrer">https://www.esri.com/en-us/privacy/privacy-statements/privacy-statement</a></p>
 
                 <p class="mt-2"><strong>Rechtsgrundlage (beide Dienste):</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Darstellung der Karteninhalte als Kernfunktionalität unseres Dienstes.</p>
                 <p>Wir selbst speichern keine Daten über Ihren Kartenzugriff oder die geladenen Kartenkacheln. Kartenkacheln können vom Browser oder Service Worker lokal zwischengespeichert werden (siehe Abschnitt 18).</p>
@@ -358,7 +364,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Anbieter:</strong> Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland (Niederlassung des US-Anbieters Google LLC).</p>
                 <p><strong>Hinweis zur Drittlandübermittlung:</strong> Die Auslieferung der Vorschaubilder und des Players kann über Server in den USA erfolgen. Die Übermittlung der Vorschaubilder erfolgt auf Grundlage von Art. 49 Abs. 1 lit. b DSGVO, die Übermittlung beim aktiven Laden des Players auf Grundlage Ihrer Einwilligung nach Art. 49 Abs. 1 lit. a DSGVO – jeweils ergänzt durch die EU-Standardvertragsklauseln und das EU-US Data Privacy Framework, dem Google sich unterworfen hat.</p>
                 <p><strong>Titelabruf beim Speichern:</strong> Beim Anlegen oder Bearbeiten eines Spots ruft unser Server (nicht Ihr Browser) einmalig die öffentliche oEmbed-Schnittstelle von YouTube auf, um den Videotitel zu ermitteln. Hierbei wird ausschließlich die Video-ID an YouTube übertragen – Ihre IP-Adresse oder weitere personenbezogene Daten werden dabei nicht an YouTube übermittelt.</p>
-                <p><strong>Datenschutzrichtlinie Google/YouTube:</strong> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-white">https://policies.google.com/privacy</a></p>
+                <p><strong>Datenschutzrichtlinie Google/YouTube:</strong> <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">https://policies.google.com/privacy</a></p>
                 <p><strong>Rechtsgrundlage:</strong> Für die Anzeige der Vorschaubilder berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Darstellung der von Nutzern eingereichten Videos als Bestandteil der Spot-Informationen. Für das Laden des Videoplayers Ihre Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die Sie durch den bewussten Klick auf den Play-Button erteilen und die Sie jederzeit durch Neuladen der Seite für die Zukunft widerrufen können.</p>
             </section>
 
@@ -371,7 +377,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p>Zusätzlich prüfen wir <strong>serverseitig und ohne Ihre Beteiligung</strong>, welche Geozonen einen eingetragenen Spot berühren, und speichern das Ergebnis zu dem jeweiligen Spot. Diese Prüfung bezieht sich auf die Spot-Koordinate, nicht auf Ihren Standort.</p>
                 <p><strong>Anbieter der Geodaten:</strong> DFS Deutsche Flugsicherung GmbH, Am DFS-Campus 10, 63225 Langen. Quelle Geodaten: DFS, BKG. Lizenz: CC&nbsp;BY-ND&nbsp;4.0.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Hinweis auf luftrechtliche Beschränkungen als Kernfunktion unseres Dienstes.</p>
-                <p><strong>Hinweis:</strong> Die Darstellung ist eine Orientierungshilfe und keine Rechtsberatung. Maßgeblich ist die amtliche Karte unter <a href="https://www.dipul.de/" target="_blank" rel="noopener noreferrer" class="text-white">dipul.de</a>.</p>
+                <p><strong>Hinweis:</strong> Die Darstellung ist eine Orientierungshilfe und keine Rechtsberatung. Maßgeblich ist die amtliche Karte unter <a href="https://www.dipul.de/" target="_blank" rel="noopener noreferrer">dipul.de</a>.</p>
             </section>
 
 
@@ -383,7 +389,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Bezugspunkt ist der Spot, nicht Ihr Standort:</strong> Übermittelt wird ausschließlich die in unserer Datenbank hinterlegte Koordinate des aufgerufenen Spots, gerundet auf etwa 100&nbsp;Meter. Ihr eigener Standort wird dabei weder erhoben noch verwendet; die Standortfreigabe nach Abschnitt 17 ist davon unabhängig.</p>
                 <p><strong>Abruf nur auf Ihre Aktion hin:</strong> Der Bereich ist beim Aufruf der Seite stets zugeklappt. Die Wetterdaten werden erst geladen, wenn Sie ihn öffnen.</p>
                 <p>Die abgerufenen Wetterdaten werden auf unserem Server für maximal 15&nbsp;Minuten zwischengespeichert (der Kp-Index für maximal eine Stunde), um die kostenlos bereitgestellten Schnittstellen zu entlasten. Der Zwischenspeicher enthält ausschließlich Wetterwerte und Spot-Koordinaten, keine Nutzerdaten. Zur Missbrauchsvermeidung wird die Anzahl der tatsächlichen Abrufe je IP-Adresse stundenweise gezählt; gespeichert wird dabei nur ein nicht rückrechenbarer Hashwert, der spätestens nach zwei Stunden gelöscht wird.</p>
-                <p><strong>Anbieter:</strong> Open-Meteo, Zürich, Schweiz (Lizenz der Daten: CC&nbsp;BY&nbsp;4.0) – <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener noreferrer" class="text-white">open-meteo.com/en/terms</a>. NOAA Space Weather Prediction Center, Boulder, USA – <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener noreferrer" class="text-white">swpc.noaa.gov</a>. Beide erhalten keine personenbezogenen Daten von uns.</p>
+                <p><strong>Anbieter:</strong> Open-Meteo, Zürich, Schweiz (Lizenz der Daten: CC&nbsp;BY&nbsp;4.0) – <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener noreferrer">open-meteo.com/en/terms</a>. NOAA Space Weather Prediction Center, Boulder, USA – <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener noreferrer">swpc.noaa.gov</a>. Beide erhalten keine personenbezogenen Daten von uns.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Unterstützung bei der Planung eines Flugs am jeweiligen Spot.</p>
                 <p><strong>Hinweis:</strong> Die angezeigten Werte sind Messwerte und Modellprognosen. Sie enthalten <strong>keine Bewertung</strong>, ob ein Flug möglich, sinnvoll oder zulässig ist; diese Entscheidung treffen ausschließlich Sie als Pilot vor Ort.</p>
             </section>
@@ -433,7 +439,7 @@ $csrfToken  = $_SESSION['csrf_token'];
                     <li><strong>Widerspruchsrecht (Art. 21 DSGVO):</strong> Sie können der Verarbeitung Ihrer Daten, die auf berechtigtem Interesse basiert, jederzeit widersprechen.</li>
                     <li><strong>Beschwerderecht (Art. 77 DSGVO):</strong> Sie haben das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren. Zuständig ist der Sächsische Datenschutz- und Transparenzbeauftragte.</li>
                 </ul>
-                <p>Zur Ausübung Ihrer Rechte wenden Sie sich bitte an: <a href="mailto:info@fpv-spots-germany.de" class="text-white">info@fpv-spots-germany.de</a></p>
+                <p>Zur Ausübung Ihrer Rechte wenden Sie sich bitte an: <a href="mailto:info@fpv-spots-germany.de">info@fpv-spots-germany.de</a></p>
             </section>
 
             <!-- 21. Datensicherheit -->
@@ -453,8 +459,8 @@ $csrfToken  = $_SESSION['csrf_token'];
             <!-- 21b. Open Source / GitHub -->
             <section aria-labelledby="open-source">
                 <h2 id="open-source" class="h5 mt-4">21b. Open-Source-Veröffentlichung des Quellcodes</h2>
-                <p>Der vollständige Quellcode dieser Plattform ist als Open Source auf GitHub veröffentlicht und unter <a href="https://github.com/philc1357/FPV-SPOTS-GERMANY" target="_blank" rel="noopener noreferrer" class="text-white">github.com/philc1357/FPV-SPOTS-GERMANY</a> einsehbar. Unsere Seite „GitHub" verlinkt lediglich auf dieses externe Repository.</p>
-                <p>Bei Aufruf des externen GitHub-Links werden Daten an GitHub Inc. (88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA) übermittelt. Die Datenschutzbestimmungen von GitHub finden Sie unter <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer" class="text-white">docs.github.com/site-policy/privacy-policies/github-general-privacy-statement</a>.</p>
+                <p>Der vollständige Quellcode dieser Plattform ist als Open Source auf GitHub veröffentlicht und unter <a href="https://github.com/philc1357/FPV-SPOTS-GERMANY" target="_blank" rel="noopener noreferrer">github.com/philc1357/FPV-SPOTS-GERMANY</a> einsehbar. Unsere Seite „GitHub" verlinkt lediglich auf dieses externe Repository.</p>
+                <p>Bei Aufruf des externen GitHub-Links werden Daten an GitHub Inc. (88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA) übermittelt. Die Datenschutzbestimmungen von GitHub finden Sie unter <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">docs.github.com/site-policy/privacy-policies/github-general-privacy-statement</a>.</p>
                 <p>Im veröffentlichten Quellcode sind <strong>keine</strong> personenbezogenen Daten von Nutzern oder Zugangsdaten enthalten – Datenbank- und SMTP-Zugangsdaten werden über eine lokale, nicht im Repository enthaltene <code>.env</code>-Datei geladen.</p>
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Transparenz über die Funktionsweise der Plattform und Nachvollziehbarkeit der Datenverarbeitung.</p>
             </section>

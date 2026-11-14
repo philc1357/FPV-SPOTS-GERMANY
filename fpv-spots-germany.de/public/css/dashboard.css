@@ -1,3 +1,6 @@
-body { background-color: #1a1a2e; }
-.card-dark { background: #16213e; border: 1px solid #0f3460; }
-.spot-row:hover { background: rgba(255,255,255,.05); }
+/* ============================================================
+   dashboard.css – Konto-Dashboard
+   Grundflaeche + Karten (card-dark) kommen aus components.css.
+   ============================================================ */
+.spot-row { transition: background-color .15s; }
+.spot-row:hover { background: var(--fsg-hover); }

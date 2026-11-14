@@ -93,12 +93,19 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
 <!-- ============================================================
      Navbar
 ============================================================ -->
-<header class="bg-dark pb-2 sticky-top">
-    <nav class="navbar navbar-dark px-3" style="height:56px;">
-        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/" title="Startseite">
+<header class="site-header sticky-top">
+    <nav class="site-nav" aria-label="Hauptnavigation">
+        <a class="site-brand" href="/" title="Startseite">
             <img src="/public/imgs/logo.png" alt="FPV Spots Germany Logo" width="49" height="40">
-            <span>FPV Spots Germany</span>
+            <span class="site-brand-name">FPV Spots <span>Germany</span></span>
         </a>
+        <div class="site-nav-links">
+            <!-- Schnellzugriffe: nur ab Tablet, auf dem Handy reicht das Menü -->
+            <a class="site-nav-link d-none d-md-inline-flex" href="/"><i class="bi bi-map" aria-hidden="true"></i>Karte</a>
+            <?php if (!$isLoggedIn): ?>
+                <button type="button" class="site-nav-link is-cta d-none d-sm-inline-flex"
+                        data-bs-toggle="modal" data-bs-target="#loginModal">Einloggen</button>
+            <?php endif; ?>
         <div class="dropdown">
             <button class="btn dropdown-toggle navbar-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <?php if ($isLoggedIn): ?>
@@ -144,6 +151,7 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Registrieren</a></li>
                 <?php endif; ?>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="https://discord.gg/ukbPTt3Xf" target="_blank" rel="noopener noreferrer"><i class="bi bi-discord me-1"></i> Discord-Server</a></li>
                 <li><a class="dropdown-item" href="/hilfe.php">Anleitung</a></li>
                 <li><a class="dropdown-item" href="/forum.php">Forum</a></li>
                 <li><a class="dropdown-item" href="/kritik.php">Verbesserungsvorschläge<?php if ($hasKritikNotification): ?> <span id="suggestion-notify-link" class="text-warning fw-bold d-none" aria-label="Neue Aktivität bei Verbesserungsvorschlägen"><i class="bi bi-exclamation-circle-fill"></i></span><?php endif; ?></a></li>
@@ -156,6 +164,7 @@ $hasAnyNotifications   = $hasUnseenNotifications || $hasKritikNotification || $h
                 <li><a class="dropdown-item" href="/datenschutz.php">Datenschutz</a></li>
                 <li><a class="dropdown-item" href="/github.php"><i class="bi bi-github me-1"></i> GitHub</a></li>
             </ul>
+        </div>
         </div>
     </nav>
 </header>

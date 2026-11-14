@@ -91,7 +91,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
             <article class="card card-dark text-light p-4 h-100">
                 <h1 class="h4 mb-3">
                     <i class="bi bi-person-fill me-1"></i><?= $profileUsername ?>
-                    <button class="btn btn-outline-success btn-sm ms-2"
+                    <button class="btn btn-outline-primary btn-sm ms-2"
                             data-bs-toggle="modal" data-bs-target="#sendMessageModal"
                             title="Nachricht senden">
                         <i class="bi bi-envelope-fill"></i>
@@ -228,12 +228,12 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
             <div class="modal-body">
                 <div id="msgSuccessAlert" class="alert alert-success d-none py-2 small"></div>
                 <div id="msgErrorAlert" class="alert alert-danger d-none py-2 small"></div>
-                <textarea id="msgBody" class="form-control bg-secondary text-light border-0"
+                <textarea id="msgBody" class="form-control"
                           rows="4" maxlength="2000"
                           placeholder="Deine Nachricht..."></textarea>
                 <div class="d-flex justify-content-between align-items-center mt-2">
                     <small id="msgCharCount" class="text-secondary">0 / 2000</small>
-                    <button id="msgSendBtn" class="btn btn-success btn-sm">
+                    <button id="msgSendBtn" class="btn btn-primary btn-sm">
                         <i class="bi bi-send-fill me-1"></i>Senden
                     </button>
                 </div>

@@ -1,13 +1,13 @@
 // =============================================================
 // FPV Spots Germany – Service Worker
 // =============================================================
-const CACHE_VERSION = 'v39';
+const CACHE_VERSION = 'v45';
 
 // Muss mit ASSET_VERSION in private/php/core/assets.php uebereinstimmen:
 // die Seiten fordern CSS/JS als /pfad.css?v=N an, und caches.match()
 // vergleicht die Query mit. Ohne den Parameter liefe der Pre-Cache ins
 // Leere und offline fehlten genau diese Dateien.
-const ASSET_VERSION = '38';
+const ASSET_VERSION = '44';
 const v = (path) => path + '?v=' + ASSET_VERSION;
 const STATIC_CACHE  = 'fpv-static-' + CACHE_VERSION;
 const TILES_CACHE   = 'fpv-tiles-'  + CACHE_VERSION;
@@ -19,6 +19,7 @@ const TILES_MAX_ENTRIES = 200;
 const STATIC_ASSETS = [
     '/offline.html',
     v('/public/css/theme.css'),
+    v('/public/css/components.css'),
     v('/public/css/banners.css'),
     v('/public/css/map.css'),
     v('/public/js/map/main.js'),
@@ -53,7 +54,10 @@ const STATIC_ASSETS = [
     v('/public/vendor/bootstrap/bootstrap.min.css'),
     v('/public/vendor/bootstrap/bootstrap.bundle.min.js'),
     v('/public/vendor/bootstrap-icons/bootstrap-icons.min.css'),
-    '/public/vendor/bootstrap-icons/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6'
+    '/public/vendor/bootstrap-icons/fonts/bootstrap-icons.woff2?dd67030699838ea613ee6dbda90effa6',
+    // Webfonts aus theme.css (url() ohne ?v=, deshalb hier auch ohne)
+    '/public/vendor/fonts/bricolage-grotesque-latin-wght.woff2',
+    '/public/vendor/fonts/figtree-latin-wght.woff2'
 ];
 
 // -------------------------------------------------------------

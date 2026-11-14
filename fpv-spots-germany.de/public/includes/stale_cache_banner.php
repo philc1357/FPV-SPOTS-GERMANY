@@ -66,7 +66,8 @@ declare(strict_types=1);
 /* ---------------------------------------------------------------
    Eigenstaendiges Styling – bewusst ohne Bootstrap-Abhaengigkeit,
    da Bootstrap bei Betroffenen aus dem alten Cache kommt.
-   Farben orientieren sich am bestehenden Cookie-Banner.
+   Farben = Design-Tokens aus theme.css, hier bewusst als feste
+   Werte (theme.css kann bei Betroffenen veraltet sein).
    --------------------------------------------------------------- */
 #stale-cache-banner {
     position: fixed;
@@ -76,7 +77,7 @@ declare(strict_types=1);
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: rgba(0, 0, 0, .6);
+    background: rgba(4, 7, 12, .72);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 #stale-cache-banner[hidden] { display: none; }
@@ -87,10 +88,10 @@ declare(strict_types=1);
     max-height: 90vh;
     overflow-y: auto;
     padding: 1.5rem;
-    border: 1px solid #0f3460;
-    border-radius: .5rem;
-    background: #16213e;
-    color: #f8f9fa;
+    border: 1px solid #1E2938;
+    border-radius: 18px;
+    background: #111925;
+    color: #E7EDF6;
     box-shadow: 0 1rem 3rem rgba(0, 0, 0, .5);
 }
 
@@ -98,35 +99,35 @@ declare(strict_types=1);
     margin: 0 0 .75rem;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #ffc107;
+    color: #F2C94C;
 }
 #stale-cache-banner .scb-lead   { margin: 0 0 1.25rem; line-height: 1.5; }
-#stale-cache-banner .scb-hint   { margin: .75rem 0 0; font-size: .8125rem; color: #adb5bd; }
-#stale-cache-banner .scb-muted  { display: block; margin-top: .25rem; color: #adb5bd; font-size: .8125rem; }
+#stale-cache-banner .scb-hint   { margin: .75rem 0 0; font-size: .8125rem; color: #94A3BA; }
+#stale-cache-banner .scb-muted  { display: block; margin-top: .25rem; color: #94A3BA; font-size: .8125rem; }
 
 #stale-cache-banner .scb-btn {
     display: block;
     width: 100%;
     padding: .625rem 1rem;
     border: 0;
-    border-radius: .375rem;
+    border-radius: 12px;
     font: inherit;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
 }
-#stale-cache-banner .scb-btn-primary { background: #198754; color: #fff; }
-#stale-cache-banner .scb-btn-primary:hover:not(:disabled) { background: #157347; }
+#stale-cache-banner .scb-btn-primary { background: #CA710F; color: #160B01; }
+#stale-cache-banner .scb-btn-primary:hover:not(:disabled) { background: #E8963A; }
 #stale-cache-banner .scb-btn-primary:disabled { opacity: .65; cursor: default; }
 #stale-cache-banner .scb-btn-ghost {
     margin-top: 1rem;
     background: transparent;
-    color: #adb5bd;
+    color: #94A3BA;
     text-decoration: underline;
 }
-#stale-cache-banner .scb-btn:focus-visible { outline: 2px solid #0d6efd; outline-offset: 2px; }
+#stale-cache-banner .scb-btn:focus-visible { outline: 2px solid #CA710F; outline-offset: 2px; }
 
 #stale-cache-banner .scb-details { margin-top: 1.25rem; font-size: .875rem; }
-#stale-cache-banner .scb-details summary { cursor: pointer; color: #9ec5fe; }
+#stale-cache-banner .scb-details summary { cursor: pointer; color: #E8963A; }
 #stale-cache-banner .scb-steps { margin: .75rem 0 0; padding-left: 1.25rem; line-height: 1.6; }
 #stale-cache-banner .scb-steps li { margin-bottom: .5rem; }
 </style>

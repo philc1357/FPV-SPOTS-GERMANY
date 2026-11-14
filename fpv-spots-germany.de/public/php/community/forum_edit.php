@@ -64,12 +64,13 @@ unset($_SESSION['forum_error']);
     <div class="row justify-content-center">
         <div class="col-12 col-lg-9">
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1 class="h3 mb-0">Beitrag bearbeiten</h1>
-                <a href="/forum.php#post-<?= (int)$post['id'] ?>" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left"></i> Zurück zum Forum
-                </a>
-            </div>
+            <?php
+                $pageTitle  = 'Beitrag bearbeiten';
+                $pageKicker = 'Forum';
+                $pageIcon   = 'bi-pencil';
+                $pageAction = ['href' => '/forum.php#post-' . (int)$post['id'], 'label' => 'Zurück zum Forum', 'icon' => 'bi-arrow-left'];
+                include __DIR__ . '/../../includes/page_head.php';
+            ?>
 
             <?php if ($forumError !== ''): ?>
                 <div class="alert forum-error mb-4" role="alert">
@@ -86,7 +87,7 @@ unset($_SESSION['forum_error']);
                     <div class="mb-3">
                         <label for="forum-title" class="form-label small text-secondary">Überschrift</label>
                         <input type="text" id="forum-title" name="title"
-                               class="form-control bg-secondary text-light border-0"
+                               class="form-control"
                                minlength="3" maxlength="150" required
                                value="<?= htmlspecialchars($post['title'], ENT_QUOTES, 'UTF-8') ?>">
                     </div>
@@ -94,7 +95,7 @@ unset($_SESSION['forum_error']);
                     <div class="mb-3">
                         <label for="forum-body" class="form-label small text-secondary">Beitrag</label>
                         <textarea id="forum-body" name="body"
-                                  class="form-control bg-secondary text-light border-0"
+                                  class="form-control"
                                   rows="6" minlength="10" maxlength="5000" required><?= htmlspecialchars($post['body'], ENT_QUOTES, 'UTF-8') ?></textarea>
                     </div>
 
@@ -124,13 +125,13 @@ unset($_SESSION['forum_error']);
                             Neue Bilder hinzufügen (max. 4 Bilder gesamt, je 5 MB, JPG/PNG)
                         </label>
                         <input type="file" id="forum-new-photos" name="new_photos[]"
-                               class="form-control bg-secondary text-light border-0"
+                               class="form-control"
                                accept="image/jpeg,image/png" multiple>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
                         <a href="/forum.php#post-<?= (int)$post['id'] ?>" class="btn btn-outline-secondary btn-sm">Abbrechen</a>
-                        <button type="submit" class="btn btn-success btn-sm">Änderungen speichern</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Änderungen speichern</button>
                     </div>
                 </form>
             </section>

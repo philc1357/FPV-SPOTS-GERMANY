@@ -48,9 +48,9 @@ if ($selector !== '' && $validator !== '') {
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
     <main class="container mt-5">
-        <div class="card bg-secondary text-white p-4" style="max-width: 400px; margin: auto;">
+        <div class="fsg-card" style="max-width: 440px; margin: auto;">
             <?php if ($tokenValid): ?>
-                <h1 class="h3">Neues Passwort setzen</h1>
+                <h1 class="fsg-h2">Neues Passwort setzen</h1>
                 <form id="passwordForm" action="/private/php/auth/reset_password_submit.php" method="POST">
                     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                     <input type="hidden" name="selector" value="<?= htmlspecialchars($selector, ENT_QUOTES, 'UTF-8') ?>">
@@ -62,17 +62,17 @@ if ($selector !== '' && $validator !== '') {
                     <div class="mb-3">
                         <input id="password_confirm" type="password" name="password" class="form-control"
                                placeholder="Passwort wiederholen" minlength="8" maxlength="50" required>
-                        <div id="passwordError" style="color: red; display: none; margin-top: 5px;">
+                        <div id="passwordError" class="text-danger small" style="display: none;">
                             Die Passwörter stimmen nicht überein.
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-success w-100 mb-2">Passwort ändern</button>
+                    <button type="submit" class="btn btn-primary w-100 mb-2">Passwort ändern</button>
                 </form>
             <?php else: ?>
                 <div class="alert alert-danger">
                     Dieser Link ist ungültig oder abgelaufen.
                 </div>
-                <a href="/public/php/forgot_password.php" class="btn btn-primary w-100 mb-2">Neuen Link anfordern</a>
+                <a href="/forgot_password.php" class="btn btn-primary w-100 mb-2">Neuen Link anfordern</a>
             <?php endif; ?>
             <a href="/" class="btn btn-primary w-100">Zur Startseite</a>
         </div>

@@ -1,5 +1,13 @@
-body { background-color: #1a1a2e; }
-.card-dark { background: #16213e; border: 1px solid #0f3460; }
-.suggestion-item { border-bottom: 1px solid #0f3460; }
+/* ============================================================
+   kritik.css – Kritik & Vorschlaege
+   Grundflaeche + Karten (card-dark) kommen aus components.css.
+   ============================================================ */
+.suggestion-item { border-bottom: 1px solid var(--fsg-line); }
 .suggestion-item:last-child { border-bottom: none; }
-.admin-comment { background: rgba(25, 135, 84, 0.08); border-radius: 0 4px 4px 0; }
+
+/* Antwort des Admins: dezent in Akzentfarbe abgesetzt */
+.admin-comment {
+    background: rgba(var(--fsg-accent-rgb), .08);
+    border-left: 3px solid var(--fsg-accent) !important;
+    border-radius: 0 8px 8px 0;
+}

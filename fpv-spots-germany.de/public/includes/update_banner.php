@@ -26,7 +26,7 @@
             </li>
         </ul>
         <div class="text-end">
-            <button id="update-banner-btn" type="button" class="btn btn-success btn-sm">
+            <button id="update-banner-btn" type="button" class="btn btn-primary btn-sm">
                 Verstanden
             </button>
         </div>
