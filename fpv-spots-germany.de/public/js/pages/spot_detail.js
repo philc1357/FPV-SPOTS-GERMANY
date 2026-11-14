@@ -164,3 +164,32 @@ UiActions.register('copy-spot-link',      (btn) => copySpotLink(btn));
 UiActions.register('copy-spot-coords',    (btn) => copySpotCoords(btn));
 UiActions.register('toggle-edit-parking', () => toggleEditParking());
 UiActions.register('toggle-edit-comment', (btn) => toggleEditComment(Number(btn.dataset.commentId)));
+
+// ---------------------------------------------------------------
+// Aufklappbare Karten (Geozonen, Wetter) per Anker öffnen
+//
+// Beide Bereiche sind standardmäßig eingeklappt. Zeigt die URL auf
+// #geozonen/#wetter (z. B. nach dem Speichern der Copter-Klasse oder
+// über den Flugstatus in den Schnell-Infos), klappt der Bereich auf.
+// Die ID aus dem Hash wird streng geprüft, bevor sie ins DOM geht.
+// ---------------------------------------------------------------
+(function () {
+    function oeffneBereich(hash) {
+        var id = (hash || '').replace(/^#/, '');
+        if (!/^[a-z][a-z0-9_-]{0,40}$/i.test(id)) return;
+        var section = document.getElementById(id);
+        if (!section) return;
+        var det = section.querySelector(':scope > details.fsg-collapse');
+        if (det && !det.open) det.open = true;
+    }
+
+    oeffneBereich(window.location.hash);
+    window.addEventListener('hashchange', function () { oeffneBereich(window.location.hash); });
+
+    // Klick auf einen Anker bei bereits gesetztem Hash löst kein
+    // hashchange aus – deshalb zusätzlich direkt beim Klick öffnen.
+    document.addEventListener('click', function (ev) {
+        var link = ev.target.closest('a[href^="#"]');
+        if (link) oeffneBereich(link.getAttribute('href'));
+    });
+})();

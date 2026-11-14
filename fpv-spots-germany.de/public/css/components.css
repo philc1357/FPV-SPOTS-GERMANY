@@ -368,6 +368,73 @@ textarea.fsg-field { resize: none; }
 .fsg-details .fsg-meta { margin: 0 0 8px; }
 
 /* ------------------------------------------------------------
+   B7b. Aufklappbare Karten (Geozonen, Wetter auf Spot-Detail)
+   Aufbau: section.fsg-card--collapsible > p.fsg-kicker
+           + details.fsg-collapse > summary > h2  + .fsg-collapse-body
+   Die H2 steht allein im <summary> (HTML-konform). Der Pfeil-
+   Knopf rechts besteht aus zwei Pseudo-Elementen: ::after = Kreis,
+   ::before = Chevron darueber. Kein JS fuer das Auf-/Zuklappen.
+   ------------------------------------------------------------ */
+.fsg-card--collapsible { gap: 0; }
+.fsg-card--collapsible > .fsg-kicker { margin-bottom: 4px; }
+
+.fsg-collapse > summary {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 40px;
+    padding-right: 56px;             /* Platz fuer den Pfeil-Knopf */
+    cursor: pointer;
+    list-style: none;
+    border-radius: 6px;
+}
+.fsg-collapse > summary::-webkit-details-marker { display: none; }
+
+/* Kreis */
+.fsg-collapse > summary::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    border-radius: 50%;
+    border: 1px solid var(--fsg-line-2);
+    background: var(--fsg-surface-2);
+    transition: border-color .15s, background-color .15s;
+}
+/* Chevron (zeigt nach unten, geoeffnet nach oben) */
+.fsg-collapse > summary::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    right: 16px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin-top: -6px;
+    border-right: 2px solid var(--fsg-text-2);
+    border-bottom: 2px solid var(--fsg-text-2);
+    transform: rotate(45deg);
+    transition: transform .2s, margin-top .2s, border-color .15s;
+}
+.fsg-collapse[open] > summary::before { transform: rotate(-135deg); margin-top: -2px; }
+
+.fsg-collapse > summary:hover::after { border-color: var(--fsg-accent); background: rgba(var(--fsg-accent-rgb), .1); }
+.fsg-collapse > summary:hover::before { border-color: var(--fsg-accent-hi); }
+.fsg-collapse > summary:focus-visible { outline: 2px solid var(--fsg-accent); outline-offset: 4px; }
+
+.fsg-collapse-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: 20px;
+}
+
+/* ------------------------------------------------------------
    B8. Modal-Inhalt (zusaetzlich zum globalen .modal-Feinschliff)
    ------------------------------------------------------------ */
 .fsg-modal {
@@ -794,6 +861,6 @@ a.text-info:hover  { color: var(--fsg-accent-hover) !important; }
     .fsg-pills { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
-    .fsg-btn, .btn, .fsg-details summary::after { transition: none; }
+    .fsg-btn, .btn, .fsg-details summary::after, .fsg-collapse > summary::before, .fsg-collapse > summary::after { transition: none; }
     .fsg-btn:active, .btn:active { transform: none; }
 }

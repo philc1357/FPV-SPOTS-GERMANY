@@ -2,9 +2,9 @@
 // Spot-Detail – Wetter
 // Ausgelagert aus public/php/spots/spot_detail.php (CSP: keine Inline-Skripte).
 // Wird am Seitenende synchron geladen, d. h. das HTML ist beim
-// Ausführen bereits vorhanden. Geladen wird erst, wenn der Bereich
-// in Sichtnähe scrollt (IntersectionObserver) – kein Request beim
-// Seitenaufbau, solange niemand bis zum Wetter kommt.
+// Ausführen bereits vorhanden. Der Bereich ist ein eingeklapptes
+// <details>; geladen wird erst beim ersten Aufklappen – kein Request
+// beim Seitenaufbau, solange niemand das Wetter öffnet.
 // =============================================================
 (function () {
     var box = document.getElementById('wetterBox');
@@ -200,18 +200,19 @@
         });
     }
 
-    // Erst laden, wenn der Bereich bis auf 400 px an den sichtbaren
-    // Ausschnitt heranrueckt. Ohne IntersectionObserver (sehr alte
-    // Browser) sofort laden, damit der Bereich nie leer bleibt.
-    if ('IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function (eintraege) {
-            if (eintraege.some(function (e) { return e.isIntersecting; })) {
-                io.disconnect();
-                laden();
-            }
-        }, { rootMargin: '400px 0px' });
-        io.observe(box);
-    } else {
+    // ── Auslöser: Aufklappen ─────────────────────────────────
+    // Erst beim Öffnen des <details> laden. laden() ist gegen doppelte
+    // Aufrufe geschützt (dataset.loaded / laeuft), erneutes Auf- und
+    // Zuklappen löst also keinen weiteren Request aus.
+    // Ist der Bereich schon offen (Anker #wetter, siehe spot_detail.js),
+    // sofort laden – das toggle-Event kann vor diesem Skript gefeuert haben.
+    var details = document.getElementById('wetterDetails');
+    if (!details) {
         laden();
+    } else {
+        details.addEventListener('toggle', function () {
+            if (details.open) laden();
+        });
+        if (details.open) laden();
     }
 })();

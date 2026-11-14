@@ -585,14 +585,16 @@ $initials = static function (string $name): string {
                  Alltagssprache. Paragrafen, Pflichten und
                  Haftungsausschluss stehen gesammelt darunter.
                  Es gibt weiterhin keine gruene Freigabe.
+
+                 Standardmaessig eingeklappt (<details>). Der
+                 Flugstatus steht kurz in den Schnell-Infos oben;
+                 der Anker #geozonen klappt auf (spot_detail.js).
             ================================================ -->
-            <section class="fsg-card" id="geozonen" aria-labelledby="geozonenTitel">
-                <header class="fsg-card-head">
-                    <div>
-                        <p class="fsg-kicker">Vor dem Abheben</p>
-                        <h2 id="geozonenTitel" class="fsg-h2">Darf ich hier fliegen?</h2>
-                    </div>
-                </header>
+            <section class="fsg-card fsg-card--collapsible" id="geozonen" aria-labelledby="geozonenTitel">
+                <p class="fsg-kicker">Vor dem Abheben</p>
+                <details class="fsg-collapse">
+                <summary><h2 id="geozonenTitel" class="fsg-h2">Darf ich hier fliegen?</h2></summary>
+                <div class="fsg-collapse-body">
 
                 <div class="sd-verdict sd-verdict--<?= $e($flight['tone']) ?>" role="status">
                     <i class="bi <?= $e($flight['icon']) ?> sd-verdict-icon" aria-hidden="true"></i>
@@ -703,24 +705,24 @@ $initials = static function (string $name): string {
                     Temporäre Sperren, NOTAM und örtliche Allgemeinverfügungen sind nicht enthalten.
                     <?= $e(DIPUL_ATTRIBUTION) ?>.
                 </p>
+                </div><!-- /.fsg-collapse-body -->
+                </details>
             </section>
 
             <!-- ================================================
                  Wetter am Spot
 
-                 Wird erst geladen, wenn der Bereich in die Naehe
-                 des sichtbaren Ausschnitts scrollt (siehe
+                 Standardmaessig eingeklappt (<details>). Die Daten
+                 werden erst beim ersten Aufklappen geladen (siehe
                  spot_detail_weather.js) – kein Request beim
                  Seitenaufbau. Nur Zahlen, keine Bewertung.
             ================================================ -->
-            <section class="fsg-card" id="wetter" aria-labelledby="wetterTitel">
-                <header class="fsg-card-head">
-                    <div>
-                        <p class="fsg-kicker">Wetter am Spot</p>
-                        <h2 id="wetterTitel" class="fsg-h2">Jetzt &amp; die nächsten Tage</h2>
-                    </div>
-                    <span class="fsg-meta" id="wetterStand"></span>
-                </header>
+            <section class="fsg-card fsg-card--collapsible" id="wetter" aria-labelledby="wetterTitel">
+                <p class="fsg-kicker">Wetter am Spot</p>
+                <details class="fsg-collapse" id="wetterDetails">
+                <summary><h2 id="wetterTitel" class="fsg-h2">Jetzt &amp; die nächsten Tage</h2></summary>
+                <div class="fsg-collapse-body">
+                <span class="fsg-meta" id="wetterStand"></span>
 
                 <div id="wetterBox" data-spot-id="<?= (int)$spotId ?>">
                     <div id="wetterBody" aria-live="polite" aria-busy="true">
@@ -730,6 +732,8 @@ $initials = static function (string $name): string {
                         <span class="visually-hidden">Wetterdaten werden geladen …</span>
                     </div>
                 </div>
+                </div><!-- /.fsg-collapse-body -->
+                </details>
             </section>
 
             <!-- ================================================
@@ -1162,7 +1166,7 @@ $initials = static function (string $name): string {
 <?php endif; ?>
 
 <!-- ============================================================
-     Wetter: Lazy-Load, sobald der Bereich in Sichtnähe kommt.
+     Wetter: Lazy-Load beim ersten Aufklappen des Wetter-Bereichs.
      Alle Fremdwerte gehen durch Number() oder esc() – kein rohes
      innerHTML mit ungeprüfter Antwort. Bewusst ohne Bewertung.
 ============================================================ -->
