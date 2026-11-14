@@ -35,9 +35,11 @@ async function dashDeleteSpot(spotId, btn) {
         if (row) row.remove();
         showDash('dashSuccessAlert', 'Spot erfolgreich gelöscht.');
 
-        // Zähler aktualisieren
-        const badge = document.querySelector('.badge.bg-primary');
-        if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent, 10) - 1);
+        // Zähler aktualisieren (Kartenkopf + Hero-Kachel)
+        ['spotCount', 'factSpotCount'].forEach((cid) => {
+            const el = document.getElementById(cid);
+            if (el) el.textContent = Math.max(0, parseInt(el.textContent, 10) - 1);
+        });
 
     } catch {
         showDash('dashErrorAlert', 'Netzwerkfehler. Bitte erneut versuchen.');

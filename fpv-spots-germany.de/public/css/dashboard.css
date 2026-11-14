@@ -1,6 +1,182 @@
 /* ============================================================
-   dashboard.css – Konto-Dashboard
-   Grundflaeche + Karten (card-dark) kommen aus components.css.
+   dashboard.css – Profil/Dashboard (neues Design)
+
+   Baut auf spot_detail.css auf (sd-crumbs, sd-eyebrow, sd-facts,
+   sd-layout, sd-actions, sd-type-dot) und den fsg-Bausteinen aus
+   components.css. Hier nur, was das Dashboard zusaetzlich braucht.
+   Alles unter .db / .page-dash, Farben aus den --fsg-*-Tokens.
    ============================================================ */
-.spot-row { transition: background-color .15s; }
-.spot-row:hover { background: var(--fsg-hover); }
+
+/* ------------------------------------------------------------
+   1. Seitenrahmen
+   ------------------------------------------------------------ */
+.db {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 20px 16px 72px;
+}
+.db-topline { margin-bottom: 28px; font-size: .875rem; }
+.page-dash .db a { text-underline-offset: 3px; }
+
+/* ------------------------------------------------------------
+   2. Hero: Avatar, Name, Aktionen
+   ------------------------------------------------------------ */
+.db-hero { margin-bottom: 28px; }
+.db-hero-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px 24px;
+    margin-bottom: 24px;
+}
+.db-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1F3B57, #16263A);
+    border: 1px solid var(--fsg-line-2);
+    box-shadow: 0 0 0 6px rgba(var(--fsg-accent-rgb), .12);
+    color: var(--fsg-accent-hi);
+    font-family: var(--fsg-font-head);
+    font-weight: 800;
+    font-size: 1.9rem;
+    letter-spacing: -.02em;
+}
+.db-hero-text { min-width: 0; flex: 1 1 260px; }
+.db-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 4px; }
+.db-title {
+    margin: 0;
+    font-family: var(--fsg-font-head);
+    font-weight: 800;
+    font-size: clamp(2rem, 1.2rem + 3vw, 3.4rem);
+    line-height: 1.05;
+    letter-spacing: -.035em;
+    color: #fff;
+    overflow-wrap: anywhere;
+}
+
+/* Kennzahl-Kacheln ohne Link (Kommentare, Mitglied seit) */
+.db .sd-fact { cursor: default; }
+.db a.sd-fact { cursor: pointer; }
+.db a.sd-fact:hover { border-color: var(--fsg-line-2); background: #141D2B; color: var(--fsg-text); }
+.db a.sd-fact:focus-visible { outline: 2px solid var(--fsg-accent); outline-offset: 2px; }
+
+/* ------------------------------------------------------------
+   3. Layout (Spalten kommen aus .sd-layout)
+   ------------------------------------------------------------ */
+.db-layout { display: flex; flex-direction: column; gap: 24px; }
+.db .fsg-card-head .fsg-kicker { margin-bottom: 4px; }
+
+/* ------------------------------------------------------------
+   4. Spot-Kacheln mit Foto
+   ------------------------------------------------------------ */
+.db-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.db-spot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: 14px;
+    border: 1px solid var(--fsg-line);
+    background: var(--fsg-surface-2);
+    overflow: hidden;
+    transition: border-color .15s, transform .2s;
+}
+.db-spot:hover { border-color: var(--fsg-line-2); transform: translateY(-2px); }
+
+.db-spot-cover {
+    display: block;
+    aspect-ratio: 16 / 10;
+    background: var(--fsg-surface);
+    overflow: hidden;
+}
+.db-spot-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .35s ease;
+}
+.db-spot:hover .db-spot-cover img { transform: scale(1.04); }
+.db-spot-cover:focus-visible { outline: 2px solid var(--fsg-accent); outline-offset: -2px; }
+.db-spot-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 2rem;
+    color: var(--sd-type, var(--fsg-accent));
+    background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--sd-type, var(--fsg-accent)) 18%, transparent), transparent 70%);
+}
+
+.db-spot-body { display: flex; flex-direction: column; gap: 8px; padding: 14px 14px 8px; min-width: 0; flex: 1; }
+.db-spot-type {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: .8rem;
+    color: var(--fsg-muted);
+}
+.db-spot-type .sd-type-dot { width: 9px; height: 9px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--sd-type, var(--fsg-accent)) 22%, transparent); }
+.db-spot-name {
+    margin: 0;
+    font-family: var(--fsg-font-head);
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    overflow-wrap: anywhere;
+}
+.db-spot-name a { color: var(--fsg-text); text-decoration: none; }
+.db-spot-name a:hover { color: var(--fsg-accent-hi); }
+.db-spot .fsg-tags { align-items: center; gap: 6px 10px; }
+
+.db-spot-tools {
+    display: flex;
+    justify-content: flex-end;
+    gap: 2px;
+    padding: 4px 8px 8px;
+}
+.db-spot-tools form { display: inline; }
+
+/* ------------------------------------------------------------
+   5. Ueber mich (im Hero, unter dem Namen)
+   ------------------------------------------------------------ */
+
+.db-bio { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; max-width: 62ch; }
+.db-bio-text { font-size: .98rem; }
+.db-bio-form { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+
+/* ------------------------------------------------------------
+   6. Responsiv (Spalten/Kacheln: spot_detail.css)
+   ------------------------------------------------------------ */
+@media (max-width: 760px) {
+    .db { padding-top: 14px; }
+    .db-topline { margin-bottom: 20px; }
+    .db-avatar { width: 64px; height: 64px; font-size: 1.4rem; }
+    .db-hero-head { margin-bottom: 18px; }
+    .db .sd-actions { width: 100%; }
+    .db .sd-actions > .fsg-btn--primary { flex: 1 1 auto; }
+    .db .fsg-card { padding: 20px; }
+}
+@media (max-width: 460px) {
+    .db-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .db-spot, .db-spot-cover img { transition: none; }
+    .db-spot:hover { transform: none; }
+    .db-spot:hover .db-spot-cover img { transform: none; }
+}
