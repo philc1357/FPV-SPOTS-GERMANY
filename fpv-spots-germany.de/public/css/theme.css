@@ -224,7 +224,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.site-brand-name span { color: var(--fsg-accent); font-weight: 600; }
+.site-brand-name span { color: #E68F2D; font-weight: 600; } /* heller als --fsg-accent, damit es optisch zum Button passt; alt: color: var(--fsg-accent); (#CA710F) */
 
 .site-nav-links {
     display: flex;
