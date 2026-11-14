@@ -1,0 +1,5 @@
+# Hochgeladene Profilbilder sind Laufzeitdaten und gehören nicht ins Repo.
+# Nur die .htaccess (PHP-Sperre, kein Listing) wird versioniert.
+*
+!.htaccess
+!.gitignore
