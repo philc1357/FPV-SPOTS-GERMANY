@@ -200,7 +200,7 @@ $memberSince     = date('m.Y', strtotime($profile['created_at']));
                                        title="Auf der Karte anzeigen">
                                         <i class="bi bi-map"></i>
                                     </a>
-                                    <a href="/public/php/spot_detail.php?id=<?= $spotId ?>"
+                                    <a href="/spot_detail.php?id=<?= $spotId ?>"
                                        class="btn btn-outline-primary btn-sm"
                                        title="Spot-Details anzeigen">
                                         <i class="bi bi-info-circle"></i>

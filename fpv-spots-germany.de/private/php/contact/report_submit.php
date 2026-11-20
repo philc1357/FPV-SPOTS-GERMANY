@@ -34,7 +34,7 @@ if ($spotId <= 0
     || strlen($body) < 10
     || strlen($body) > 1000
 ) {
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -54,7 +54,7 @@ $rl = $pdo->prepare(
 );
 $rl->execute([$userId]);
 if ((int)$rl->fetchColumn() >= 10) {
-    header("Location: /public/php/spot_detail.php?id=$spotId&reported=rl");
+    header("Location: /spot_detail.php?id=$spotId&reported=rl");
     exit;
 }
 
@@ -65,7 +65,7 @@ $dup = $pdo->prepare(
 );
 $dup->execute([$userId, $spotId, $reportType]);
 if ((int)$dup->fetchColumn() >= 1) {
-    header("Location: /public/php/spot_detail.php?id=$spotId&reported=dup");
+    header("Location: /spot_detail.php?id=$spotId&reported=dup");
     exit;
 }
 
@@ -79,5 +79,5 @@ try {
     error_log('report_submit.php error: ' . $e->getMessage());
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId&reported=1");
+header("Location: /spot_detail.php?id=$spotId&reported=1");
 exit;

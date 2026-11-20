@@ -26,7 +26,7 @@ $isAdmin   = !empty($_SESSION['is_admin']);
 // Spot-ID aus URL
 $spotId = (int)($_GET['id'] ?? 0);
 if ($spotId <= 0) {
-    header('Location: /public/php/dashboard.php');
+    header('Location: /dashboard.php');
     exit;
 }
 
@@ -36,7 +36,7 @@ $stmt->execute([$spotId]);
 $spot = $stmt->fetch();
 
 if (!$spot || ((int)$spot['user_id'] !== $userId && !$isAdmin)) {
-    header('Location: /public/php/dashboard.php');
+    header('Location: /dashboard.php');
     exit;
 }
 
@@ -337,7 +337,7 @@ $videoError = isset($_GET['video_error']);
                 </section>
 
                 <a href="/spot_detail.php?id=<?= (int)$spot['id'] ?>" class="btn btn-outline-secondary w-100 mt-3">Zur Spot-Detailseite</a>
-                <a href="/public/php/dashboard.php" class="btn btn-outline-secondary w-100 mt-2">Zum Dashboard</a>
+                <a href="/dashboard.php" class="btn btn-outline-secondary w-100 mt-2">Zum Dashboard</a>
             </div>
         </div>
     </div>

@@ -53,7 +53,7 @@ export async function openSpotDetail(spot) {
     });
 
     document.getElementById('spotDetailLabel').innerHTML =
-        `${esc(spot.name)} <a href="/public/php/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm ms-2" title="Detailansicht"><i class="bi bi-info-circle"></i> Details anzeigen</a>`;
+        `${esc(spot.name)} <a href="/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm ms-2" title="Detailansicht"><i class="bi bi-info-circle"></i> Details anzeigen</a>`;
     document.getElementById('spotDetailBody').innerHTML = `
         <div class="mb-3">
             <span class="badge me-1" style="background:${TYPE_COLORS[spot.spot_type] ?? '#fd7e14'};color:${TYPE_TEXT_COLORS[spot.spot_type] ?? '#ffffff'}">${esc(spot.spot_type)}</span>

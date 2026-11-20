@@ -94,7 +94,7 @@
                 });
             }).then(function (sub) {
                 toggle.checked = true;
-                return postJson('/public/php/api/push_subscribe.php', subscriptionToJson(sub))
+                return postJson('/api/push_subscribe.php', subscriptionToJson(sub))
                     .then(function (r) {
                         if (!r.ok) throw new Error('Server-Fehler ' + r.status);
                         setStatus('Browser-Benachrichtigungen sind aktiv.', false, true);
@@ -121,7 +121,7 @@
             }
             var endpoint = sub.endpoint;
             return sub.unsubscribe().then(function () {
-                return postJson('/public/php/api/push_unsubscribe.php', { endpoint: endpoint });
+                return postJson('/api/push_unsubscribe.php', { endpoint: endpoint });
             }).then(function () {
                 setStatus('Browser-Benachrichtigungen sind deaktiviert.', false);
             });

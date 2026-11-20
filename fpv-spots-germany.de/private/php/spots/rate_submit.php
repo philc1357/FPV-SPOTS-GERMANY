@@ -27,7 +27,7 @@ $stars  = (int)($_POST['stars'] ?? 0);
 $userId = (int)$_SESSION['user_id'];
 
 if ($spotId <= 0 || $stars < 1 || $stars > 5) {
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -61,5 +61,5 @@ try {
     error_log('rate_submit.php error: ' . $e->getMessage());
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId");
+header("Location: /spot_detail.php?id=$spotId");
 exit;

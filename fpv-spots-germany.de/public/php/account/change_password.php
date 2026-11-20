@@ -41,7 +41,15 @@ $userId     = (int)$_SESSION['user_id'];
         <form id="passwordForm" action="/private/php/account/change_password_submit.php" method="post">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <label for="current_password" class="mb-2">Aktuelles Passwort:</label>
-            <input id="current_password" type="password" name="current_password" class="form-control mb-2" maxlength="50" required autocomplete="current-password">
+            <!-- Autofill unterbinden: Die Passwort-Bestätigung soll bewusst
+                 eingetippt werden (Schutz bei offen gelassenem Rechner).
+                 - Passwortfeld mit autocomplete="new-password": Browser füllen
+                   dort kein gespeichertes Passwort ein ("off" ignorieren sie).
+                 - Verstecktes Benutzername-Feld: ordnet das Formular dem Konto
+                   zu, damit der Browser kein sichtbares Feld als Login-Feld nutzt.
+                   Wird serverseitig nicht ausgewertet. -->
+            <input type="text" name="pm_username" value="<?= $username ?>" autocomplete="username" class="d-none" tabindex="-1" aria-hidden="true">
+            <input id="current_password" type="password" name="current_password" class="form-control mb-2" maxlength="50" required autocomplete="new-password">
             <label for="new_password" class="mb-2">Neues Passwort:</label>
             <input id="password" type="password" name="password_field1" class="form-control mb-2" minlength="8" maxlength="50" required>
             <label for="new_password" class="mb-2">Passwort wiederholen:</label>

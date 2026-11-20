@@ -27,7 +27,7 @@ $body   = trim(post_str('body'));
 $userId = (int)$_SESSION['user_id'];
 
 if ($spotId <= 0 || strlen($body) < 3 || strlen($body) > 1000) {
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -50,5 +50,5 @@ try {
     error_log('comment_submit.php error: ' . $e->getMessage());
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId");
+header("Location: /spot_detail.php?id=$spotId");
 exit;

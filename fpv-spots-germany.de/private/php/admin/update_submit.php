@@ -9,17 +9,17 @@ require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshn
 require_once __DIR__ . '/../core/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /public/php/updates.php');
+    header('Location: /updates.php');
     exit;
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /public/php/updates.php');
+    header('Location: /updates.php');
     exit;
 }
 
 if (empty($_SESSION['is_admin'])) {
-    header('Location: /public/php/updates.php');
+    header('Location: /updates.php');
     exit;
 }
 
@@ -32,12 +32,12 @@ $description = trim(post_str('description'));
 $userId      = (int)$_SESSION['user_id'];
 
 if ($title === '' || mb_strlen($title) > 255) {
-    header('Location: /public/php/updates.php?error=1');
+    header('Location: /updates.php?error=1');
     exit;
 }
 
 if ($description === '') {
-    header('Location: /public/php/updates.php?error=1');
+    header('Location: /updates.php?error=1');
     exit;
 }
 
@@ -46,9 +46,9 @@ try {
     $stmt->execute([$userId, $title, $description]);
 } catch (PDOException $e) {
     error_log('update_submit.php error: ' . $e->getMessage());
-    header('Location: /public/php/updates.php?error=1');
+    header('Location: /updates.php?error=1');
     exit;
 }
 
-header('Location: /public/php/updates.php?success=1');
+header('Location: /updates.php?success=1');
 exit;

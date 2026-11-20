@@ -39,7 +39,7 @@ $spotId  = (int)$comment['spot_id'];
 $isAdmin = !empty($_SESSION['is_admin']);
 
 if ((int)$comment['user_id'] !== $userId && !$isAdmin) {
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -50,5 +50,5 @@ try {
     error_log('comment_delete_submit.php error: ' . $e->getMessage());
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId");
+header("Location: /spot_detail.php?id=$spotId");
 exit;

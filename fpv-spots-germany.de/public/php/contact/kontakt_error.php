@@ -29,7 +29,7 @@ $csrfToken  = $_SESSION['csrf_token'];
             <div class="card card-dark text-light p-4 text-center">
                 <h1 class="h4 mb-3">Fehler beim Senden</h1>
                 <p class="text-secondary mb-4">Deine Kontaktanfrage konnte leider nicht abgeschickt werden. Bitte versuche es später erneut.</p>
-                <a href="/public/php/kontakt.php" class="btn btn-primary">Zurück zum Kontaktformular</a>
+                <a href="/kontakt.php" class="btn btn-primary">Zurück zum Kontaktformular</a>
             </div>
         </div>
     </div>

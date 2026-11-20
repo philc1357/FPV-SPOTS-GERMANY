@@ -36,7 +36,7 @@ if ($parkingInfo === '') {
 }
 
 if (strlen($parkingInfo) > 500) {
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -55,5 +55,5 @@ try {
     error_log('parking_info_submit.php error: ' . $e->getMessage());
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId");
+header("Location: /spot_detail.php?id=$spotId");
 exit;

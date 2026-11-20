@@ -68,7 +68,7 @@
             html += `<div class="col-6"><div style="aspect-ratio:16/9;overflow:hidden;border-radius:.375rem;"><img src="${thumb}" alt="${esc(filename)}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" data-fallback-src="${esc(src)}"></div></div>`;
         });
         if (hasMore) {
-            html += `<div class="col-6 d-flex align-items-center justify-content-center"><a href="/public/php/spot_detail.php?id=${spotId}" class="text-info small text-decoration-none fw-semibold">Mehr Fotos anzeigen…</a></div>`;
+            html += `<div class="col-6 d-flex align-items-center justify-content-center"><a href="/spot_detail.php?id=${spotId}" class="text-info small text-decoration-none fw-semibold">Mehr Fotos anzeigen…</a></div>`;
         }
         html += '</div>';
         section.innerHTML = html;
@@ -88,7 +88,7 @@
 
         overlayTitle.textContent = spot.name;
         overlayBody.innerHTML = `
-            <a href="/public/php/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm mb-3">
+            <a href="/spot_detail.php?id=${spot.id}" class="btn btn-outline-light btn-sm mb-3">
                 <i class="bi bi-info-circle me-1"></i>Details anzeigen
             </a>
             <div class="mb-3">

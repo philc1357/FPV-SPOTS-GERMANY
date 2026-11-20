@@ -8,7 +8,7 @@ require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /public/php/forgot_password.php');
+    header('Location: /forgot_password.php');
     exit;
 }
 
@@ -62,7 +62,7 @@ if (!isset($rateLimited) && $email !== '' && filter_var($email, FILTER_VALIDATE_
         ]);
 
         // Reset-Link erstellen
-        $resetUrl = "https://fpv-spots-germany.de/public/php/reset_password.php?selector="
+        $resetUrl = "https://fpv-spots-germany.de/reset_password.php?selector="
                   . urlencode($selector) . "&validator=" . urlencode($validator);
 
         // E-Mail senden

@@ -35,13 +35,21 @@ $userId     = (int)$_SESSION['user_id'];
     <main class="container mt-5">
         <div class="fsg-card" style="max-width: 440px; margin: auto;">
         <h1 class="fsg-h2">Benutzername ändern</h1>
-        <p>Aktueller Benutzername: <span><b class="text-primary"><?= htmlspecialchars($username ?? '') ?></b></span></p>
+        <p>Aktueller Benutzername: <span><b class="text-primary"><?= $username ?></b></span></p>
         <form action="/private/php/account/change_username_submit.php" method="post">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+            <!-- Autofill unterbinden: Die Passwort-Bestätigung soll bewusst
+                 eingetippt werden (Schutz bei offen gelassenem Rechner).
+                 - Passwortfeld mit autocomplete="new-password": Browser füllen
+                   dort kein gespeichertes Passwort ein ("off" ignorieren sie).
+                 - Verstecktes Benutzername-Feld: ordnet das Formular dem Konto
+                   zu, damit der Browser kein sichtbares Feld als Login-Feld nutzt.
+                   Wird serverseitig nicht ausgewertet. -->
+            <input type="text" name="pm_username" value="<?= $username ?>" autocomplete="username" class="d-none" tabindex="-1" aria-hidden="true">
             <label for="new_username" class="mb-2">Neuer Benutzername:</label>
-            <input id="new_username" type="text" class="form-control mb-2" name="new_username" autocomplete="username" minlength="5" maxlength="50" required>
+            <input id="new_username" type="text" class="form-control mb-2" name="new_username" autocomplete="off" minlength="5" maxlength="50" required>
             <label for="current_password" class="mb-2">Aktuelles Passwort zur Bestätigung:</label>
-            <input id="current_password" type="password" class="form-control mb-2" name="current_password" maxlength="50" required autocomplete="current-password">
+            <input id="current_password" type="password" class="form-control mb-2" name="current_password" maxlength="50" required autocomplete="new-password">
             <button type="submit" class="btn btn-primary">Bestätigen</button>
             <a href="/dashboard.php" class="btn btn-outline-secondary">Zurück</a>
         </form>

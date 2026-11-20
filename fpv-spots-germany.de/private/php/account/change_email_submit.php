@@ -18,7 +18,7 @@ declare(strict_types=1);
 
     // 2. Nur POST akzeptieren
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: /public/php/change_email.php");
+        header("Location: /change_email.php");
         exit;
     }
 
@@ -109,7 +109,7 @@ declare(strict_types=1);
                 <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
 
-            <a href="/public/php/dashboard.php" class="btn btn-primary mt-2">Zum Dashboard</a>
+            <a href="/dashboard.php" class="btn btn-primary mt-2">Zum Dashboard</a>
         </div>
     </div>
 </body>

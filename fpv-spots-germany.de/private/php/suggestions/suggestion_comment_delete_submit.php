@@ -9,12 +9,12 @@ require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshn
 require_once __DIR__ . '/../core/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /public/php/kritik.php');
+    header('Location: /kritik.php');
     exit;
 }
 
 if (!isset($_SESSION['user_id']) || empty($_SESSION['is_admin'])) {
-    header('Location: /public/php/kritik.php');
+    header('Location: /kritik.php');
     exit;
 }
 
@@ -25,7 +25,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 $commentId = (int)($_POST['comment_id'] ?? 0);
 
 if ($commentId <= 0) {
-    header('Location: /public/php/kritik.php');
+    header('Location: /kritik.php');
     exit;
 }
 
@@ -35,7 +35,7 @@ $stmt->execute([$commentId]);
 $comment = $stmt->fetch();
 
 if (!$comment) {
-    header('Location: /public/php/kritik.php');
+    header('Location: /kritik.php');
     exit;
 }
 
@@ -48,5 +48,5 @@ try {
     error_log('suggestion_comment_delete_submit.php error: ' . $e->getMessage());
 }
 
-header('Location: /public/php/kritik.php#suggestion-' . $suggestionId);
+header('Location: /kritik.php#suggestion-' . $suggestionId);
 exit;

@@ -9,7 +9,7 @@ require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshn
 require_once __DIR__ . '/../core/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /public/php/kontakt.php');
+    header('Location: /kontakt.php');
     exit;
 }
 
@@ -23,7 +23,7 @@ $userId  = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 $ip      = client_ip();
 
 if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) || empty($message) || strlen($message) > 5000) {
-    header('Location: /public/php/kontakt_error.php');
+    header('Location: /kontakt_error.php');
     exit;
 }
 
@@ -51,7 +51,7 @@ $byIp = (int)$rlIp->fetchColumn();
 
 if ($byEmailOrUser >= 5 || $byIp >= 5) {
     http_response_code(429);
-    header('Location: /public/php/kontakt_error.php?rl=1');
+    header('Location: /kontakt_error.php?rl=1');
     exit;
 }
 
@@ -65,7 +65,7 @@ try {
         ->execute([$userId, $ip]);
 } catch (PDOException $e) {
     error_log('kontakt_submit.php DB error: ' . $e->getMessage());
-    header('Location: /public/php/kontakt_error.php');
+    header('Location: /kontakt_error.php');
     exit;
 }
 
@@ -89,5 +89,5 @@ try {
     // E-Mail-Fehler soll den Nutzer nicht blockieren – Anfrage wurde bereits gespeichert
 }
 
-header('Location: /public/php/kontakt_erfolg.php');
+header('Location: /kontakt_erfolg.php');
 exit;

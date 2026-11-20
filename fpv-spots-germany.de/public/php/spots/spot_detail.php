@@ -290,7 +290,7 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
     <meta property="og:description" content="<?= $e(mb_substr($spot['description'] ?: 'FPV Spot in Deutschland', 0, 155)) ?>">
     <meta property="og:type" content="article">
     <meta property="og:locale" content="de_DE">
-    <link rel="canonical" href="https://fpv-spots-germany.de/public/php/spot_detail.php?id=<?= $spotId ?>">
+    <link rel="canonical" href="https://fpv-spots-germany.de/spot_detail.php?id=<?= $spotId ?>">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     <link rel="stylesheet" href="<?= asset('/public/css/spot_detail.css') ?>">
 </head>
@@ -377,7 +377,7 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                     <form method="POST" action="/private/php/spots/favorite_submit.php" class="d-inline-flex">
                         <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
                         <input type="hidden" name="spot_id" value="<?= $spotId ?>">
-                        <input type="hidden" name="redirect" value="/public/php/spot_detail.php?id=<?= $spotId ?>">
+                        <input type="hidden" name="redirect" value="/spot_detail.php?id=<?= $spotId ?>">
                         <button type="submit" class="fsg-btn fsg-icon-btn<?= $isFavorite ? ' is-active' : '' ?>"
                                 aria-pressed="<?= $isFavorite ? 'true' : 'false' ?>"
                                 title="<?= $isFavorite ? 'Aus Favoriten entfernen' : 'Als Favorit speichern' ?>"
@@ -429,7 +429,7 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                         <?php if ($canManage): ?>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item" href="/public/php/edit_spot.php?id=<?= $spotId ?>">
+                                <a class="dropdown-item" href="/edit_spot.php?id=<?= $spotId ?>">
                                     <i class="bi bi-pencil me-2"></i>Spot bearbeiten
                                 </a>
                             </li>

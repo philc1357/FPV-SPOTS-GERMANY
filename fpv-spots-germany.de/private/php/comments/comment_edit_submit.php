@@ -39,12 +39,12 @@ if (!$comment) {
 $spotId = (int)$comment['spot_id'];
 
 if ((int)$comment['user_id'] !== $userId) {
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
 if (strlen($body) < 3 || strlen($body) > 1000) {
-    header("Location: /public/php/spot_detail.php?id=$spotId");
+    header("Location: /spot_detail.php?id=$spotId");
     exit;
 }
 
@@ -55,5 +55,5 @@ try {
     error_log('comment_edit_submit.php error: ' . $e->getMessage());
 }
 
-header("Location: /public/php/spot_detail.php?id=$spotId");
+header("Location: /spot_detail.php?id=$spotId");
 exit;

@@ -108,7 +108,7 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
     $hasCover  = $coverFile !== '' && is_file($uploadDir . $coverFile);
     ?>
     <li class="db-spot" id="spot-row-<?= $id ?>" style="--sd-type: <?= $e($typeColor) ?>">
-        <a class="db-spot-cover" href="/public/php/spot_detail.php?id=<?= $id ?>"
+        <a class="db-spot-cover" href="/spot_detail.php?id=<?= $id ?>"
            aria-label="Details zu <?= $e($s['name']) ?>">
             <?php if ($hasCover): ?>
                 <img src="<?= $e(thumb_url('/public/uploads/imgs/' . $coverFile)) ?>"
@@ -122,7 +122,7 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
                 <span class="sd-type-dot" aria-hidden="true"></span><?= $e($s['spot_type'] ?: 'FPV') ?>
             </p>
             <h3 class="db-spot-name">
-                <a href="/public/php/spot_detail.php?id=<?= $id ?>"><?= $e($s['name']) ?></a>
+                <a href="/spot_detail.php?id=<?= $id ?>"><?= $e($s['name']) ?></a>
             </h3>
             <div class="fsg-tags">
                 <span class="fsg-tag fsg-tag--diff-<?= $e($diffColor) ?>">
@@ -139,7 +139,7 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
                 <i class="bi bi-map" aria-hidden="true"></i>
             </a>
             <?php if ($mode === 'own'): ?>
-                <a href="/public/php/edit_spot.php?id=<?= $id ?>" class="fsg-mini-btn" title="Spot bearbeiten" aria-label="Spot bearbeiten">
+                <a href="/edit_spot.php?id=<?= $id ?>" class="fsg-mini-btn" title="Spot bearbeiten" aria-label="Spot bearbeiten">
                     <i class="bi bi-pencil" aria-hidden="true"></i>
                 </a>
                 <button type="button" class="fsg-mini-btn fsg-mini-btn--danger" title="Spot löschen" aria-label="Spot löschen"
@@ -151,7 +151,7 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
                       data-confirm="Aus Favoriten entfernen?">
                     <input type="hidden" name="csrf_token" value="<?= $e($csrfToken) ?>">
                     <input type="hidden" name="spot_id" value="<?= $id ?>">
-                    <input type="hidden" name="redirect" value="/public/php/dashboard.php">
+                    <input type="hidden" name="redirect" value="/dashboard.php">
                     <button type="submit" class="fsg-mini-btn fsg-mini-btn--danger" title="Als Favorit entfernen" aria-label="Als Favorit entfernen">
                         <i class="bi bi-heart-fill" aria-hidden="true"></i>
                     </button>
@@ -174,7 +174,7 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
     <meta property="og:description" content="Verwalte deine FPV-Spots, Favoriten und Kontodaten.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="de_DE">
-    <link rel="canonical" href="https://fpv-spots-germany.de/public/php/dashboard.php">
+    <link rel="canonical" href="https://fpv-spots-germany.de/dashboard.php">
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/head_assets.php'; ?>
     <link rel="stylesheet" href="<?= asset('/public/css/spot_detail.css') ?>">
     <link rel="stylesheet" href="<?= asset('/public/css/dashboard.css') ?>">
@@ -269,9 +269,9 @@ $renderSpotCard = static function (array $s, string $mode) use ($e, $diffColors,
                             </button>
                         </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/public/php/change_username.php"><i class="bi bi-person me-2"></i>Benutzername ändern</a></li>
-                        <li><a class="dropdown-item" href="/public/php/change_email.php"><i class="bi bi-envelope me-2"></i>E-Mail ändern</a></li>
-                        <li><a class="dropdown-item" href="/public/php/change_password.php"><i class="bi bi-key me-2"></i>Passwort ändern</a></li>
+                        <li><a class="dropdown-item" href="/change_username.php"><i class="bi bi-person me-2"></i>Benutzername ändern</a></li>
+                        <li><a class="dropdown-item" href="/change_email.php"><i class="bi bi-envelope me-2"></i>E-Mail ändern</a></li>
+                        <li><a class="dropdown-item" href="/change_password.php"><i class="bi bi-key me-2"></i>Passwort ändern</a></li>
                     </ul>
                 </div>
             </div>
