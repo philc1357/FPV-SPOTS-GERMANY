@@ -8,6 +8,7 @@ declare(strict_types=1);
     require_once __DIR__ . '/../core/db.php';
     require_once __DIR__ . '/../core/password_blacklist.php';
     require_once __DIR__ . '/../core/session_guard.php';
+    require_once __DIR__ . '/../core/account_mails.php';
 
     if (!isset($_SESSION['user_id'])) {
         header("Location: /");
@@ -32,7 +33,7 @@ declare(strict_types=1);
     }
 
     // 4a. Felder dürfen nicht leer sein
-    if (empty($currentPw) || empty($newPass1) || empty($newPass2)) {
+    if ($currentPw === '' || $newPass1 === '' || $newPass2 === '') {
         $error = "Bitte alle Passwortfelder ausfüllen.";
     }
 
@@ -41,12 +42,11 @@ declare(strict_types=1);
         $error = "Das Passwort muss mindestens 8 Zeichen lang sein.";
     }
 
-    // 4c. Maximale Länge – Schutz vor BCrypt-Truncation-Angriff
-    //     BCrypt verarbeitet maximal 72 Bytes. Ein Angreifer könnte
-    //     gezielt sehr lange Passwörter schicken, die nach Byte 72
-    //     identisch sind. Hard-Limit hier verhindert das.
-    if (!isset($error) && strlen($newPass1) > 50) {
-        $error = "Das Passwort darf maximal 50 Zeichen lang sein.";
+    // 4c. Maximale Länge – bcrypt verarbeitet nur die ersten 72 Bytes,
+    //     alles danach würde stillschweigend ignoriert. Das Limit liegt
+    //     daher genau bei 72 Bytes (strlen zählt Bytes, nicht Zeichen).
+    if (!isset($error) && strlen($newPass1) > 72) {
+        $error = "Das Passwort darf maximal 72 Zeichen lang sein (Umlaute und Sonderzeichen zählen doppelt).";
     }
 
     // 4c2. Schutz gegen häufig verwendete Passwörter (Top-1000-Blacklist)
@@ -60,9 +60,25 @@ declare(strict_types=1);
         $error = "Die Passwörter stimmen nicht überein.";
     }
 
+    // 5. Rate-Limit für die Re-Authentifizierung: Mit einer gekaperten
+    //    Session ließe sich das aktuelle Passwort sonst beliebig oft raten.
+    //    5 Fehlversuche pro Konto in 15 Minuten.
+    if (!isset($error)) {
+        $rlStmt = $pdo->prepare(
+            "SELECT COUNT(*) FROM audit_logs
+             WHERE action = 'PASSWORD_CHANGE_REAUTH_FAILED'
+               AND user_id = ?
+               AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)"
+        );
+        $rlStmt->execute([$userId]);
+        if ((int)$rlStmt->fetchColumn() >= 5) {
+            $error = "Zu viele Fehlversuche. Bitte warte 15 Minuten.";
+        }
+    }
+
     // 6. Aktuelles Passwort aus der DB holen, um "same password"-Check zu ermöglichen
     if (!isset($error)) {
-        $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ? LIMIT 1");
+        $stmt = $pdo->prepare("SELECT username, email, password_hash FROM users WHERE id = ? LIMIT 1");
         $stmt->execute([$userId]);
         $userData = $stmt->fetch();
 
@@ -88,7 +104,7 @@ declare(strict_types=1);
     // 8. Passwort hashen & in DB schreiben
     if (!isset($error)) {
         try {
-            // PASSWORD_DEFAULT verwendet aktuell Argon2id (konsistent mit dem Rest des Projekts)
+            // PASSWORD_DEFAULT = bcrypt (konsistent mit dem Rest des Projekts)
             $newHash = password_hash($newPass1, PASSWORD_DEFAULT);
 
             // Passwort setzen und alle bestehenden Anmeldungen entwerten –
@@ -111,6 +127,9 @@ declare(strict_types=1);
             // 9. Audit-Log schreiben
             $logSql = "INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_CHANGED', ?)";
             $pdo->prepare($logSql)->execute([$userId, client_ip()]);
+
+            // 9a. Inhaber per Mail informieren (fällt bei Kontoübernahme auf)
+            send_password_changed_mail((string)$userData['email'], (string)$userData['username'], 'change');
 
             // 10. Aktuelles Gerät abmelden – Remember-Me-Cookie und
             //     Session-Cookie entfernen, Session serverseitig zerstören.

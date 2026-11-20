@@ -40,7 +40,6 @@ $userId     = (int)$_SESSION['user_id'];
         </div>
         <form id="passwordForm" action="/private/php/account/change_password_submit.php" method="post">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-            <label for="current_password" class="mb-2">Aktuelles Passwort:</label>
             <!-- Autofill unterbinden: Die Passwort-Bestätigung soll bewusst
                  eingetippt werden (Schutz bei offen gelassenem Rechner).
                  - Passwortfeld mit autocomplete="new-password": Browser füllen
@@ -49,11 +48,12 @@ $userId     = (int)$_SESSION['user_id'];
                    zu, damit der Browser kein sichtbares Feld als Login-Feld nutzt.
                    Wird serverseitig nicht ausgewertet. -->
             <input type="text" name="pm_username" value="<?= $username ?>" autocomplete="username" class="d-none" tabindex="-1" aria-hidden="true">
-            <input id="current_password" type="password" name="current_password" class="form-control mb-2" maxlength="50" required autocomplete="new-password">
-            <label for="new_password" class="mb-2">Neues Passwort:</label>
-            <input id="password" type="password" name="password_field1" class="form-control mb-2" minlength="8" maxlength="50" required>
-            <label for="new_password" class="mb-2">Passwort wiederholen:</label>
-            <input id="password_confirm" type="password" name="password" class="form-control mb-2" minlength="8" maxlength="50" required>
+            <label for="current_password" class="mb-2">Aktuelles Passwort:</label>
+            <input id="current_password" type="password" name="current_password" class="form-control mb-2" maxlength="72" data-password-toggle required autocomplete="new-password">
+            <label for="password" class="mb-2">Neues Passwort:</label>
+            <input id="password" type="password" name="password_field1" class="form-control mb-2" minlength="8" maxlength="72" data-password-toggle required autocomplete="new-password">
+            <label for="password_confirm" class="mb-2">Passwort wiederholen:</label>
+            <input id="password_confirm" type="password" name="password" class="form-control mb-2" minlength="8" maxlength="72" data-password-toggle required autocomplete="new-password">
             <button type="submit" class="btn btn-primary">Bestätigen</button>
             <a href="/dashboard.php" class="btn btn-outline-secondary">Zurück</a>
         </form>

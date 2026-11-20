@@ -28,25 +28,27 @@ if (!$isLoggedIn):
                     </div>
                 <?php endif; ?>
                 <form id="loginForm" action="/private/php/auth/login_submit.php" method="POST">
-                    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="redirect" id="loginRedirect" value="<?= htmlspecialchars($loginRedirect, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="mb-3">
-                        <label for="loginUsername" class="visually-hidden">Benutzername</label>
+                        <label for="loginUsername" class="visually-hidden">Benutzername oder E-Mail</label>
                         <input id="loginUsername" type="text" name="username"
                                class="form-control"
-                               placeholder="Benutzername"
-                               autocomplete="username" required>
+                               placeholder="Benutzername oder E-Mail"
+                               autocomplete="username" autocapitalize="none"
+                               autocorrect="off" spellcheck="false"
+                               maxlength="255" required>
                     </div>
                     <div class="mb-3">
                         <label for="loginPassword" class="visually-hidden">Passwort</label>
                         <input id="loginPassword" type="password" name="password"
                                class="form-control"
                                placeholder="Passwort"
-                               autocomplete="current-password" required>
+                               autocomplete="current-password" data-password-toggle required>
                     </div>
-                    <!-- <div class="text-end mb-2">
-                        <a href="/public/php/forgot_password.php" class="small">Passwort vergessen?</a>
-                    </div> -->
+                    <div class="text-end mb-2">
+                        <a href="/forgot_password.php" class="small">Passwort vergessen?</a>
+                    </div>
                     <div class="form-check mb-3">
                         <input type="checkbox" name="remember_me" value="1" id="rememberMeModal"
                                class="form-check-input">

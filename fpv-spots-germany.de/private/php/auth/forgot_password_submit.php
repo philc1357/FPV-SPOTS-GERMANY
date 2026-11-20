@@ -20,7 +20,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
 $ip = client_ip();
 $stmt = $pdo->prepare(
     "SELECT COUNT(*) FROM audit_logs
-     WHERE action = 'PASSWORD_RESET_REQUESTED'
+     WHERE action IN ('PASSWORD_RESET_REQUESTED', 'PASSWORD_RESET_THROTTLED')
        AND ip_address = ?
        AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)"
 );
@@ -38,6 +38,27 @@ if (!isset($rateLimited) && $email !== '' && filter_var($email, FILTER_VALIDATE_
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
+    // Limit pro Konto: höchstens 1 Reset-Mail in 10 Minuten. Schützt das
+    // Postfach des Opfers vor Mail-Flut über viele IPs. Gedrosselte
+    // Anfragen werden separat geloggt, damit das Zeitfenster ab der
+    // letzten tatsächlich versendeten Mail zählt. Die Antwort nach
+    // außen bleibt identisch (keine User-Enumeration).
+    if ($user) {
+        $acctStmt = $pdo->prepare(
+            "SELECT COUNT(*) FROM audit_logs
+             WHERE action = 'PASSWORD_RESET_REQUESTED'
+               AND user_id = ?
+               AND created_at > DATE_SUB(NOW(), INTERVAL 10 MINUTE)"
+        );
+        $acctStmt->execute([$user['id']]);
+        if ((int)$acctStmt->fetchColumn() >= 1) {
+            $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_RESET_THROTTLED', ?)")
+                ->execute([$user['id'], $ip]);
+            $user = false;
+            $throttled = true;
+        }
+    }
+
     if ($user) {
         // Alte Tokens löschen
         $pdo->prepare("DELETE FROM password_reset_tokens WHERE user_id = ?")->execute([$user['id']]);
@@ -48,17 +69,16 @@ if (!isset($rateLimited) && $email !== '' && filter_var($email, FILTER_VALIDATE_
         // Neuen Token erstellen (Selector/Validator-Pattern)
         $selector  = bin2hex(random_bytes(16));
         $validator = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', time() + 3600); // 1 Stunde
-
+        // Gültigkeit 1 Stunde – in SQL berechnet, da die DB in UTC und
+        // PHP in Europe/Berlin läuft (PHP-date() wäre um 1–2 h verschoben)
         $stmt = $pdo->prepare(
             "INSERT INTO password_reset_tokens (selector, validator_hash, user_id, expires_at)
-             VALUES (?, ?, ?, ?)"
+             VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))"
         );
         $stmt->execute([
             $selector,
             hash('sha256', $validator),
             $user['id'],
-            $expiresAt,
         ]);
 
         // Reset-Link erstellen
@@ -98,7 +118,7 @@ if (!isset($rateLimited) && $email !== '' && filter_var($email, FILTER_VALIDATE_
         // Audit-Log
         $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_RESET_REQUESTED', ?)")
             ->execute([$user['id'], $ip]);
-    } else {
+    } elseif (!isset($throttled)) {
         // Auch bei nicht-existierender E-Mail loggen (für Rate-Limiting)
         $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (NULL, 'PASSWORD_RESET_REQUESTED', ?)")
             ->execute([$ip]);

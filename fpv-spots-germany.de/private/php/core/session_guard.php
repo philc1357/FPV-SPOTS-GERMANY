@@ -85,6 +85,7 @@ if (!function_exists('destroy_current_session')) {
 //  - password_changed_at setzen -> alle bestehenden Sessions gelten
 //    ab sofort als veraltet (siehe enforce_session_freshness)
 //  - alle Remember-Me-Tokens loeschen -> kein Auto-Login mehr
+//  - alle Geraete-Cookies (login_devices) entwerten
 // -------------------------------------------------------------
 if (!function_exists('invalidate_all_user_sessions')) {
     function invalidate_all_user_sessions(PDO $pdo, int $userId): void
@@ -93,6 +94,11 @@ if (!function_exists('invalidate_all_user_sessions')) {
             ->execute([$userId]);
 
         $pdo->prepare("DELETE FROM remember_tokens WHERE user_id = ?")
+            ->execute([$userId]);
+
+        // Bekannte Geräte vergessen: wer vor der Änderung Zugriff
+        // hatte, soll nicht länger von der Kontosperre ausgenommen sein
+        $pdo->prepare("DELETE FROM login_devices WHERE user_id = ?")
             ->execute([$userId]);
     }
 }

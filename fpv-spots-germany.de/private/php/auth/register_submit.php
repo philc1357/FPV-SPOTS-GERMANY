@@ -28,7 +28,8 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     exit;
 }
 
-$redirectRaw = $_POST['redirect'] ?? '/';
+// post_str(): ein Array als redirect würde unter strict_types sonst einen TypeError (500) auslösen
+$redirectRaw = post_str('redirect', '/');
 
 if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
     register_flash_redirect('danger', 'Sicherheits-Token ungültig. Bitte Seite neu laden.', $redirectRaw, true);
@@ -63,8 +64,8 @@ if (empty($username) || empty($email) || empty($pass1) || empty($pass2)) {
     register_flash_redirect('danger', 'Die Passwörter stimmen nicht überein.', $redirectRaw, true);
 } elseif (strlen($pass1) < 8) {
     register_flash_redirect('danger', 'Das Passwort muss mindestens 8 Zeichen lang sein.', $redirectRaw, true);
-} elseif (strlen($pass1) > 50) {
-    register_flash_redirect('danger', 'Das Passwort darf maximal 50 Zeichen lang sein.', $redirectRaw, true);
+} elseif (strlen($pass1) > 72) {
+    register_flash_redirect('danger', 'Das Passwort darf maximal 72 Zeichen lang sein (Umlaute und Sonderzeichen zählen doppelt).', $redirectRaw, true);
 } elseif (is_blacklisted_password($pass1)) {
     register_flash_redirect('danger', 'Dieses Passwort ist zu häufig verwendet. Bitte wähle ein sichereres.', $redirectRaw, true);
 } elseif (post_str('terms') !== '1') {

@@ -39,15 +39,15 @@ if (!$isLoggedIn):
                         <label for="password" class="visually-hidden">Passwort</label>
                         <input id="password" type="password" name="password_field1"
                                class="form-control"
-                               placeholder="Passwort" minlength="8" maxlength="50"
-                               autocomplete="new-password" required>
+                               placeholder="Passwort" minlength="8" maxlength="72"
+                               autocomplete="new-password" data-password-toggle required>
                     </div>
                     <div class="mb-3">
                         <label for="password_confirm" class="visually-hidden">Passwort wiederholen</label>
                         <input id="password_confirm" type="password" name="password"
                                class="form-control"
-                               placeholder="Passwort wiederholen" maxlength="50"
-                               autocomplete="new-password" required>
+                               placeholder="Passwort wiederholen" maxlength="72"
+                               autocomplete="new-password" data-password-toggle required>
                         <div id="passwordError" style="display: none;" class="small text-danger mt-1">
                             Die Passwörter stimmen nicht überein.
                         </div>

@@ -8,6 +8,7 @@ require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/password_blacklist.php';
 require_once __DIR__ . '/../core/session_guard.php';
+require_once __DIR__ . '/../core/account_mails.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /forgot_password.php');
@@ -24,7 +25,7 @@ $newPass1  = post_str('password_field1');
 $newPass2  = post_str('password');
 
 // Passwort-Validierung (gleiche Regeln wie change_password_submit.php)
-if (empty($newPass1) || empty($newPass2)) {
+if ($newPass1 === '' || $newPass2 === '') {
     $error = "Bitte beide Passwortfelder ausfüllen.";
 }
 
@@ -32,8 +33,8 @@ if (!isset($error) && strlen($newPass1) < 8) {
     $error = "Das Passwort muss mindestens 8 Zeichen lang sein.";
 }
 
-if (!isset($error) && strlen($newPass1) > 50) {
-    $error = "Das Passwort darf maximal 50 Zeichen lang sein.";
+if (!isset($error) && strlen($newPass1) > 72) {
+    $error = "Das Passwort darf maximal 72 Zeichen lang sein (Umlaute und Sonderzeichen zählen doppelt).";
 }
 
 if (!isset($error) && is_blacklisted_password($newPass1)) {
@@ -44,44 +45,69 @@ if (!isset($error) && !hash_equals($newPass1, $newPass2)) {
     $error = "Die Passwörter stimmen nicht überein.";
 }
 
-// Token validieren
+// =============================================================
+// Token prüfen + Passwort setzen – alles in EINER Transaktion
+// SELECT … FOR UPDATE sperrt die Token-Zeile: zwei parallele
+// Requests mit demselben Link können ihn nicht doppelt einlösen.
+// Passwort, Token-Löschung und Session-Entwertung gelingen nur
+// gemeinsam oder gar nicht.
+// =============================================================
 if (!isset($error)) {
-    $stmt = $pdo->prepare(
-        "SELECT id, validator_hash, user_id, expires_at
-         FROM password_reset_tokens
-         WHERE selector = ? AND expires_at > NOW()
-         LIMIT 1"
-    );
-    $stmt->execute([$selector]);
-    $token = $stmt->fetch();
-
-    if (!$token || !hash_equals($token['validator_hash'], hash('sha256', $validator))) {
+    // Format vorab prüfen (spart eine DB-Abfrage bei Müll-Eingaben)
+    if (!preg_match('/^[a-f0-9]{32}$/', $selector) || !preg_match('/^[a-f0-9]{64}$/', $validator)) {
         $error = "Dieser Link ist ungültig oder abgelaufen.";
     }
 }
 
-// Passwort aktualisieren
 if (!isset($error)) {
     try {
-        $newHash = password_hash($newPass1, PASSWORD_DEFAULT);
+        $pdo->beginTransaction();
 
-        $stmt = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-        $stmt->execute([$newHash, $token['user_id']]);
+        $stmt = $pdo->prepare(
+            "SELECT t.id, t.validator_hash, t.user_id, u.username, u.email
+             FROM password_reset_tokens t
+             JOIN users u ON u.id = t.user_id
+             WHERE t.selector = ? AND t.expires_at > NOW()
+             LIMIT 1
+             FOR UPDATE"
+        );
+        $stmt->execute([$selector]);
+        $token = $stmt->fetch();
 
-        // Token löschen (einmalig)
-        $pdo->prepare("DELETE FROM password_reset_tokens WHERE id = ?")->execute([$token['id']]);
+        if (!$token || !hash_equals($token['validator_hash'], hash('sha256', $validator))) {
+            $pdo->rollBack();
+            $error = "Dieser Link ist ungültig oder abgelaufen.";
+        } else {
+            $newHash = password_hash($newPass1, PASSWORD_DEFAULT);
 
-        // Alle Anmeldungen des Users entwerten: password_changed_at setzen
-        // (kippt laufende Sessions auf allen Geräten) + Remember-Tokens löschen
-        invalidate_all_user_sessions($pdo, (int)$token['user_id']);
+            $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?")
+                ->execute([$newHash, $token['user_id']]);
 
-        // Audit-Log
-        $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_RESET_COMPLETED', ?)")
-            ->execute([$token['user_id'], client_ip()]);
+            // Token löschen (einmalig) – sicherheitshalber alle des Users
+            $pdo->prepare("DELETE FROM password_reset_tokens WHERE user_id = ?")
+                ->execute([$token['user_id']]);
 
-        $success = true;
+            // Alle Anmeldungen des Users entwerten: password_changed_at setzen
+            // (kippt laufende Sessions auf allen Geräten) + Remember-Tokens
+            // und Geräte-Cookies löschen
+            invalidate_all_user_sessions($pdo, (int)$token['user_id']);
+
+            $pdo->commit();
+
+            // Audit-Log
+            $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'PASSWORD_RESET_COMPLETED', ?)")
+                ->execute([$token['user_id'], client_ip()]);
+
+            // Inhaber informieren
+            send_password_changed_mail((string)$token['email'], (string)$token['username'], 'reset');
+
+            $success = true;
+        }
 
     } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         error_log('reset_password_submit.php error: ' . $e->getMessage());
         $error = "Fehler beim Speichern. Bitte versuche es erneut.";
     }

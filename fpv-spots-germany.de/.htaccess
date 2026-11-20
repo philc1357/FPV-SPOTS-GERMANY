@@ -27,8 +27,10 @@
     # setcookie() selbst – hier nicht nochmal anhängen (sonst doppelt).
 </IfModule>
 
-# Session-Hardening (wirkt bei mod_php, wird bei PHP-FPM ignoriert –
-# dort greifen die Werte, die zusätzlich über session_init.php gesetzt werden)
+# Session-Hardening (wirkt nur bei mod_php, wird bei PHP-FPM ignoriert).
+# Maßgeblich ist private/php/core/session_init.php: dort werden
+# use_strict_mode/use_only_cookies per ini_set() und die Cookie-Attribute
+# per session_set_cookie_params() unabhängig vom Server-API gesetzt.
 <IfModule mod_php.c>
     php_flag  session.cookie_httponly  On
     php_flag  session.cookie_secure    On

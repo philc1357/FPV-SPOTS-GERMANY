@@ -15,6 +15,8 @@
 //                              sonst CSS-Selektor des Containers (display)
 //   data-action="name"         ruft eine per UiActions.register()
 //                              angemeldete Funktion (el, event) auf
+//   data-password-toggle       Passwortfeld bekommt einen Augen-Button
+//                              zum Ein-/Ausblenden des Passworts
 //
 // Wird über public/includes/foot_assets.php auf jeder Seite geladen.
 // =============================================================
@@ -111,5 +113,71 @@
         document.addEventListener('DOMContentLoaded', checkAlreadyBroken);
     } else {
         checkAlreadyBroken();
+    }
+
+    // ---------------------------------------------------------
+    // Passwort anzeigen/verbergen
+    // Felder mit data-password-toggle werden in eine Bootstrap-
+    // input-group gepackt und erhalten einen Augen-Button. Abstands-
+    // klassen (mb-*) wandern vom Feld auf die Gruppe, damit das
+    // Layout gleich bleibt. Beim Absenden wird das Feld wieder auf
+    // type="password" gesetzt, damit der Browser es korrekt als
+    // Passwort behandelt (Passwort-Manager, Formular-Cache).
+    // ---------------------------------------------------------
+    function setPasswordVisible(input, btn, visible) {
+        input.type = visible ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+        btn.setAttribute('aria-label', visible ? 'Passwort verbergen' : 'Passwort anzeigen');
+        btn.title = btn.getAttribute('aria-label');
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = visible ? 'bi bi-eye-slash' : 'bi bi-eye';
+    }
+
+    function enhancePasswordInput(input) {
+        if (input.dataset.passwordToggleReady) return;
+        input.dataset.passwordToggleReady = '1';
+
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        Array.from(input.classList).forEach(function (cls) {
+            if (/^m[tbsexy]?-\d$/.test(cls)) {
+                input.classList.remove(cls);
+                group.classList.add(cls);
+            }
+        });
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline-secondary';
+        if (input.id) btn.setAttribute('aria-controls', input.id);
+        const icon = document.createElement('i');
+        icon.setAttribute('aria-hidden', 'true');
+        btn.appendChild(icon);
+        setPasswordVisible(input, btn, false);
+
+        btn.addEventListener('click', function () {
+            setPasswordVisible(input, btn, input.type === 'password');
+            input.focus();
+        });
+
+        input.parentNode.insertBefore(group, input);
+        group.appendChild(input);
+        group.appendChild(btn);
+
+        if (input.form) {
+            input.form.addEventListener('submit', function () {
+                setPasswordVisible(input, btn, false);
+            });
+        }
+    }
+
+    function initPasswordToggles() {
+        document.querySelectorAll('input[data-password-toggle]').forEach(enhancePasswordInput);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPasswordToggles);
+    } else {
+        initPasswordToggles();
     }
 })();

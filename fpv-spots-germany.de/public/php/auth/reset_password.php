@@ -57,11 +57,11 @@ if ($selector !== '' && $validator !== '') {
                     <input type="hidden" name="validator" value="<?= htmlspecialchars($validator, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="mb-3">
                         <input id="password" type="password" name="password_field1" class="form-control"
-                               placeholder="Neues Passwort" minlength="8" maxlength="50" required>
+                               placeholder="Neues Passwort" minlength="8" maxlength="72" autocomplete="new-password" data-password-toggle required>
                     </div>
                     <div class="mb-3">
                         <input id="password_confirm" type="password" name="password" class="form-control"
-                               placeholder="Passwort wiederholen" minlength="8" maxlength="50" required>
+                               placeholder="Passwort wiederholen" minlength="8" maxlength="72" autocomplete="new-password" data-password-toggle required>
                         <div id="passwordError" class="text-danger small" style="display: none;">
                             Die Passwörter stimmen nicht überein.
                         </div>

@@ -7,7 +7,21 @@ declare(strict_types=1);
 // =============================================================
 require_once __DIR__ . '/session_guard.php';
 
-if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
+// -------------------------------------------------------------
+// Ablauf:
+//  1. Selector nachschlagen, Validator zeitkonstant vergleichen
+//  2. Session aufbauen (inkl. neuem CSRF-Token, Audit-Log)
+//  3. Token rotieren – mit 60 s Kulanzfenster: der alte Token wird
+//     nicht sofort gelöscht, sondern läuft in 60 s ab. Parallele
+//     Requests mit demselben Cookie (mehrere Tabs nach Browserstart,
+//     PWA) loggen sich so ebenfalls ein, statt das Cookie zu löschen.
+//     Nur der Request, der den Token per UPDATE "beansprucht",
+//     stellt einen neuen aus (rowCount-Prüfung).
+//  4. Validator falsch bei bekanntem Selector -> Manipulation,
+//     Token wird in der DB gelöscht.
+// Ablaufzeiten werden in SQL berechnet (DB = UTC, PHP = Berlin).
+// -------------------------------------------------------------
+if (!isset($_SESSION['user_id']) && is_string($_COOKIE['remember_me'] ?? null) && $_COOKIE['remember_me'] !== '') {
     $parts = explode(':', $_COOKIE['remember_me'], 2);
     if (count($parts) === 2) {
         [$selector, $validator] = $parts;
@@ -18,7 +32,7 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
         }
 
         $stmt = $pdo->prepare(
-            "SELECT rt.id, rt.validator_hash, rt.user_id, rt.expires_at,
+            "SELECT rt.id, rt.validator_hash, rt.user_id,
                     u.username, u.admin, u.terms_accepted_at
              FROM remember_tokens rt
              JOIN users u ON rt.user_id = u.id
@@ -31,54 +45,72 @@ if (!isset($_SESSION['user_id']) && !empty($_COOKIE['remember_me'])) {
         if ($token && hash_equals($token['validator_hash'], hash('sha256', $validator))) {
             // Auto-Login erfolgreich
             session_regenerate_id(true);
-            $_SESSION['user_id']       = (int)$token['user_id'];
-            $_SESSION['username']      = $token['username'];
-            $_SESSION['is_admin']      = (int)$token['admin'] === 1;
-            $_SESSION['terms_ok']      = !empty($token['terms_accepted_at']);
-            $_SESSION['auth_time']     = time();
+            $_SESSION['user_id']    = (int)$token['user_id'];
+            $_SESSION['username']   = $token['username'];
+            $_SESSION['is_admin']   = (int)$token['admin'] === 1;
+            $_SESSION['terms_ok']   = !empty($token['terms_accepted_at']);
+            $_SESSION['auth_time']  = time();
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
             $pdo->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$token['user_id']]);
+            $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'LOGIN_REMEMBER_ME', ?)")
+                ->execute([$token['user_id'], client_ip()]);
 
-            // Token rotieren: alten löschen, neuen erstellen (atomar via Transaktion)
-            $newSelector  = bin2hex(random_bytes(16));
-            $newValidator = bin2hex(random_bytes(32));
-            $expiresAt    = date('Y-m-d H:i:s', time() + 30 * 86400);
-
+            // Token rotieren (atomar via Transaktion)
             $pdo->beginTransaction();
             try {
-                $stmt = $pdo->prepare("DELETE FROM remember_tokens WHERE id = ?");
-                $stmt->execute([$token['id']]);
-
-                $stmt = $pdo->prepare(
-                    "INSERT INTO remember_tokens (selector, validator_hash, user_id, expires_at)
-                     VALUES (?, ?, ?, ?)"
+                // Alten Token "beanspruchen": Restlaufzeit auf 60 s kürzen.
+                // Liegt er schon im Kulanzfenster, hat ein paralleler Request
+                // bereits rotiert -> rowCount 0, kein neuer Token.
+                $claim = $pdo->prepare(
+                    "UPDATE remember_tokens
+                     SET expires_at = DATE_ADD(NOW(), INTERVAL 60 SECOND)
+                     WHERE id = ? AND expires_at > DATE_ADD(NOW(), INTERVAL 60 SECOND)"
                 );
-                $stmt->execute([
-                    $newSelector,
-                    hash('sha256', $newValidator),
-                    $token['user_id'],
-                    $expiresAt,
-                ]);
+                $claim->execute([$token['id']]);
 
-                $pdo->commit();
+                if ($claim->rowCount() === 1) {
+                    $newSelector  = bin2hex(random_bytes(16));
+                    $newValidator = bin2hex(random_bytes(32));
 
-                // Cookie erst nach erfolgreichem DB-Commit setzen
-                setcookie('remember_me', "$newSelector:$newValidator", [
-                    'expires'  => time() + 30 * 86400,
-                    'path'     => '/',
-                    'httponly'  => true,
-                    'secure'   => true,
-                    'samesite' => 'Lax',
-                ]);
+                    $pdo->prepare(
+                        "INSERT INTO remember_tokens (selector, validator_hash, user_id, expires_at)
+                         VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))"
+                    )->execute([
+                        $newSelector,
+                        hash('sha256', $newValidator),
+                        $token['user_id'],
+                    ]);
+
+                    $pdo->commit();
+
+                    // Cookie erst nach erfolgreichem DB-Commit setzen
+                    setcookie('remember_me', "$newSelector:$newValidator", [
+                        'expires'  => time() + 30 * 86400,
+                        'path'     => '/',
+                        'httponly' => true,
+                        'secure'   => true,
+                        'samesite' => 'Lax',
+                    ]);
+                } else {
+                    $pdo->commit();
+                }
             } catch (Exception $e) {
                 $pdo->rollBack();
                 // Alter Cookie bleibt erhalten; Fehler intern loggen
                 error_log('remember_me token rotation failed: ' . $e->getMessage());
             }
         } else {
+            // Bekannter Selector, aber falscher Validator -> Token ist
+            // kompromittiert oder manipuliert: in der DB entwerten
+            if ($token) {
+                $pdo->prepare("DELETE FROM remember_tokens WHERE id = ?")->execute([$token['id']]);
+            }
             // Ungültiges Cookie entfernen
             clear_remember_cookie();
         }
+    } else {
+        clear_remember_cookie();
     }
 }
 

@@ -8,12 +8,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+require_once __DIR__ . "/../core/redirect.php";
+
+// CSRF ungültig (z. B. Session abgelaufen, Seite nicht neu geladen):
+// keine rohe Fehlerseite, sondern zurück zur Startseite. Ohne gültige
+// Session ist man dort ohnehin ausgeloggt.
 if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
-    die('CSRF-Fehler');
+    header('Location: /');
+    exit;
 }
 
 // Remember-Me-Token aus DB und Cookie löschen
-if (!empty($_COOKIE['remember_me'])) {
+if (is_string($_COOKIE['remember_me'] ?? null) && $_COOKIE['remember_me'] !== '') {
     $parts = explode(':', $_COOKIE['remember_me'], 2);
     if (count($parts) === 2) {
         require_once __DIR__ . '/../core/db.php';
@@ -26,11 +32,6 @@ if (!empty($_COOKIE['remember_me'])) {
 // Session-Daten löschen und Session-Cookie im Browser entfernen
 destroy_current_session();
 
-// Redirect-Ziel: nur relative Pfade innerhalb der eigenen Seite erlauben
-$redirect = post_str('redirect');
-if ($redirect !== '' && !preg_match('#^/[a-zA-Z0-9_]+\.php(\?[a-zA-Z0-9_=&]+)?$#', $redirect)) {
-    $redirect = '';
-}
-
-header('Location: ' . ($redirect !== '' ? $redirect : '/'));
+// Redirect-Ziel: gleicher Open-Redirect-Schutz wie beim Login
+header('Location: ' . strip_login_params(safe_redirect_target(post_str('redirect'))));
 exit;
