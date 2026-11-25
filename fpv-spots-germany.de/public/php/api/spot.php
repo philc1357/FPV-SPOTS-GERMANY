@@ -50,7 +50,11 @@ if ($method === 'GET') {
     }
 
     $imgStmt = $pdo->prepare(
-        "SELECT filename FROM spot_images WHERE spot_id = ? ORDER BY created_at DESC LIMIT 3"
+        // Highlights nach Platz zuerst, danach die neuesten Fotos
+        "SELECT filename FROM spot_images
+         WHERE spot_id = ?
+         ORDER BY highlight_pos IS NULL, highlight_pos, created_at DESC, id DESC
+         LIMIT 3"
     );
     $imgStmt->execute([$spotId]);
     $imgs = $imgStmt->fetchAll(PDO::FETCH_COLUMN);

@@ -9,9 +9,20 @@ require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshn
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/youtube_helper.php';
 require_once __DIR__ . '/../core/geozones.php';
+require_once __DIR__ . '/upload_helper.php';
+require_once __DIR__ . '/highlight_helper.php';
+require_once __DIR__ . '/../core/discord.php';
 
 // Nur POST akzeptieren
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: /');
+    exit;
+}
+
+// post_max_size überschritten: PHP verwirft dann den kompletten Body
+// ($_POST und $_FILES leer) – ohne diese Prüfung endete das als CSRF-Fehler.
+if (empty($_POST) && empty($_FILES) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+    $_SESSION['spot_error'] = 'Die Fotos sind zusammen zu groß. Bitte wähle kleinere Bilder (max. 10 MB pro Foto).';
     header('Location: /');
     exit;
 }
@@ -78,6 +89,39 @@ for ($i = 0; $i < $videoCount; $i++) {
     $validVideos[] = ['title' => $title, 'youtube_id' => $youtubeId];
 }
 
+// =============================================================
+// Highlight-Fotos (optional, max. SPOT_HIGHLIGHTS_MAX)
+//
+// Die Dateien selbst prüft upload_store_files() erst nach dem
+// Spot-INSERT (braucht die spot_id). Hier nur Anzahl und die
+// gewünschte Reihenfolge: highlight_order = kommagetrennte
+// Dateiindizes, erster Eintrag = Titelbild. Ungültige, doppelte
+// oder fehlende Indizes werden ignoriert bzw. in Upload-Reihenfolge
+// ergänzt – eine kaputte Reihenfolge verhindert den Spot nicht.
+// =============================================================
+$photoFiles = upload_collect_files('photos');
+$photoCount = count($photoFiles);
+
+$photoOrder = [];
+$rawOrder   = post_str('highlight_order');
+if ($rawOrder !== '' && strlen($rawOrder) <= 20) {
+    foreach (explode(',', $rawOrder) as $part) {
+        $part = trim($part);
+        if ($part === '' || !ctype_digit($part)) {
+            continue;
+        }
+        $idx = (int)$part;
+        if ($idx < $photoCount && !in_array($idx, $photoOrder, true)) {
+            $photoOrder[] = $idx;
+        }
+    }
+}
+foreach (array_keys($photoFiles) as $idx) {
+    if (!in_array($idx, $photoOrder, true)) {
+        $photoOrder[] = $idx;
+    }
+}
+
 // Erlaubte Enum-Werte (muessen mit Formular UND DB-Schema uebereinstimmen)
 $allowedTypes = ['Bando', 'Feld', 'Gebirge', 'Park', 'Wald', 'Windpark', 'Sonstige'];
 $allowedDiff  = ['Anfänger', 'Mittel', 'Fortgeschritten', 'Profi'];
@@ -106,6 +150,9 @@ elseif (!is_numeric($latitude) || !is_numeric($longitude)) {
 }
 elseif ($videoError !== null) {
     $error = $videoError;
+}
+elseif ($photoCount > SPOT_HIGHLIGHTS_MAX) {
+    $error = 'Beim Erstellen sind höchstens ' . SPOT_HIGHLIGHTS_MAX . ' Fotos möglich. Weitere kannst du danach auf der Spot-Seite hochladen.';
 }
 else {
     $lat = (float)$latitude;
@@ -189,12 +236,52 @@ try {
         refresh_spot_zones($pdo, $newSpotId, (float)$lat, (float)$lng);
     }
 
-    header('Location: /');
-    exit;
-
 } catch (PDOException $e) {
     error_log('spot_submit.php error: ' . $e->getMessage());
     $_SESSION['spot_error'] = 'Datenbankfehler. Bitte erneut versuchen.';
     header('Location: /');
     exit;
 }
+
+if ($newSpotId <= 0) {
+    $_SESSION['spot_error'] = 'Datenbankfehler. Bitte erneut versuchen.';
+    header('Location: /');
+    exit;
+}
+
+// =============================================================
+// Highlight-Fotos speichern und als Highlights festlegen
+//
+// Der Spot existiert jetzt. Fehler beim Foto-Teil verwerfen den
+// Spot nicht – sie landen im Upload-Bericht auf der Detailseite,
+// fehlende Fotos lassen sich dort nachreichen.
+// =============================================================
+if ($photoCount > 0) {
+    try {
+        $remaining = upload_remaining_quota($pdo, $userId, !empty($_SESSION['is_admin']));
+        $result    = upload_store_files($pdo, $newSpotId, $userId, $photoFiles, $remaining);
+
+        // Dateiindizes in gewünschter Reihenfolge → gespeicherte Bild-IDs
+        $highlightIds = [];
+        foreach ($photoOrder as $idx) {
+            if (isset($result['ids'][$idx])) {
+                $highlightIds[] = $result['ids'][$idx];
+            }
+        }
+        if ($highlightIds !== []) {
+            spot_set_highlights($pdo, $newSpotId, $highlightIds);
+        }
+
+        upload_store_report($newSpotId, $result['saved'], $result['skipped']);
+    } catch (Throwable $e) {
+        error_log('spot_submit.php photo error: ' . $e->getMessage());
+        upload_store_report($newSpotId, 0, [['name' => 'Fotos', 'reason' => 'Fehler beim Speichern']]);
+    }
+}
+
+// Neuen Spot im Discord ankündigen (nach Request-Ende, best effort)
+discord_notify_new_spot_deferred($pdo, $newSpotId);
+
+// Immer zur neuen Spot-Seite
+header('Location: /spot_detail.php?id=' . $newSpotId);
+exit;

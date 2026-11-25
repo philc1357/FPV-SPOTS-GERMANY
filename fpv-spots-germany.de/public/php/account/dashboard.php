@@ -43,10 +43,11 @@ if (!$userData) {
     exit;
 }
 
-// Eigene Spots laden (neueste zuerst)
+// Eigene Spots laden (neueste zuerst; Cover = Titelbild-Highlight, sonst neuestes Foto)
 $stmt = $pdo->prepare(
     "SELECT s.id, s.name, s.spot_type, s.difficulty, s.created_at,
-            (SELECT si.filename FROM spot_images si WHERE si.spot_id = s.id ORDER BY si.created_at DESC LIMIT 1) AS cover
+            (SELECT si.filename FROM spot_images si WHERE si.spot_id = s.id
+             ORDER BY si.highlight_pos IS NULL, si.highlight_pos, si.created_at DESC, si.id DESC LIMIT 1) AS cover
      FROM spots s
      WHERE s.user_id = ?
      ORDER BY s.created_at DESC"
@@ -57,7 +58,8 @@ $mySpots = $stmt->fetchAll();
 // Favorisierte Spots laden (neueste Favorisierung zuerst)
 $stmt = $pdo->prepare(
     "SELECT s.id, s.name, s.spot_type, s.difficulty, sf.created_at AS favorited_at,
-            (SELECT si.filename FROM spot_images si WHERE si.spot_id = s.id ORDER BY si.created_at DESC LIMIT 1) AS cover
+            (SELECT si.filename FROM spot_images si WHERE si.spot_id = s.id
+             ORDER BY si.highlight_pos IS NULL, si.highlight_pos, si.created_at DESC, si.id DESC LIMIT 1) AS cover
      FROM spot_favorites sf
      JOIN spots s ON sf.spot_id = s.id
      WHERE sf.user_id = ?

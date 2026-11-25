@@ -14,6 +14,7 @@ require_once __DIR__ . "/../../../private/php/core/auth_check.php"; // Remember-
 
 // Datenbankverbindung (von public/php/api/ → 3 Ebenen hoch → ressources/ → private/php/)
 require_once __DIR__ . '/../../../private/php/core/db.php';
+require_once __DIR__ . '/../../../private/php/core/discord.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -175,6 +176,9 @@ if ($method === 'POST') {
         );
         $stmt->execute([$spotId]);
         $spot = $stmt->fetch();
+
+        // Neuen Spot im Discord ankündigen (nach Request-Ende, best effort)
+        discord_notify_new_spot_deferred($pdo, $spotId);
 
         http_response_code(201);
         echo json_encode($spot, JSON_UNESCAPED_UNICODE);

@@ -12,6 +12,7 @@ require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 require_once __DIR__ . '/../../../private/php/core/avatar.php';
 require_once __DIR__ . '/../../../private/php/core/affiliate.php';
 require_once __DIR__ . '/../../../private/php/spots/youtube_helper.php'; // SPOT_VIDEOS_MAX
+require_once __DIR__ . '/../../../private/php/spots/highlight_helper.php'; // spot_hero_images()
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -132,11 +133,11 @@ if ($isLoggedIn) {
 
 // Bilder laden
 $stmt = $pdo->prepare(
-    "SELECT si.id, si.user_id, si.filename, si.created_at, u.username
+    "SELECT si.id, si.user_id, si.filename, si.highlight_pos, si.created_at, u.username
      FROM spot_images si
      JOIN users u ON si.user_id = u.id
      WHERE si.spot_id = ?
-     ORDER BY si.created_at DESC"
+     ORDER BY si.created_at DESC, si.id DESC"
 );
 $stmt->execute([$spotId]);
 $images = $stmt->fetchAll();
@@ -162,6 +163,15 @@ if (is_array($_SESSION['upload_report'] ?? null)) {
     unset($_SESSION['upload_report']);
 }
 $uploadMaxFiles = !empty($_SESSION['is_admin']) ? 0 : 10; // 0 = unbegrenzt (Admin)
+
+// Fehler beim Festlegen der Highlights – nur für diesen Spot, einmalig anzeigen
+$highlightError = null;
+if (is_array($_SESSION['highlight_error'] ?? null)) {
+    if ((int)($_SESSION['highlight_error']['spot_id'] ?? 0) === $spotId) {
+        $highlightError = (string)($_SESSION['highlight_error']['message'] ?? '');
+    }
+    unset($_SESSION['highlight_error']);
+}
 
 // YouTube-Videos laden (inkl. wer sie hinzugefügt hat)
 $stmt = $pdo->prepare(
@@ -233,7 +243,7 @@ $isAdmin    = !empty($_SESSION['is_admin']);
 $canManage  = $isLoggedIn && ($userId === (int)$spot['user_id'] || $isAdmin);
 $avgText    = $avgStars !== null ? number_format($avgStars, 1, ',', '') : null;
 $photoCount = count($images);
-$heroImages = array_slice($images, 0, 3);   // Mosaik: neueste drei Fotos
+$heroImages = spot_hero_images($images);   // Mosaik: gewählte Highlights, aufgefüllt mit den neuesten
 $parkingKnown = ($spot['parking_info'] ?: 'Unbekannt') !== 'Unbekannt';
 
 // Flugstatus in Alltagssprache – Grundlage fuer Hero-Kachel und
@@ -433,6 +443,13 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                                     <i class="bi bi-pencil me-2"></i>Spot bearbeiten
                                 </a>
                             </li>
+                            <?php if ($photoCount > 0): ?>
+                                <li>
+                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#highlightModal">
+                                        <i class="bi bi-stars me-2"></i>Highlights festlegen
+                                    </button>
+                                </li>
+                            <?php endif; ?>
                             <li>
                                 <form method="POST" action="/private/php/spots/delete_spot_submit.php"
                                       data-confirm="Spot wirklich löschen? Alle Kommentare, Bewertungen und Fotos werden ebenfalls gelöscht.">
@@ -450,8 +467,9 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
         </div>
 
         <?php if ($heroImages): ?>
-            <!-- Foto-Mosaik aus den Thumbnails (neueste zuerst). Das erste
-                 Bild ist LCP-Kandidat: kein lazy, hohe Prioritaet. -->
+            <!-- Foto-Mosaik aus den Thumbnails: Highlights nach Platz, sonst
+                 die neuesten. Das erste Bild (Titelbild) ist LCP-Kandidat:
+                 kein lazy, hohe Prioritaet. -->
             <div class="sd-mosaic sd-mosaic--<?= count($heroImages) ?>">
                 <?php foreach ($heroImages as $i => $img):
                     $imgFile = '/public/uploads/imgs/' . basename((string)$img['filename']); ?>
@@ -746,6 +764,12 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                         <p class="fsg-kicker"><?= $photoCount === 1 ? '1 Foto' : $photoCount . ' Fotos' ?></p>
                         <h2 id="fotosTitel" class="fsg-h2">Fotos</h2>
                     </div>
+                    <?php if ($canManage && $photoCount > 0): ?>
+                        <button type="button" class="fsg-btn fsg-btn--sm"
+                                data-bs-toggle="modal" data-bs-target="#highlightModal">
+                            <i class="bi bi-stars me-1" aria-hidden="true"></i>Highlights festlegen
+                        </button>
+                    <?php endif; ?>
                 </header>
 
                 <?php if ($uploadError): ?>
@@ -776,6 +800,12 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                 <?php endif; ?>
                 <?php if (!empty($_GET['photo_rotated'])): ?>
                     <div class="alert alert-success py-2 mb-0" role="alert">Foto gedreht.</div>
+                <?php endif; ?>
+                <?php if (!empty($_GET['highlights_saved'])): ?>
+                    <div class="alert alert-success py-2 mb-0" role="status">Highlights gespeichert.</div>
+                <?php endif; ?>
+                <?php if ($highlightError): ?>
+                    <div class="alert alert-danger py-2 mb-0" role="alert"><?= $e($highlightError) ?></div>
                 <?php endif; ?>
 
                 <?php if ($isLoggedIn): ?>
@@ -841,7 +871,14 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                                          data-hide-on-error=".sd-photo">
                                 </button>
                                 <figcaption>
-                                    <span><?= $e($img['username']) ?> · <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?></span>
+                                    <span>
+                                        <?php if ((int)($img['highlight_pos'] ?? 0) > 0): ?>
+                                            <span class="sd-photo-hl" title="Highlight Platz <?= (int)$img['highlight_pos'] ?><?= (int)$img['highlight_pos'] === 1 ? ' (Titelbild)' : '' ?>">
+                                                <i class="bi bi-star-fill" aria-hidden="true"></i><span class="visually-hidden">Highlight Platz </span><?= (int)$img['highlight_pos'] ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <?= $e($img['username']) ?> · <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
+                                    </span>
                                     <?php if ($canDeleteImg): ?>
                                         <span class="sd-photo-tools">
                                             <?php foreach (['left' => ['counterclockwise', 'Foto nach links drehen'], 'right' => ['clockwise', 'Foto nach rechts drehen']] as $dir => [$icon, $label]): ?>
@@ -1178,6 +1215,17 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
     </div>
 </div>
 <script src="<?= asset('/public/js/pages/spot_detail_photo_modal.js') ?>"></script>
+
+<?php if ($canManage && $photoCount > 0): ?>
+<!-- ============================================================
+     Highlight-Auswahl (nur Spot-Ersteller und Admins)
+============================================================ -->
+<?php
+    $hlRedirect = 'detail';
+    include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/highlight_picker.php';
+?>
+<script src="<?= asset('/public/js/pages/highlight_picker.js') ?>"></script>
+<?php endif; ?>
 
 <?php if ($isLoggedIn): ?>
 <!-- ============================================================

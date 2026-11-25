@@ -9,6 +9,7 @@ import { registerDipulOverlays, initDipulZoomHint } from './layers/dipul.js';
 import { loadAllSpots } from './layers/spots.js';
 import { openSpotDetail, initSpotPanel } from './features/spot_panel.js';
 import { initPlacing } from './features/placing.js';
+import { initCreatePhotos } from './features/create_photos.js';
 import { initLegend } from './features/legend.js';
 import { initLocationRequest } from './features/location.js';
 import { initPilotClassSwitch } from './features/pilot_class.js';
@@ -26,6 +27,7 @@ initDipulZoomHint(map, layerControlBox);
 
 // Features
 initPlacing();
+initCreatePhotos();
 initLegend();
 initPilotClassSwitch();
 initSpotPanel();

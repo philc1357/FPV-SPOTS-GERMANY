@@ -6,6 +6,7 @@ import { config, state } from '../state.js';
 import { hideAlert, getOrCreateOffcanvas } from '../util.js';
 import { showA3Circle, clearA3Circle } from './a3_circle.js';
 import { closeLegend } from './legend.js';
+import { resetCreatePhotos, createPhotosSelected } from './create_photos.js';
 
 // ---------------------------------------------------------------
 // Spot erstellen: Platzierungs-Modus
@@ -22,11 +23,13 @@ function createFormHasData() {
     return form.querySelector('[name="name"]').value.trim() !== '' ||
            form.querySelector('[name="description"]').value.trim() !== '' ||
            form.querySelector('[name="spot_type"]').value !== '' ||
-           form.querySelector('[name="difficulty"]').value !== '';
+           form.querySelector('[name="difficulty"]').value !== '' ||
+           createPhotosSelected();
 }
 
 function applyNewSpotLocation(lat, lng) {
     document.getElementById('createSpotForm').reset();
+    resetCreatePhotos();
     document.getElementById('createLat').value = lat;
     document.getElementById('createLng').value = lng;
     document.getElementById('createCoordsDisplay').textContent = `${lat}, ${lng}`;

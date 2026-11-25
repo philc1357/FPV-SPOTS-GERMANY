@@ -444,6 +444,102 @@ textarea.fsg-field { resize: none; }
     color: var(--fsg-text);
 }
 
+/* ------------------------------------------------------------
+   B9. Highlight-Auswahl (Foto-Kacheln mit Platznummer)
+   Genutzt von public/includes/highlight_picker.php (Detail +
+   Bearbeiten) und der Foto-Vorschau im Erstell-Offcanvas.
+   data-pos="1..3" am .fsg-hl-tile = gewählt; Platz 1 = Titelbild.
+   ------------------------------------------------------------ */
+.fsg-hl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+.fsg-hl-item { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fsg-hl-tile {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    padding: 0;
+    border: 2px solid var(--fsg-line-2);
+    border-radius: var(--fsg-radius-sm);
+    overflow: hidden;
+    background: var(--fsg-surface-2);
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+}
+.fsg-hl-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: .72;
+    transition: opacity .15s, transform .25s ease;
+}
+.fsg-hl-tile:hover { border-color: #3B4E6B; }
+.fsg-hl-tile:hover img { opacity: .9; }
+.fsg-hl-tile:focus-visible { outline: 2px solid var(--fsg-accent); outline-offset: 2px; }
+.fsg-hl-tile[data-pos] {
+    border-color: var(--fsg-accent);
+    box-shadow: 0 0 0 3px rgba(var(--fsg-accent-rgb), .22);
+}
+.fsg-hl-tile[data-pos] img { opacity: 1; }
+
+/* Platznummer oben links */
+.fsg-hl-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: 15px;
+    background: var(--fsg-accent);
+    color: var(--fsg-accent-ink);
+    font-family: var(--fsg-font-head);
+    font-weight: 700;
+    font-size: .95rem;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+}
+.fsg-hl-tile[data-pos] .fsg-hl-badge { display: inline-flex; }
+
+/* Platz 1: Hinweis "Titelbild" am unteren Rand */
+.fsg-hl-tile[data-pos="1"]::after {
+    content: "Titelbild";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 18px 8px 6px;
+    background: linear-gradient(transparent, rgba(10, 14, 21, .85));
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    text-align: left;
+}
+
+/* Kompakt: Vorschau im Erstell-Offcanvas, immer drei Spalten */
+.fsg-hl-grid--compact { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.fsg-hl-grid--compact .fsg-hl-badge { top: 5px; left: 5px; min-width: 24px; height: 24px; font-size: .8rem; }
+.fsg-hl-grid--compact .fsg-hl-tile[data-pos="1"]::after { padding: 12px 6px 4px; font-size: .65rem; }
+
+.fsg-hl-status { min-height: 1.4em; margin: 0 0 10px; font-size: .875rem; color: var(--fsg-muted); }
+
+/* Mit JS steuern die Kacheln die Auswahl, die Selects bleiben nur Formularwert */
+.fsg-hl-form.is-enhanced .fsg-hl-select { display: none; }
+.fsg-hl-select { height: 36px; padding-top: 0; padding-bottom: 0; font-size: .85rem; }
+
+@media (prefers-reduced-motion: reduce) {
+    .fsg-hl-tile, .fsg-hl-tile img { transition: none; }
+}
+
 
 /* ============================================================
    TEIL C – Bootstrap-Feinschliff

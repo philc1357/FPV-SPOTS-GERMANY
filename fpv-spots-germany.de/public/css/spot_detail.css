@@ -524,6 +524,20 @@
     color: var(--fsg-faint);
 }
 .sd-photo figcaption > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Highlight-Markierung (★ Platz) vor Uploader + Datum */
+.sd-photo-hl {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-right: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(var(--fsg-accent-rgb), .14);
+    color: var(--fsg-accent-hi);
+    font-weight: 600;
+    font-size: .75rem;
+}
+.sd-photo-hl .bi { font-size: .7rem; }
 .sd-photo-tools { display: inline-flex; flex-shrink: 0; }
 .sd-photo-tools form { display: inline; }
 

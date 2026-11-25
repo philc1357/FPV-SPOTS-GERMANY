@@ -257,7 +257,7 @@ if (!empty($_SESSION['spot_error'])) {
     <div class="offcanvas-body overflow-auto">
         <div id="createErrorAlert"   class="alert alert-danger  d-none" role="alert"></div>
         <div id="createSuccessAlert" class="alert alert-success d-none" role="alert"></div>
-        <form id="createSpotForm" action="/private/php/spots/spot_submit.php" method="POST" novalidate>
+        <form id="createSpotForm" action="/private/php/spots/spot_submit.php" method="POST" enctype="multipart/form-data" novalidate>
             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
             <!-- Koordinaten werden per JS befüllt -->
             <input type="hidden" id="createLat" name="latitude">
@@ -334,6 +334,30 @@ if (!empty($_SESSION['spot_error'])) {
                               rows="2" maxlength="500" disabled></textarea>
                 </div>
 
+
+                <!-- ============================================================
+                     Highlight-Fotos (optional, max. 3)
+                     Werden die Highlight-Bilder des Spots, das erste ist das
+                     Titelbild. Vorschau + Titelbild-Wahl per create_photos.js,
+                     Reihenfolge geht als highlight_order (Dateiindizes) mit.
+                     Weitere Fotos später auf der Spot-Detailseite.
+                ============================================================ -->
+                <div class="col-12">
+                    <label for="createPhotos" class="form-label small fw-semibold">
+                        Highlight-Fotos <span class="text-secondary fw-normal">(optional, max. 3)</span>
+                    </label>
+                    <input type="file" name="photos[]" id="createPhotos" class="form-control"
+                           accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple
+                           data-max-files="3" data-max-size="<?= 10 * 1024 * 1024 ?>"
+                           aria-describedby="createPhotosHint">
+                    <div id="createPhotosHint" class="form-text text-secondary">
+                        Diese Fotos werden die Highlight-Bilder deines Spots – das erste ist das Titelbild.
+                        Weitere Fotos kannst du danach auf der Spot-Seite hochladen. JPG oder PNG, bis 10 MB pro Bild.
+                    </div>
+                    <div id="createPhotosInfo" class="small mt-2" aria-live="polite"></div>
+                    <div id="createPhotosPreview" class="fsg-hl-grid fsg-hl-grid--compact mt-2" hidden></div>
+                    <input type="hidden" name="highlight_order" id="createHighlightOrder" value="">
+                </div>
 
                 <!-- ============================================================
                      YouTube-Video-Links (optional, max. 20)

@@ -57,7 +57,15 @@ UMAMI_WEBSITE_ID=00000000-0000-0000-0000-000000000000
 UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js
 UMAMI_COLLECT_HOST=https://gateway.umami.is
 UMAMI_IP_MODE=truncate
+
+# Discord-Webhook für "Neuer Spot angelegt" (leer = abgeschaltet)
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/<id>/<token>
 ```
+
+`DISCORD_WEBHOOK_URL` kündigt jeden neuen Spot (Formular und `POST /api/spots.php`)
+als Embed im Community-Discord an (`private/php/core/discord.php`). Der Versand
+läuft nach Request-Ende, ermittelt dabei gleich das Bundesland und ist "best
+effort": Fehler landen nur im `error_log`. Links und Bilder nutzen `APP_BASE_URL`.
 
 `APP_BASE_URL` ist die eigene Origin ohne Pfad. Sie wird bewusst **nicht** aus
 `$_SERVER['HTTP_HOST']` abgeleitet: der Host-Header ist Nutzereingabe, und der

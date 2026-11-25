@@ -404,6 +404,16 @@ $csrfToken  = $_SESSION['csrf_token'];
                 <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – Finanzierung des Betriebs dieser Website.</p>
             </section>
 
+            <!-- 16g. Ankündigung neuer Spots im Discord -->
+            <section aria-labelledby="discord-webhook">
+                <h2 id="discord-webhook" class="h5 mt-4">16g. Ankündigung neuer Spots auf unserem Discord-Server</h2>
+                <p>Wenn Sie einen neuen Spot anlegen, kündigen wir ihn automatisch in einem Kanal unseres Community-Discord-Servers an. Dazu übermittelt unser Server (nicht Ihr Browser) einmalig folgende Angaben an Discord: Name, Beschreibung, Kategorie und Schwierigkeit des Spots, das Bundesland, in dem er liegt, Ihren <strong>Benutzernamen</strong> als Ersteller, einen Link zur Spot-Seite sowie gegebenenfalls die Adresse des Titelbilds. Discord lädt dieses Bild anschließend von unserem Server. Ihre E-Mail-Adresse, Ihre IP-Adresse und die genauen Koordinaten des Spots werden nicht übermittelt.</p>
+                <p>Diese Angaben sind ohnehin öffentlich auf der Spot-Seite sichtbar. Die Nachricht im Discord bleibt bestehen, auch wenn der Spot später geändert oder gelöscht wird. Auf Anfrage über das <a href="/kontakt.php">Kontaktformular</a> entfernen wir sie.</p>
+                <p><strong>Bundesland:</strong> Um das Bundesland zu bestimmen, sendet unser Server beim Anlegen die Koordinate des Spots an den Dienst Nominatim der OpenStreetMap Foundation. Dabei werden keine Daten über Sie übertragen.</p>
+                <p><strong>Empfänger und Drittlandübermittlung:</strong> Discord Inc., San Francisco, USA. Discord ist unter dem EU-US Data Privacy Framework zertifiziert. Datenschutzerklärung: <a href="https://discord.com/privacy" target="_blank" rel="noopener noreferrer">discord.com/privacy</a>.</p>
+                <p><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) – die Community über neue Spots informieren und die Plattform bekannter machen.</p>
+            </section>
+
             <!-- 17. Standortfreigabe -->
             <section aria-labelledby="standort">
                 <h2 id="standort" class="h5 mt-4">17. Standortfreigabe (Geolocation)</h2>
@@ -479,7 +489,7 @@ $csrfToken  = $_SESSION['csrf_token'];
             <!-- 22. Aktualität -->
             <section aria-labelledby="aktualitaet">
                 <h2 id="aktualitaet" class="h5 mt-4">22. Aktualität und Änderung dieser Datenschutzerklärung</h2>
-                <p>Diese Datenschutzerklärung ist aktuell gültig und hat den Stand Mai 2026.</p>
+                <p>Diese Datenschutzerklärung ist aktuell gültig und hat den Stand November 2026.</p>
                 <p>Durch die Weiterentwicklung unserer Website oder aufgrund geänderter gesetzlicher Vorgaben kann es notwendig werden, diese Datenschutzerklärung zu ändern. Die jeweils aktuelle Fassung kann jederzeit auf dieser Seite abgerufen werden.</p>
             </section>
 

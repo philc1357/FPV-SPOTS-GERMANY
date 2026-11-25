@@ -14,11 +14,9 @@ require_once __DIR__ . "/../core/session_init.php";
 require_once __DIR__ . "/../core/auth_check.php"; // Remember-Me, Session-Freshness, Admin-Status, ToS-Wall
 
 require_once __DIR__ . '/../core/db.php';
-require_once __DIR__ . '/../core/image_utils.php';
+require_once __DIR__ . '/upload_helper.php'; // Prüfung/Speicherung, UPLOAD_MAX_PER_HOUR, UPLOAD_MAX_SIZE
 
 const UPLOAD_MAX_FILES_PER_REQUEST = 10;
-const UPLOAD_MAX_PER_HOUR          = 50;
-const UPLOAD_MAX_SIZE              = 10 * 1024 * 1024; // 10 MB
 const UPLOAD_REPORT_MAX_SKIPPED    = 50;
 
 $isAjax = post_str('ajax') === '1';
@@ -46,17 +44,6 @@ function upload_fail(bool $isAjax, int $spotId, string $message, int $status): n
         $_SESSION['upload_error'] = $message;
     }
     upload_respond($isAjax, $spotId, ['ok' => false, 'error' => $message, 'saved' => 0, 'skipped' => []], $status);
-}
-
-// Dateinamen für die Anzeige entschärfen (Ausgabe erfolgt später escaped)
-function upload_display_name(string $name): string
-{
-    $name = basename(str_replace('\\', '/', $name));
-    $name = preg_replace('/[\x00-\x1F\x7F]/u', '', $name) ?? '';
-    if ($name === '') {
-        return 'Unbenannte Datei';
-    }
-    return mb_strlen($name) > 100 ? mb_substr($name, 0, 100) . '…' : $name;
 }
 
 // =============================================================
@@ -93,22 +80,10 @@ if (!$stmt->fetch()) {
 }
 
 // =============================================================
-// Dateien einsammeln (photos[] normalisieren)
+// Dateien einsammeln, Stundenkontingent, prüfen und speichern
+// (gemeinsame Logik in upload_helper.php)
 // =============================================================
-$files = [];
-if (isset($_FILES['photos']) && is_array($_FILES['photos']['name'] ?? null)) {
-    $count = count($_FILES['photos']['name']);
-    for ($i = 0; $i < $count; $i++) {
-        $files[] = [
-            'name'     => (string)($_FILES['photos']['name'][$i] ?? ''),
-            'tmp_name' => (string)($_FILES['photos']['tmp_name'][$i] ?? ''),
-            'size'     => (int)($_FILES['photos']['size'][$i] ?? 0),
-            'error'    => (int)($_FILES['photos']['error'][$i] ?? UPLOAD_ERR_NO_FILE),
-        ];
-    }
-}
-// Leere Datei-Slots (kein Datei gewählt) ignorieren
-$files = array_values(array_filter($files, fn($f) => $f['error'] !== UPLOAD_ERR_NO_FILE));
+$files = upload_collect_files('photos');
 
 if ($files === []) {
     upload_fail($isAjax, $spotId, 'Keine Datei ausgewählt oder Gesamtgröße zu hoch.', 400);
@@ -118,123 +93,13 @@ if (!$isAdmin && count($files) > UPLOAD_MAX_FILES_PER_REQUEST) {
     upload_fail($isAjax, $spotId, 'Maximal ' . UPLOAD_MAX_FILES_PER_REQUEST . ' Bilder pro Upload erlaubt.', 400);
 }
 
-// =============================================================
-// Rate-Limit: verbleibendes Stundenkontingent (Admins unbegrenzt)
-// =============================================================
-$remaining = PHP_INT_MAX;
-if (!$isAdmin) {
-    $rl = $pdo->prepare(
-        "SELECT COUNT(*) FROM audit_logs
-         WHERE action = 'IMAGE_UPLOADED' AND user_id = ?
-           AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)"
-    );
-    $rl->execute([$userId]);
-    $remaining = max(0, UPLOAD_MAX_PER_HOUR - (int)$rl->fetchColumn());
-}
+$result = upload_store_files($pdo, $spotId, $userId, $files, upload_remaining_quota($pdo, $userId, $isAdmin));
+$saved       = $result['saved'];
+$skipped     = $result['skipped'];
+$rateLimited = $result['rate_limited'];
 
-// =============================================================
-// Dateien einzeln prüfen und speichern
-// =============================================================
-$uploadDir = __DIR__ . '/../../../public/uploads/imgs/';
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-}
-
-$allowedMime = ['image/jpeg', 'image/png'];
-$allowedExt  = ['jpg', 'jpeg', 'png'];
-$finfo       = new finfo(FILEINFO_MIME_TYPE);
-$rateLimited = false;
-$saved       = 0;
-$skipped     = [];
-
-$insertImg = $pdo->prepare("INSERT INTO spot_images (spot_id, user_id, filename) VALUES (?, ?, ?)");
-$insertLog = $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address) VALUES (?, 'IMAGE_UPLOADED', ?)");
-
-foreach ($files as $file) {
-    $displayName = upload_display_name($file['name']);
-    $skip = static function (string $reason) use (&$skipped, $displayName): void {
-        $skipped[] = ['name' => $displayName, 'reason' => $reason];
-    };
-
-    // --- Stundenlimit ---
-    if ($saved >= $remaining) {
-        $rateLimited = true;
-        $skip('Stundenlimit erreicht (' . UPLOAD_MAX_PER_HOUR . ' Bilder pro Stunde)');
-        continue;
-    }
-
-    // --- PHP-Upload-Fehler (u. a. Server-Größenlimit) ---
-    if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
-        $skip('Datei zu groß (max. 10 MB)');
-        continue;
-    }
-    if ($file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
-        $skip('Upload-Fehler');
-        continue;
-    }
-
-    // --- Größe ---
-    if ($file['size'] > UPLOAD_MAX_SIZE) {
-        $skip('Datei zu groß (max. 10 MB)');
-        continue;
-    }
-
-    // --- Typ: Inhalt (MIME) und Endung ---
-    $mimeType = (string)$finfo->file($file['tmp_name']);
-    $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if (!in_array($mimeType, $allowedMime, true) || !in_array($ext, $allowedExt, true)) {
-        $skip('Kein erlaubtes Format (nur JPG/PNG)');
-        continue;
-    }
-
-    // --- Bild tatsächlich lesbar? ---
-    if (getimagesize($file['tmp_name']) === false) {
-        $skip('Keine gültige Bilddatei');
-        continue;
-    }
-    if (!image_dimensions_ok($file['tmp_name'])) {
-        $skip('Bild zu groß (Auflösung)');
-        continue;
-    }
-
-    // --- Speichern (EXIF entfernen) + Thumbnail ---
-    $newFilename = bin2hex(random_bytes(16)) . '.' . $ext;
-    $destination = $uploadDir . $newFilename;
-
-    if (!strip_exif_and_save($file['tmp_name'], $destination, $mimeType)) {
-        error_log('upload_submit.php: Speichern fehlgeschlagen fuer ' . $newFilename);
-        $skip('Fehler beim Speichern');
-        continue;
-    }
-
-    // Schlägt das Thumbnail fehl, bleibt der Upload gültig (Anzeige nutzt Original)
-    if (!create_thumbnail($destination, thumb_path($destination))) {
-        error_log('upload_submit.php: Thumbnail fehlgeschlagen fuer ' . $newFilename);
-    }
-
-    // --- DB-Eintrag + Audit-Log ---
-    try {
-        $insertImg->execute([$spotId, $userId, $newFilename]);
-        $insertLog->execute([$userId, client_ip()]);
-        $saved++;
-    } catch (PDOException $e) {
-        @unlink($destination);
-        @unlink(thumb_path($destination));
-        error_log('upload_submit.php error: ' . $e->getMessage());
-        $skip('Datenbankfehler');
-    }
-}
-
-// =============================================================
 // Ergebnis in der Session sammeln (Anzeige nach Reload)
-// =============================================================
-$report = $_SESSION['upload_report'] ?? null;
-if (!is_array($report) || (int)($report['spot_id'] ?? 0) !== $spotId) {
-    $report = ['spot_id' => $spotId, 'saved' => 0, 'skipped' => []];
-}
-$report['saved']  += $saved;
-$report['skipped'] = array_slice(array_merge($report['skipped'], $skipped), 0, UPLOAD_REPORT_MAX_SKIPPED);
-$_SESSION['upload_report'] = $report;
+upload_store_report($spotId, $saved, $skipped, UPLOAD_REPORT_MAX_SKIPPED);
 
 upload_respond($isAjax, $spotId, [
     'ok'           => true,

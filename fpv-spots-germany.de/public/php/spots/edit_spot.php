@@ -18,6 +18,7 @@ if (empty($_SESSION['csrf_token'])) {
 require_once __DIR__ . '/../../../private/php/core/db.php';
 require_once __DIR__ . '/../../../private/php/core/image_utils.php';
 require_once __DIR__ . '/../../../private/php/spots/youtube_helper.php'; // SPOT_VIDEOS_MAX
+require_once __DIR__ . '/../../../private/php/spots/highlight_helper.php';
 
 $userId    = (int)$_SESSION['user_id'];
 $username  = htmlspecialchars($_SESSION['username'] ?? '', ENT_QUOTES, 'UTF-8');$csrfToken = $_SESSION['csrf_token'];
@@ -43,10 +44,12 @@ if (!$spot || ((int)$spot['user_id'] !== $userId && !$isAdmin)) {
 $success      = isset($_GET['success']);
 $photoDeleted = isset($_GET['photo_deleted']);
 
-// Fotos des Spots laden
+// Fotos des Spots laden (inkl. Highlight-Platz)
 $stmt = $pdo->prepare(
-    "SELECT id, user_id, filename, created_at FROM spot_images
-     WHERE spot_id = ? ORDER BY created_at DESC"
+    "SELECT si.id, si.user_id, si.filename, si.highlight_pos, si.created_at, u.username
+     FROM spot_images si
+     JOIN users u ON si.user_id = u.id
+     WHERE si.spot_id = ? ORDER BY si.created_at DESC, si.id DESC"
 );
 $stmt->execute([$spotId]);
 $images = $stmt->fetchAll();
@@ -56,6 +59,15 @@ $images = array_values(array_filter(
     $images,
     fn($img) => is_file($uploadDir . $img['filename'])
 ));
+
+// Fehler beim Festlegen der Highlights – nur für diesen Spot, einmalig anzeigen
+$highlightError = null;
+if (is_array($_SESSION['highlight_error'] ?? null)) {
+    if ((int)($_SESSION['highlight_error']['spot_id'] ?? 0) === $spotId) {
+        $highlightError = (string)($_SESSION['highlight_error']['message'] ?? '');
+    }
+    unset($_SESSION['highlight_error']);
+}
 
 // -------------------------------------------------------------
 // Bestehende YouTube-Videos laden und nach Besitz aufteilen:
@@ -271,9 +283,27 @@ $videoError = isset($_GET['video_error']);
                 ==================================================== -->
                 <section id="photos" class="card card-dark text-light p-3 mt-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h2 class="h5 mb-0">Fotos</h2>
-                        <span class="badge bg-primary"><?= count($images) ?></span>
+                        <h2 class="h5 mb-0">Fotos <span class="badge bg-primary align-middle ms-1"><?= count($images) ?></span></h2>
+                        <?php if (!empty($images)): ?>
+                            <button type="button" class="btn btn-outline-light btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#highlightModal">
+                                <i class="bi bi-stars me-1" aria-hidden="true"></i>Highlights festlegen
+                            </button>
+                        <?php endif; ?>
                     </div>
+                    <?php if (!empty($images)): ?>
+                        <p class="small text-secondary">
+                            Die bis zu 3 Highlights erscheinen oben auf der Spot-Seite, Platz 1 ist das Titelbild.
+                            Ohne Auswahl werden die neuesten Fotos gezeigt.
+                        </p>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['highlights_saved'])): ?>
+                        <div class="alert alert-success py-2" role="status">Highlights gespeichert.</div>
+                    <?php endif; ?>
+                    <?php if ($highlightError): ?>
+                        <div class="alert alert-danger py-2" role="alert"><?= htmlspecialchars($highlightError, ENT_QUOTES, 'UTF-8') ?></div>
+                    <?php endif; ?>
 
                     <?php if ($photoDeleted): ?>
                         <div class="alert alert-success py-2" role="alert">Foto erfolgreich gelöscht.</div>
@@ -302,6 +332,11 @@ $videoError = isset($_GET['video_error']);
                                          style="width:100%; height:140px; object-fit:cover;"
                                          data-hide-on-error=".col-6">
                                     <small class="text-secondary d-block mt-1">
+                                        <?php if ((int)($img['highlight_pos'] ?? 0) > 0): ?>
+                                            <span class="badge bg-warning text-dark me-1" title="Highlight Platz <?= (int)$img['highlight_pos'] ?>">
+                                                <i class="bi bi-star-fill" aria-hidden="true"></i><span class="visually-hidden">Highlight Platz </span> <?= (int)$img['highlight_pos'] ?>
+                                            </span>
+                                        <?php endif; ?>
                                         <?= $img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt' ?>
                                     </small>
                                     <?php if ($canManageImg): ?>
@@ -343,8 +378,22 @@ $videoError = isset($_GET['video_error']);
     </div>
 </main>
 
+<?php if (!empty($images)): ?>
+<!-- ============================================================
+     Highlight-Auswahl (Spot-Ersteller und Admins – Seite ist bereits
+     auf diese beiden beschränkt)
+============================================================ -->
+<?php
+    $hlRedirect = 'edit';
+    include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/highlight_picker.php';
+?>
+<?php endif; ?>
+
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/public/includes/foot_assets.php'; ?>
 <script src="<?= asset('/public/js/pages/edit_spot.js') ?>"></script>
+<?php if (!empty($images)): ?>
+<script src="<?= asset('/public/js/pages/highlight_picker.js') ?>"></script>
+<?php endif; ?>
 
 </body>
 </html>
