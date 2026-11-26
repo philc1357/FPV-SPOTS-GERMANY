@@ -22,7 +22,7 @@ $hlE = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content fsg-modal">
             <form method="POST" action="/private/php/spots/highlights_submit.php"
-                  class="fsg-hl-form" id="highlightForm"
+                  class="fsg-hl-form d-flex flex-column overflow-hidden" id="highlightForm"
                   data-max="<?= (int)SPOT_HIGHLIGHTS_MAX ?>">
                 <div class="modal-header">
                     <h2 class="modal-title h5" id="highlightModalLabel"><i class="bi bi-stars me-2" aria-hidden="true"></i>Highlights festlegen</h2>
