@@ -852,6 +852,9 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                         <?php foreach ($images as $img):
                             $imgFile  = '/public/uploads/imgs/' . basename((string)$img['filename']);
                             $imgAlt   = 'Foto von ' . $spot['name'] . ', hochgeladen von ' . $img['username'];
+                            // Bildunterschrift in der Lightbox (Uploader · Datum)
+                            $imgCaption = $img['username'] . ' · '
+                                . ($img['created_at'] ? date('d.m.Y', strtotime((string)$img['created_at'])) : 'Unbekannt');
                             // Löschen/Drehen: nur Uploader oder Admin (nicht der Spot-Ersteller)
                             $canDeleteImg = $isLoggedIn && (
                                 $userId === (int)($img['user_id'] ?? 0)
@@ -864,6 +867,7 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
                                         data-bs-target="#photoModal"
                                         data-img-src="<?= $e($imgFile) ?>"
                                         data-img-alt="<?= $e($imgAlt) ?>"
+                                        data-img-caption="<?= $e($imgCaption) ?>"
                                         aria-label="Foto vergrößern">
                                     <img src="<?= $e(thumb_url($imgFile)) ?>"
                                          alt="<?= $e($imgAlt) ?>"
@@ -1199,17 +1203,43 @@ if ($a3Hint !== null && ($a3Hint['paragraf'] ?? '') !== '') {
 <script src="<?= asset('/public/js/pages/spot_detail_upload.js') ?>"></script>
 
 <!-- ============================================================
-     Foto-Popup-Modal (Lightbox)
+     Foto-Lightbox (Vollbild-Galerie)
+     Füllt das ganze Fenster; der Vollbild-Button schaltet zusätzlich
+     echtes Browser-Vollbild (Fullscreen-API). Blättern per Pfeil-
+     Buttons, Pfeiltasten und Wischen – Logik in
+     spot_detail_photo_modal.js, Galerie-Quelle sind die .sd-photo-btn.
 ============================================================ -->
 <div class="modal fade" id="photoModal" data-bs-theme="dark" tabindex="-1" aria-labelledby="photoModalLabel" aria-modal="true" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content fsg-modal">
-            <div class="modal-header">
-                <h2 class="modal-title h5" id="photoModalLabel"><i class="bi bi-image me-2"></i><?= $e($spot['name']) ?></h2>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content sd-lightbox">
+            <!-- Overlay-Leiste: Titel, Zähler, Uploader, Vollbild, Schließen -->
+            <div class="sd-lightbox-bar">
+                <div class="sd-lightbox-info">
+                    <h2 class="sd-lightbox-title" id="photoModalLabel"><?= $e($spot['name']) ?></h2>
+                    <p class="sd-lightbox-meta">
+                        <span id="photoModalCounter" aria-live="polite"></span>
+                        <span id="photoModalCaption"></span>
+                    </p>
+                </div>
+                <div class="sd-lightbox-actions">
+                    <button type="button" class="sd-lightbox-btn" id="photoModalFs" aria-label="Vollbild" title="Vollbild" hidden>
+                        <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="sd-lightbox-btn" data-bs-dismiss="modal" aria-label="Schließen" title="Schließen (Esc)">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
             </div>
-            <div class="modal-body text-center p-2">
-                <img id="photoModalImg" src="" alt="" class="img-fluid rounded mx-auto d-block">
+
+            <!-- Bildfläche mit Blätter-Buttons -->
+            <div class="sd-lightbox-stage" id="photoModalStage">
+                <img id="photoModalImg" src="" alt="" decoding="async">
+                <button type="button" class="sd-lightbox-btn sd-lightbox-nav sd-lightbox-nav--prev" id="photoModalPrev" aria-label="Vorheriges Foto" title="Vorheriges Foto (←)">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="sd-lightbox-btn sd-lightbox-nav sd-lightbox-nav--next" id="photoModalNext" aria-label="Nächstes Foto" title="Nächstes Foto (→)">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
             </div>
         </div>
     </div>
