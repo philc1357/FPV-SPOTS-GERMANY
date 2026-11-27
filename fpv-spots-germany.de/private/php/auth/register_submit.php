@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 // post_str(): ein Array als redirect würde unter strict_types sonst einen TypeError (500) auslösen
 $redirectRaw = post_str('redirect', '/');
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
+if (!csrf_valid(post_str('csrf_token'))) {
     register_flash_redirect('danger', 'Sicherheits-Token ungültig. Bitte Seite neu laden.', $redirectRaw, true);
 }
 

@@ -13,7 +13,7 @@ require_once __DIR__ . "/../core/redirect.php";
 // CSRF ungültig (z. B. Session abgelaufen, Seite nicht neu geladen):
 // keine rohe Fehlerseite, sondern zurück zur Startseite. Ohne gültige
 // Session ist man dort ohnehin ausgeloggt.
-if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
+if (!csrf_valid(post_str('csrf_token'))) {
     header('Location: /');
     exit;
 }

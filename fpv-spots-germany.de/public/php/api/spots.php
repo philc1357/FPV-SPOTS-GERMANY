@@ -106,7 +106,7 @@ if ($method === 'POST') {
 
     // CSRF-Token prüfen
     $csrfToken = post_str('csrf_token');
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
+    if (!csrf_valid($csrfToken)) {
         http_response_code(403);
         echo json_encode(['error' => 'Ungültiger CSRF-Token.']);
         exit;

@@ -16,3 +16,21 @@ if (!function_exists('post_str')) {
         return is_string($value) ? $value : $default;
     }
 }
+
+// =============================================================
+// CSRF-Prüfung
+// Leeres/fehlendes Session-Token gilt immer als ungültig – sonst
+// wäre hash_equals('', '') === true: Ein Cross-Site-POST kommt
+// wegen SameSite=Lax ohne Session-Cookie an (leere Session), und
+// das Feld lässt der Angreifer einfach weg (Login-CSRF).
+// Nicht-Strings (Arrays aus POST/JSON) werden abgelehnt statt
+// einen TypeError auszulösen.
+// =============================================================
+if (!function_exists('csrf_valid')) {
+    function csrf_valid(mixed $submitted): bool
+    {
+        $expected = $_SESSION['csrf_token'] ?? '';
+        return is_string($expected) && $expected !== ''
+            && is_string($submitted) && hash_equals($expected, $submitted);
+    }
+}

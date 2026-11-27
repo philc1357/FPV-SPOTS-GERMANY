@@ -23,7 +23,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
+if (!csrf_valid(post_str('csrf_token'))) {
     die('CSRF-Fehler');
 }
 

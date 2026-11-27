@@ -56,7 +56,7 @@ if (!isset($_SESSION['user_id'])) {
     avatar_fail('Nicht eingeloggt.', 401);
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
+if (!csrf_valid(post_str('csrf_token'))) {
     avatar_fail('Sitzung abgelaufen. Bitte Seite neu laden.', 403);
 }
 

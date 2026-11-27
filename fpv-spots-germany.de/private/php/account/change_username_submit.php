@@ -28,7 +28,7 @@ declare(strict_types=1);
     $currentPw   = post_str('current_password');
 
     // 4. Server-seitige Validierung
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
+    if (!csrf_valid(post_str('csrf_token'))) {
         die("CSRF-Fehler");
     }
 

@@ -58,7 +58,7 @@ if (!isset($_SESSION['user_id'])) {
     upload_fail($isAjax, 0, 'Nicht angemeldet.', 401);
 }
 
-if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
+if (!csrf_valid(post_str('csrf_token'))) {
     if ($isAjax) {
         upload_fail(true, 0, 'Sitzung abgelaufen. Bitte Seite neu laden.', 403);
     }

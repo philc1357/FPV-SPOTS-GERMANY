@@ -34,8 +34,7 @@ if ($method === 'GET') {
     $body = json_decode(file_get_contents('php://input'), true);
 
     // CSRF-Validierung
-    $csrfToken = $_SESSION['csrf_token'] ?? '';
-    if (!hash_equals($csrfToken, $body['csrf_token'] ?? '')) {
+    if (!csrf_valid($body['csrf_token'] ?? null)) {
         http_response_code(403);
         echo json_encode(['error' => 'Ungültiger CSRF-Token.']);
         exit;

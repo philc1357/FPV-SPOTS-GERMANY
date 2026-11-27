@@ -39,7 +39,7 @@ declare(strict_types=1);
     $loginInput    = trim(post_str('username'));
     $passwordInput = post_str('password');
 
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', post_str('csrf_token'))) {
+    if (!csrf_valid(post_str('csrf_token'))) {
         login_fail('Sicherheits-Token ungültig. Bitte Seite neu laden.', $redirect);
     }
 
@@ -83,7 +83,13 @@ declare(strict_types=1);
         // (Schutz gegen Password-Spraying via Botnetz). Browser mit
         // gültigem Geräte-Cookie für dieses Konto sind ausgenommen –
         // sonst könnte jeder ein fremdes Konto dauerhaft aussperren.
+        // Die Sperre meldet sich bewusst NICHT eigens: Eine eigene
+        // Meldung gäbe es nur bei existierenden Konten und würde so
+        // verraten, ob eine E-Mail/ein Benutzername registriert ist.
+        // Gesperrte Versuche laufen deshalb durch den normalen
+        // Fehlerzweig (gleiche Meldung, gleiche Laufzeit).
         // =====================================================
+        $accountLocked = false;
         if ($user && !has_valid_device_cookie($pdo, (int)$user['id'])) {
             $acctStmt = $pdo->prepare(
                 "SELECT COUNT(*) FROM audit_logs
@@ -92,17 +98,19 @@ declare(strict_types=1);
                    AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)"
             );
             $acctStmt->execute([$user['id']]);
-            if ((int)$acctStmt->fetchColumn() >= 10) {
-                login_fail('Zu viele Fehlversuche für dieses Konto. Bitte warte 15 Minuten.', $redirect);
-            }
+            $accountLocked = (int)$acctStmt->fetchColumn() >= 10;
         }
 
         // =====================================================
-        // Passwort-Check (bei unbekanntem Konto gegen Dummy-Hash)
+        // Passwort-Check (bei unbekanntem oder gesperrtem Konto
+        // gegen Dummy-Hash, damit die Antwortzeit gleich bleibt)
         // =====================================================
-        $passwordOk = password_verify($passwordInput, $user ? $user['password_hash'] : LOGIN_DUMMY_HASH);
+        $passwordOk = password_verify(
+            $passwordInput,
+            ($user && !$accountLocked) ? $user['password_hash'] : LOGIN_DUMMY_HASH
+        );
 
-        if ($user && $passwordOk) {
+        if ($user && !$accountLocked && $passwordOk) {
             $userId = (int)$user['id'];
 
             // LOGIN ERFOLGREICH
